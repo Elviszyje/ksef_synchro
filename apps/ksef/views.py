@@ -18,10 +18,16 @@ class KSeFConfigView(RoleRequiredMixin, View):
         return KSeFConfig.get_active()
 
     def _get_context(self, form=None, notif_form=None):
+        from django.conf import settings
         obj = self.get_object()
         notif_obj = NotificationConfig.get_active()
+        if form is None:
+            initial = {}
+            if not obj and settings.COMPANY_NIP:
+                initial['nip'] = settings.COMPANY_NIP
+            form = KSeFConfigForm(instance=obj, initial=initial)
         return {
-            'form': form or KSeFConfigForm(instance=obj),
+            'form': form,
             'notif_form': notif_form or NotificationConfigForm(instance=notif_obj),
             'config': obj,
             'notif_config': notif_obj,
