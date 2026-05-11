@@ -24,4 +24,20 @@ except Exception as e:
 done
 
 python manage.py migrate --noinput
+
+if [ -n "$DJANGO_SUPERUSER_USERNAME" ] && [ -n "$DJANGO_SUPERUSER_PASSWORD" ]; then
+  python manage.py shell -c "
+from apps.accounts.models import CustomUser
+if not CustomUser.objects.filter(username='${DJANGO_SUPERUSER_USERNAME}').exists():
+    CustomUser.objects.create_superuser(
+        '${DJANGO_SUPERUSER_USERNAME}',
+        '${DJANGO_SUPERUSER_EMAIL:-}',
+        '${DJANGO_SUPERUSER_PASSWORD}',
+    )
+    print('Superuser created: ${DJANGO_SUPERUSER_USERNAME}')
+else:
+    print('Superuser already exists: ${DJANGO_SUPERUSER_USERNAME}')
+"
+fi
+
 exec "$@"
