@@ -63,7 +63,7 @@ def sync_ksef_invoices(self, force=False):
 
             try:
                 for header in client.iter_purchase_invoices(session_token, date_from, date_to):
-                    ksef_ref = header.get('ksefReferenceNumber', '')
+                    ksef_ref = header.get('ksefNumber') or header.get('ksefReferenceNumber', '')
                     if not ksef_ref:
                         continue
 
