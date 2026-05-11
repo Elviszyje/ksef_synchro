@@ -55,16 +55,21 @@ class KSeFClient:
 
     def _raise_for_status(self, response: httpx.Response):
         if response.status_code >= 400:
+            full_body = response.text[:2000]
+            logger.error('KSeF API %s %s → %s\nBody: %s',
+                         response.request.method, response.url,
+                         response.status_code, full_body)
             try:
                 data = response.json()
                 detail = (
                     data.get('detail')
                     or data.get('message')
+                    or data.get('title')
                     or (data.get('exception', {}).get('exceptionDetailList') or [{}])[0].get('exceptionDescription')
-                    or response.text[:500]
+                    or full_body
                 )
             except Exception:
-                detail = response.text[:500]
+                detail = full_body
             raise KSeFAPIError(
                 f'HTTP {response.status_code}: {detail} [URL: {response.url}]',
                 response.status_code,
@@ -124,6 +129,8 @@ class KSeFClient:
 
         # Krok 2: zaszyfruj token RSA-OAEP i wyślij
         encrypted_token = self._encrypt_token(timestamp_ms)
+        logger.debug('KSeF ksef-token: challenge=%s nip=%s encrypted_len=%d',
+                     challenge, self.nip, len(encrypted_token))
         resp = self._http.post(
             self._url('auth/ksef-token'),
             json={
