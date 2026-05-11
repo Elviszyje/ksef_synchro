@@ -51,7 +51,10 @@ class KSeFClient:
                 detail = response.json().get('exception', {}).get('exceptionDetailList', [{}])[0].get('exceptionDescription', response.text)
             except Exception:
                 detail = response.text[:500]
-            raise KSeFAPIError(f'HTTP {response.status_code}: {detail}', response.status_code)
+            raise KSeFAPIError(
+                f'HTTP {response.status_code}: {detail} [URL: {response.url}]',
+                response.status_code,
+            )
 
     def init_session(self) -> str:
         """
