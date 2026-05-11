@@ -10,7 +10,7 @@ from typing import Iterator
 import httpx
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.x509 import load_pem_x509_certificate
+from cryptography.x509 import load_der_x509_certificate
 
 logger = logging.getLogger(__name__)
 
@@ -76,28 +76,18 @@ class KSeFClient:
             )
 
     def _fetch_public_key(self):
-        """Pobiera klucz publiczny KSeF do szyfrowania tokena."""
+        """Pobiera klucz publiczny KSeF do szyfrowania tokena (format DER/base64)."""
         resp = self._http.get(self._url('security/public-key-certificates'))
         self._raise_for_status(resp)
         data = resp.json()
 
-        # Odpowiedź to lista lub dict z certyfikatem PEM
-        pem = None
-        if isinstance(data, list) and data:
-            entry = data[0]
-            pem = entry.get('certificate') or entry.get('value') or entry.get('cert')
-        elif isinstance(data, dict):
-            pem = data.get('certificate') or data.get('value') or data.get('cert')
+        entry = data[0] if isinstance(data, list) and data else data
+        cert_b64 = entry.get('certificate')
+        if not cert_b64:
+            raise KSeFAuthError(f'Brak pola certificate w odpowiedzi: {entry}')
 
-        if not pem:
-            raise KSeFAuthError(f'Nie udało się pobrać klucza publicznego KSeF: {data}')
-
-        if isinstance(pem, str) and not pem.startswith('-----'):
-            pem = f'-----BEGIN CERTIFICATE-----\n{pem}\n-----END CERTIFICATE-----'
-        if isinstance(pem, str):
-            pem = pem.encode()
-
-        return load_pem_x509_certificate(pem).public_key()
+        cert_der = base64.b64decode(cert_b64)
+        return load_der_x509_certificate(cert_der).public_key()
 
     def _encrypt_token(self, timestamp_ms: int) -> str:
         """Szyfruje '{api_token}|{timestampMs}' RSA-OAEP SHA-256."""
@@ -141,7 +131,12 @@ class KSeFClient:
         )
         self._raise_for_status(resp)
         data = resp.json()
-        auth_token = data.get('authenticationToken')
+        auth_token_obj = data.get('authenticationToken')
+        # authenticationToken to obiekt {"token": "...", "validUntil": "..."}
+        auth_token = (
+            auth_token_obj.get('token') if isinstance(auth_token_obj, dict)
+            else auth_token_obj
+        )
         if not auth_token:
             raise KSeFAuthError(f'Brak authenticationToken w odpowiedzi: {data}')
 
@@ -152,7 +147,12 @@ class KSeFClient:
         )
         self._raise_for_status(resp)
         data = resp.json()
-        access_token = data.get('accessToken')
+        # accessToken to obiekt {"token": "...", "validUntil": "..."} lub string
+        access_token_obj = data.get('accessToken')
+        access_token = (
+            access_token_obj.get('token') if isinstance(access_token_obj, dict)
+            else access_token_obj
+        )
         if not access_token:
             raise KSeFAuthError(f'Brak accessToken w odpowiedzi: {data}')
 
