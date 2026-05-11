@@ -3,10 +3,10 @@ psycopg[binary]==3.*
 celery[redis]==5.*
 django-celery-beat==2.*
 httpx==0.27.*
-lxml==5.*
+lxml==6.*
 openpyxl==3.*
 django-filter==24.*
-cryptography==42.*
+cryptography==46.*
 gunicorn==22.*
 python-decouple==3.*
 django-htmx==1.*
