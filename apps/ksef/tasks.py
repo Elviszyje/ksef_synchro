@@ -8,11 +8,10 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=300, queue='ksef_sync')
-def sync_ksef_invoices(self):
+def sync_ksef_invoices(self, force=False):
     """
     Główne zadanie synchronizacji faktur z KSeF.
-    Wywoływane przez celery-beat co godzinę; pomija wykonanie
-    jeśli od ostatniego syncu nie minął KSeFConfig.sync_interval_hours.
+    force=True pomija guardy sync_enabled, okna czasowego i interwału (ręczne wywołanie).
     """
     from apps.ksef.models import KSeFConfig, KSeFSyncLog
     from apps.ksef.client import KSeFClient, KSeFAPIError, KSeFAuthError
@@ -24,25 +23,24 @@ def sync_ksef_invoices(self):
         logger.warning('KSeF sync: brak konfiguracji')
         return
 
-    if not config.sync_enabled:
-        logger.debug('KSeF sync: wyłączony w konfiguracji')
-        return
-
-    if config.sync_window_start and config.sync_window_end:
-        from datetime import time as dtime
-        now_t = dj_timezone.localtime().time()
-        s, e = config.sync_window_start, config.sync_window_end
-        in_window = (s <= now_t <= e) if s <= e else (now_t >= s or now_t <= e)
-        if not in_window:
-            logger.debug('KSeF sync: poza oknem %s–%s', s, e)
+    if not force:
+        if not config.sync_enabled:
+            logger.debug('KSeF sync: wyłączony w konfiguracji')
             return
 
-    # Sprawdź interwał
-    if config.last_sync_at:
-        elapsed_h = (dj_timezone.now() - config.last_sync_at).total_seconds() / 3600
-        if elapsed_h < config.sync_interval_hours:
-            logger.debug('KSeF sync: za wcześnie (%.1fh < %dh)', elapsed_h, config.sync_interval_hours)
-            return
+        if config.sync_window_start and config.sync_window_end:
+            now_t = dj_timezone.localtime().time()
+            s, e = config.sync_window_start, config.sync_window_end
+            in_window = (s <= now_t <= e) if s <= e else (now_t >= s or now_t <= e)
+            if not in_window:
+                logger.debug('KSeF sync: poza oknem %s–%s', s, e)
+                return
+
+        if config.last_sync_at:
+            elapsed_h = (dj_timezone.now() - config.last_sync_at).total_seconds() / 3600
+            if elapsed_h < config.sync_interval_hours:
+                logger.debug('KSeF sync: za wcześnie (%.1fh < %dh)', elapsed_h, config.sync_interval_hours)
+                return
 
     log = KSeFSyncLog.objects.create(celery_task_id=self.request.id or '')
     parser = FA2Parser()
