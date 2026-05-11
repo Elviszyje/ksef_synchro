@@ -113,11 +113,8 @@ class KSeFClient:
         Autoryzuje się tokenem API KSeF 2.0.
         Zwraca accessToken JWT ważny ~15 minut.
         """
-        # Krok 1: challenge
-        resp = self._http.post(
-            self._url('auth/challenge'),
-            json={'contextIdentifier': {'type': 'onip', 'identifier': self.nip}},
-        )
+        # Krok 1: challenge — brak requestBody
+        resp = self._http.post(self._url('auth/challenge'))
         self._raise_for_status(resp)
         data = resp.json()
         challenge = data.get('challenge')
@@ -131,7 +128,7 @@ class KSeFClient:
             self._url('auth/ksef-token'),
             json={
                 'challenge': challenge,
-                'context': self.nip,
+                'contextIdentifier': {'type': 'Nip', 'value': self.nip},
                 'encryptedToken': encrypted_token,
             },
         )
@@ -175,12 +172,12 @@ class KSeFClient:
 
         while True:
             payload = {
+                'subjectType': 'Subject2',
                 'dateRange': {
+                    'dateType': 'PermanentStorage',
                     'from': date_from.strftime('%Y-%m-%dT%H:%M:%SZ'),
                     'to': date_to.strftime('%Y-%m-%dT%H:%M:%SZ'),
-                    'dateType': 'PermanentStorage',
                 },
-                'buyer': {'nip': self.nip},
                 'pageSize': page_size,
                 'pageOffset': page_offset,
             }

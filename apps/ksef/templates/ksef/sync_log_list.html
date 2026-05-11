@@ -39,8 +39,8 @@
           </td>
           <td class="text-center">{{ log.invoices_fetched }}</td>
           <td class="text-center fw-medium">{{ log.invoices_new }}</td>
-          <td class="text-muted small text-truncate" style="max-width:300px;" title="{{ log.error_message }}">
-            {{ log.error_message|truncatechars:80|default:"—" }}
+          <td class="text-muted small" style="max-width:500px; word-break:break-all;">
+            {{ log.error_message|default:"—" }}
           </td>
         </tr>
         {% empty %}
