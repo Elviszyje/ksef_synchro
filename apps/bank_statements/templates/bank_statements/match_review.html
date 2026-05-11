@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block page_title %}Przegląd dopasowań — {{ statement.file_name }}{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'bank_statements:list' %}" class="btn btn-outline-secondary btn-sm">
+  <i class="bi bi-arrow-left me-1"></i>Powrót
+</a>
+{% if statement.status != 'confirmed' %}
+<form method="post" action="{% url 'bank_statements:confirm' statement.pk %}" class="d-inline">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-success btn-sm"
+          onclick="return confirm('Zatwierdź dopasowania i oznacz faktury jako opłacone?')">
+    <i class="bi bi-check-circle me-1"></i>Zatwierdź i oznacz jako opłacone
+  </button>
+</form>
+{% endif %}
+{% endblock %}
+{% block content %}
+<div class="alert alert-info py-2 small mb-3">
+  <i class="bi bi-info-circle me-1"></i>
+  Kliknij <strong>Potwierdź</strong> przy każdym poprawnym dopasowaniu, następnie kliknij "Zatwierdź i oznacz jako opłacone".
+  Tylko <strong>potwierdzone</strong> dopasowania zmienią status faktur.
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0 align-middle" style="font-size:.875rem;">
+      <thead class="table-light">
+        <tr>
+          <th>Data</th><th>Kwota</th><th>Opis transakcji</th>
+          <th>Dopasowana faktura</th><th>Pewność</th><th class="text-center">Potwierdź</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tx in transactions %}
+        <tr class="{% if tx.is_matched %}table-success-subtle{% endif %}">
+          <td class="small font-monospace">{{ tx.transaction_date|date:"d.m.Y" }}</td>
+          <td class="font-monospace fw-medium {% if not tx.is_debit %}text-success{% else %}text-danger{% endif %}">
+            {% if not tx.is_debit %}+{% else %}-{% endif %}{{ tx.amount|floatformat:2 }} {{ tx.currency }}
+          </td>
+          <td class="text-muted small text-truncate" style="max-width:250px;" title="{{ tx.description }}">
+            {{ tx.description|truncatechars:80 }}
+          </td>
+          <td>
+            {% for match in tx.matches.all %}
+            <div id="match-{{ match.pk }}">
+              {% include "bank_statements/partials/match_row.html" with match=match only %}
+            </div>
+            {% empty %}
+            <span class="text-muted small">Brak dopasowania</span>
+            {% endfor %}
+          </td>
+          <td>
+            {% for match in tx.matches.all %}
+            {% if match.confidence == 'high' %}
+            <span class="badge bg-success-subtle text-success border border-success-subtle small">Pewne</span>
+            {% elif match.confidence == 'medium' %}
+            <span class="badge bg-warning-subtle text-warning border border-warning-subtle small">Możliwe</span>
+            {% else %}
+            <span class="badge bg-danger-subtle text-danger border border-danger-subtle small">Niepewne</span>
+            {% endif %}
+            {% endfor %}
+          </td>
+          <td class="text-center">
+            {% for match in tx.matches.all %}
+            <button
+              hx-post="{% url 'bank_statements:toggle_match' statement.pk match.pk %}"
+              hx-target="#match-{{ match.pk }}"
+              hx-swap="innerHTML"
+              class="btn btn-sm {% if match.is_confirmed %}btn-success{% else %}btn-outline-secondary{% endif %} py-0 px-2"
+              title="{% if match.is_confirmed %}Kliknij aby anulować{% else %}Kliknij aby potwierdzić{% endif %}">
+              <i class="bi {% if match.is_confirmed %}bi-check-circle-fill{% else %}bi-circle{% endif %}"></i>
+            </button>
+            {% endfor %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted py-4">Brak transakcji.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

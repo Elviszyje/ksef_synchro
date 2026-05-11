@@ -1,0 +1,57 @@
+{% load role_tags %}
+<tr id="invoice-row-{{ inv.pk }}" class="{% if inv.is_overdue %}table-warning{% endif %}">
+  <td class="ps-3">
+    <input type="checkbox" class="form-check-input invoice-checkbox" value="{{ inv.pk }}">
+  </td>
+  <td>
+    <a href="{% url 'invoices:detail' inv.pk %}" class="text-decoration-none fw-medium">
+      {{ inv.invoice_number|truncatechars:30 }}
+    </a>
+    {% if inv.is_split_payment %}
+    <span class="badge bg-info-subtle text-info border border-info-subtle ms-1" title="Mechanizm podzielonej płatności">MPP</span>
+    {% endif %}
+  </td>
+  <td class="text-truncate" style="max-width:180px;" title="{{ inv.seller_name }}">{{ inv.seller_name }}</td>
+  <td class="font-monospace text-muted small">{{ inv.seller_nip }}</td>
+  <td class="text-muted small">{{ inv.issue_date|date:"d.m.Y" }}</td>
+  <td class="small {% if inv.is_overdue %}text-danger fw-medium{% else %}text-muted{% endif %}">
+    {% if inv.payment_due_date %}
+      {{ inv.payment_due_date|date:"d.m.Y" }}
+      {% if inv.is_overdue %}<i class="bi bi-exclamation-triangle-fill ms-1"></i>{% endif %}
+    {% else %}—{% endif %}
+  </td>
+  <td class="text-end font-monospace small">{{ inv.amount_net|floatformat:2 }}</td>
+  <td class="text-end font-monospace fw-medium">{{ inv.amount_gross|floatformat:2 }} {{ inv.currency }}</td>
+  <td>
+    <span class="badge bg-{{ inv.get_status_color }}-subtle text-{{ inv.get_status_color }} border border-{{ inv.get_status_color }}-subtle badge-status">
+      {{ inv.get_status_display }}
+    </span>
+  </td>
+  <td class="text-end pe-3">
+    <div class="d-flex gap-1 justify-content-end align-items-center flex-nowrap">
+      {% if inv.status == 'nowa' or inv.status == 'sporna' %}
+      <button class="btn btn-sm btn-outline-success py-0 px-2"
+              hx-post="{% url 'invoices:quick_status' inv.pk %}"
+              hx-vals='{"status": "zaakceptowana"}'
+              hx-target="#invoice-row-{{ inv.pk }}"
+              hx-swap="outerHTML"
+              title="Zaakceptuj">
+        <i class="bi bi-check-lg"></i>
+      </button>
+      {% endif %}
+      {% if inv.status == 'nowa' or inv.status == 'zaakceptowana' %}
+      <button class="btn btn-sm btn-outline-warning py-0 px-2"
+              hx-post="{% url 'invoices:quick_status' inv.pk %}"
+              hx-vals='{"status": "sporna"}'
+              hx-target="#invoice-row-{{ inv.pk }}"
+              hx-swap="outerHTML"
+              title="Oznacz jako sporną">
+        <i class="bi bi-exclamation-circle"></i>
+      </button>
+      {% endif %}
+      <a href="{% url 'invoices:detail' inv.pk %}" class="btn btn-sm btn-outline-secondary py-0 px-2" title="Szczegóły">
+        <i class="bi bi-eye"></i>
+      </a>
+    </div>
+  </td>
+</tr>

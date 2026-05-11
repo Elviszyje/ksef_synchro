@@ -1,0 +1,62 @@
+version: '3.9'
+
+x-app-common: &app-common
+  build:
+    context: .
+    dockerfile: docker/Dockerfile
+  env_file: .env
+  environment:
+    DJANGO_SETTINGS_MODULE: config.settings.production
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  restart: unless-stopped
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ksef_invoices}
+      POSTGRES_USER: ${POSTGRES_USER:-ksef}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ksef} -d ${POSTGRES_DB:-ksef_invoices}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  web:
+    <<: *app-common
+    ports:
+      - "8080:8000"
+
+  celery:
+    <<: *app-common
+    command: celery -A config.celery worker --loglevel=info --concurrency=2 -Q default,ksef_sync
+    entrypoint: []
+
+  celery-beat:
+    <<: *app-common
+    command: celery -A config.celery beat --loglevel=info
+    entrypoint: []
+
+volumes:
+  postgres_data:
+  redis_data:

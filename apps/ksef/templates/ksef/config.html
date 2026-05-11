@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% block page_title %}Konfiguracja KSeF{% endblock %}
+
+{% block topbar_actions %}
+{% if config %}
+<form method="post" action="{% url 'ksef:manual_sync' %}" class="d-inline">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-outline-primary btn-sm">
+    <i class="bi bi-arrow-repeat me-1"></i>Synchronizuj teraz
+  </button>
+</form>
+<a href="{% url 'ksef:logs' %}" class="btn btn-outline-secondary btn-sm">
+  <i class="bi bi-clock-history me-1"></i>Logi
+</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+
+  <!-- Konfiguracja KSeF -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white border-bottom py-2 fw-semibold small d-flex align-items-center gap-2">
+        <i class="bi bi-gear text-primary"></i> Połączenie z KSeF
+      </div>
+      <div class="card-body p-4">
+        {% if config %}
+        <div class="alert alert-info py-2 small mb-3">
+          <i class="bi bi-info-circle me-1"></i>
+          Środowisko: <strong>{{ config.get_environment_display }}</strong> &nbsp;|&nbsp;
+          Ostatnia sync: <strong>{{ config.last_sync_at|date:"d.m.Y H:i"|default:"Nigdy" }}</strong>
+        </div>
+        {% endif %}
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="_action" value="ksef">
+          {% for field in form %}
+          {% if field.name in 'nip,environment,sync_interval_hours,token_plain' %}
+          <div class="mb-3">
+            <label class="form-label fw-medium small">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}<div class="form-text small">{{ field.help_text }}</div>{% endif %}
+            {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors.0 }}</div>{% endif %}
+          </div>
+          {% endif %}
+          {% endfor %}
+
+          <!-- Harmonogram synchronizacji -->
+          <hr class="my-3">
+          <p class="fw-semibold small mb-2"><i class="bi bi-clock me-1"></i>Harmonogram synchronizacji</p>
+
+          <div class="mb-3 d-flex align-items-center gap-2">
+            <div class="form-check form-switch mb-0">
+              {{ form.sync_enabled }}
+              <label class="form-check-label small" for="{{ form.sync_enabled.id_for_label }}">
+                Synchronizacja włączona
+              </label>
+            </div>
+          </div>
+
+          <div id="sync-window-fields" class="row g-2 mb-3 {% if not form.sync_enabled.value %}opacity-50{% endif %}">
+            <div class="col-6">
+              <label class="form-label small text-muted mb-1">Okno — od</label>
+              {{ form.sync_window_start }}
+            </div>
+            <div class="col-6">
+              <label class="form-label small text-muted mb-1">Okno — do</label>
+              {{ form.sync_window_end }}
+            </div>
+            <div class="col-12">
+              <div class="form-text small">Zostaw puste aby synchronizować przez całą dobę. Obsługuje przejście przez północ (np. 22:00–06:00).</div>
+            </div>
+            {% if form.sync_window_start.errors or form.sync_window_end.errors or form.errors %}
+            <div class="col-12">
+              <div class="invalid-feedback d-block">{{ form.errors.0 }}</div>
+            </div>
+            {% endif %}
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-sm">
+            <i class="bi bi-floppy me-1"></i>Zapisz konfigurację
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Powiadomienia Telegram -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white border-bottom py-2 fw-semibold small d-flex align-items-center gap-2">
+        <i class="bi bi-telegram text-info"></i> Powiadomienia Telegram
+      </div>
+      <div class="card-body p-4">
+
+        <div class="alert alert-light border small py-2 mb-3">
+          <strong>Jak skonfigurować:</strong>
+          <ol class="mb-0 ps-3 mt-1">
+            <li>Utwórz bota przez <a href="https://t.me/BotFather" target="_blank">@BotFather</a> → /newbot → skopiuj token</li>
+            <li>Wyślij wiadomość do bota lub dodaj go do grupy</li>
+            <li>Pobierz Chat ID: <code>https://api.telegram.org/bot&lt;TOKEN&gt;/getUpdates</code></li>
+            <li>Wklej dane poniżej i kliknij "Test połączenia"</li>
+          </ol>
+        </div>
+
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="_action" value="notification">
+
+          <div class="mb-3 d-flex align-items-center gap-2">
+            <div class="form-check form-switch mb-0">
+              {{ notif_form.enabled }}
+              <label class="form-check-label small" for="{{ notif_form.enabled.id_for_label }}">
+                Powiadomienia włączone
+              </label>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-medium">{{ notif_form.bot_token_plain.label }}</label>
+            {{ notif_form.bot_token_plain }}
+            {% if notif_config and notif_config.telegram_bot_token_encrypted %}
+            <div class="form-text small text-success"><i class="bi bi-check-circle me-1"></i>Token zapisany</div>
+            {% endif %}
+            {% if notif_form.bot_token_plain.help_text %}
+            <div class="form-text small">{{ notif_form.bot_token_plain.help_text }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-medium">{{ notif_form.telegram_chat_id.label }}</label>
+            {{ notif_form.telegram_chat_id }}
+            <div class="form-text small">ID użytkownika lub grupy (np. -100123456789)</div>
+            {% if notif_form.telegram_chat_id.errors %}
+            <div class="invalid-feedback d-block">{{ notif_form.telegram_chat_id.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <hr class="my-3">
+          <p class="fw-semibold small mb-2"><i class="bi bi-moon-stars me-1"></i>Cisza nocna</p>
+
+          <div class="row g-2 mb-2">
+            <div class="col-4">
+              <label class="form-label small text-muted mb-1">Od</label>
+              {{ notif_form.quiet_from }}
+            </div>
+            <div class="col-4">
+              <label class="form-label small text-muted mb-1">Do</label>
+              {{ notif_form.quiet_to }}
+            </div>
+            <div class="col-4">
+              <label class="form-label small text-muted mb-1">Digest o</label>
+              {{ notif_form.digest_time }}
+            </div>
+          </div>
+          <div class="form-text small mb-3">W godzinach ciszy powiadomienia są kolejkowane i wysyłane zbiorczo o ustawionej godzinie digesty.</div>
+
+          <div class="d-flex gap-2 align-items-center">
+            <button type="submit" class="btn btn-primary btn-sm">
+              <i class="bi bi-floppy me-1"></i>Zapisz
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm"
+                    hx-post="{% url 'ksef:test_notification' %}"
+                    hx-target="#test-result"
+                    hx-swap="innerHTML">
+              <i class="bi bi-send me-1"></i>Test połączenia
+            </button>
+            <span id="test-result"></span>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const syncToggle = document.getElementById('{{ form.sync_enabled.id_for_label }}');
+const windowFields = document.getElementById('sync-window-fields');
+if (syncToggle && windowFields) {
+  function toggleWindow() {
+    windowFields.classList.toggle('opacity-50', !syncToggle.checked);
+    windowFields.querySelectorAll('input').forEach(el => el.disabled = !syncToggle.checked);
+  }
+  toggleWindow();
+  syncToggle.addEventListener('change', toggleWindow);
+}
+</script>
+{% endblock %}

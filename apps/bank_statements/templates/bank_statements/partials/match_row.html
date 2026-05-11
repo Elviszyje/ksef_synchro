@@ -1,0 +1,8 @@
+{% if match.invoice %}
+<a href="{% url 'invoices:detail' match.invoice.pk %}" class="text-decoration-none small">
+  <strong>{{ match.invoice.invoice_number|truncatechars:25 }}</strong><br>
+  <span class="text-muted">{{ match.invoice.seller_name|truncatechars:30 }}</span>
+</a>
+{% else %}
+<span class="text-muted small">—</span>
+{% endif %}

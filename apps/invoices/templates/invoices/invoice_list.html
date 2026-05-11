@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% load role_tags %}
+{% block title %}Lista faktur{% endblock %}
+{% block page_title %}Faktury kosztowe{% endblock %}
+
+{% block topbar_actions %}
+<div class="dropdown">
+  <button class="btn btn-outline-success btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+    <i class="bi bi-file-earmark-excel me-1"></i>Excel
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><a class="dropdown-item" href="{% url 'invoices:export' %}?period=current_month">Bieżący miesiąc</a></li>
+    <li><a class="dropdown-item" href="{% url 'invoices:export' %}?period=prev_month">Poprzedni miesiąc</a></li>
+    <li><a class="dropdown-item" href="{% url 'invoices:export' %}?period=full">Wszystkie</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#exportRangeModal">Zakres dat…</a></li>
+  </ul>
+</div>
+{% has_role 'approver' as can_approve %}
+{% if can_approve %}
+<a href="{% url 'payments:create' %}" class="btn btn-primary btn-sm">
+  <i class="bi bi-send me-1"></i>Generuj przelewy
+</a>
+{% endif %}
+{% endblock %}
+
+{% block sticky_bar %}
+<form id="filter-form"
+      hx-get="{% url 'invoices:list' %}"
+      hx-target="#invoice-table-wrapper"
+      hx-trigger="change, keyup delay:400ms"
+      hx-indicator="#global-spinner"
+      style="position:sticky; top:0; z-index:50; background:#fff; border-bottom:1px solid #e5e7eb; box-shadow:0 2px 6px rgba(0,0,0,.06);">
+  <div class="px-4 py-2">
+    <div class="row g-2 align-items-center">
+
+      <div class="col-auto">
+        <input type="text" name="seller_name" class="form-control form-control-sm"
+               placeholder="Sprzedawca" style="width:170px;"
+               value="{{ filter.form.seller_name.value|default:'' }}">
+      </div>
+
+      <div class="col-auto">
+        <input type="text" name="seller_nip" class="form-control form-control-sm"
+               placeholder="NIP" style="width:110px;"
+               value="{{ filter.form.seller_nip.value|default:'' }}">
+      </div>
+
+      <div class="col-auto">
+        <input type="text" name="invoice_number" class="form-control form-control-sm"
+               placeholder="Nr faktury" style="width:130px;"
+               value="{{ filter.form.invoice_number.value|default:'' }}">
+      </div>
+
+      <div class="col-auto">
+        <input type="date" name="issue_date_from" class="form-control form-control-sm"
+               title="Data wystawienia od"
+               value="{{ filter.form.issue_date_from.value|default:'' }}">
+      </div>
+      <div class="col-auto d-flex align-items-center gap-1">
+        <span class="text-muted small">–</span>
+        <input type="date" name="issue_date_to" class="form-control form-control-sm"
+               title="Data wystawienia do"
+               value="{{ filter.form.issue_date_to.value|default:'' }}">
+      </div>
+
+      <div class="col-auto">
+        <div class="dropdown">
+          <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button"
+                  data-bs-toggle="dropdown" data-bs-auto-close="outside">
+            <i class="bi bi-funnel me-1"></i>Status
+            {% with av=filter.form.status.value %}{% if av %}<span class="badge bg-primary ms-1">{{ av|length }}</span>{% endif %}{% endwith %}
+          </button>
+          <ul class="dropdown-menu p-2" style="min-width:190px;">
+            {% for value, label in status_choices %}
+            <li>
+              <div class="form-check mb-1">
+                <input class="form-check-input" type="checkbox" name="status"
+                       value="{{ value }}" id="st_{{ value }}"
+                       {% if value in filter.form.status.value %}checked{% endif %}>
+                <label class="form-check-label small" for="st_{{ value }}">{{ label }}</label>
+              </div>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <div class="col-auto ms-auto">
+        <a href="{% url 'invoices:list' %}" class="btn btn-outline-secondary btn-sm" title="Wyczyść filtry">
+          <i class="bi bi-x-lg"></i>
+        </a>
+      </div>
+
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block content %}
+<div id="invoice-table-wrapper">
+  {% include "invoices/partials/invoice_table.html" %}
+</div>
+
+<!-- Floating bulk action bar -->
+<div id="bulk-action-bar" class="d-none"
+     style="position:fixed; bottom:0; left:var(--sidebar-width); right:0; z-index:1040;">
+  <div class="bg-dark text-white px-4 py-2 d-flex align-items-center gap-3 flex-wrap">
+    <span class="small">Zaznaczono: <strong id="bulk-count">0</strong> faktur</span>
+    <div class="d-flex gap-2">
+      <button id="bulk-accept-btn"
+              class="btn btn-sm btn-success"
+              title="Ustaw status: zaakceptowana">
+        <i class="bi bi-check-lg me-1"></i>Zaakceptuj
+      </button>
+      <button id="bulk-dispute-btn"
+              class="btn btn-sm btn-warning"
+              title="Ustaw status: sporna">
+        <i class="bi bi-exclamation-circle me-1"></i>Sporna
+      </button>
+    </div>
+    <button id="bulk-cancel-btn" class="btn btn-sm btn-outline-light ms-auto">
+      <i class="bi bi-x-lg me-1"></i>Odznacz
+    </button>
+  </div>
+</div>
+
+<!-- Modal — zakres dat eksportu -->
+<div class="modal fade" id="exportRangeModal" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h6 class="modal-title">Eksport — zakres dat</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="get" action="{% url 'invoices:export' %}">
+        <input type="hidden" name="period" value="custom">
+        <div class="modal-body">
+          <div class="mb-2">
+            <label class="form-label small">Od</label>
+            <input type="date" name="date_from" class="form-control form-control-sm">
+          </div>
+          <div class="mb-2">
+            <label class="form-label small">Do</label>
+            <input type="date" name="date_to" class="form-control form-control-sm">
+          </div>
+        </div>
+        <div class="modal-footer py-2">
+          <button type="submit" class="btn btn-success btn-sm">
+            <i class="bi bi-download me-1"></i>Pobierz
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+  @media (max-width: 768px) {
+    #bulk-action-bar { left: 0 !important; }
+  }
+</style>
+<script>
+(function () {
+  const BULK_URL = "{% url 'invoices:bulk_status' %}";
+  const bar = document.getElementById('bulk-action-bar');
+  const countEl = document.getElementById('bulk-count');
+
+  function getChecked() {
+    return Array.from(document.querySelectorAll('.invoice-checkbox:checked'));
+  }
+
+  function updateBar() {
+    const checked = getChecked();
+    if (checked.length > 0) {
+      countEl.textContent = checked.length;
+      bar.classList.remove('d-none');
+    } else {
+      bar.classList.add('d-none');
+    }
+  }
+
+  function clearSelection() {
+    document.querySelectorAll('.invoice-checkbox').forEach(cb => cb.checked = false);
+    const sa = document.getElementById('select-all');
+    if (sa) sa.checked = false;
+    bar.classList.add('d-none');
+  }
+
+  // Event delegation — works after HTMX swaps
+  document.addEventListener('change', function (e) {
+    if (e.target.matches('#select-all')) {
+      document.querySelectorAll('.invoice-checkbox').forEach(cb => cb.checked = e.target.checked);
+      updateBar();
+    } else if (e.target.matches('.invoice-checkbox')) {
+      const all = document.querySelectorAll('.invoice-checkbox');
+      const sa = document.getElementById('select-all');
+      if (sa) sa.checked = all.length > 0 && Array.from(all).every(cb => cb.checked);
+      updateBar();
+    }
+  });
+
+  // Reset selection when table is refreshed via HTMX filter
+  document.getElementById('invoice-table-wrapper')?.addEventListener('htmx:afterSettle', clearSelection);
+
+  document.getElementById('bulk-cancel-btn')?.addEventListener('click', clearSelection);
+
+  function bulkApply(status) {
+    const ids = getChecked().map(cb => cb.value).join(',');
+    if (!ids) return;
+
+    fetch(BULK_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': '{{ csrf_token }}',
+      },
+      body: 'ids=' + encodeURIComponent(ids) + '&status=' + encodeURIComponent(status),
+    })
+      .then(r => r.json())
+      .then(() => {
+        clearSelection();
+        htmx.trigger(document.getElementById('filter-form'), 'change');
+      });
+  }
+
+  document.getElementById('bulk-accept-btn')?.addEventListener('click', () => bulkApply('zaakceptowana'));
+  document.getElementById('bulk-dispute-btn')?.addEventListener('click', () => bulkApply('sporna'));
+})();
+</script>
+{% endblock %}

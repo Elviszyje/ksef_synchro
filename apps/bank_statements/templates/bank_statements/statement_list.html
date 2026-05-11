@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block page_title %}Wyciągi bankowe{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'bank_statements:upload' %}" class="btn btn-primary btn-sm">
+  <i class="bi bi-upload me-1"></i>Wgraj wyciąg
+</a>
+{% endblock %}
+{% block content %}
+<div class="card border-0 shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0 align-middle" style="font-size:.875rem;">
+      <thead class="table-light">
+        <tr>
+          <th>Plik</th><th>Rachunek</th><th>Data wyciągu</th>
+          <th>Status</th><th>Wgrany przez</th><th>Data wgrania</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for stmt in statements %}
+        <tr>
+          <td class="fw-medium">{{ stmt.file_name }}</td>
+          <td class="font-monospace small text-muted">{{ stmt.account_number|default:"—" }}</td>
+          <td class="small">{{ stmt.statement_date|date:"d.m.Y"|default:"—" }}</td>
+          <td>
+            {% if stmt.status == 'confirmed' %}
+            <span class="badge bg-success-subtle text-success border border-success-subtle">Zatwierdzony</span>
+            {% elif stmt.status == 'reviewed' %}
+            <span class="badge bg-warning-subtle text-warning border border-warning-subtle">W przeglądzie</span>
+            {% else %}
+            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Oczekuje</span>
+            {% endif %}
+          </td>
+          <td class="text-muted small">{{ stmt.uploaded_by.get_full_name|default:stmt.uploaded_by.username|default:"—" }}</td>
+          <td class="text-muted small">{{ stmt.uploaded_at|date:"d.m.Y H:i" }}</td>
+          <td class="text-end pe-3">
+            {% if stmt.status != 'confirmed' %}
+            <a href="{% url 'bank_statements:review' stmt.pk %}" class="btn btn-sm btn-outline-primary py-0 px-2">
+              <i class="bi bi-eye me-1"></i>Przejrzyj
+            </a>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-muted py-5">
+          <i class="bi bi-bank display-5 d-block mb-2"></i>
+          Brak wyciągów. <a href="{% url 'bank_statements:upload' %}">Wgraj pierwszy wyciąg</a>.
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

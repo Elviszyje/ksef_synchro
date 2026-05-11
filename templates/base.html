@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pl" data-bs-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Faktury KSeF{% endblock %} — FinPulse</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    :root { --sidebar-width: 200px; }
+    body { background: #f8f9fa; }
+    .sidebar {
+      width: var(--sidebar-width);
+      min-height: 100vh;
+      background: #1a1a2e;
+      position: fixed;
+      top: 0; left: 0;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar-brand {
+      padding: 1.25rem 1rem;
+      color: #e2e8f0;
+      font-weight: 700;
+      font-size: 1rem;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      text-decoration: none;
+    }
+    .sidebar-brand span { color: #60a5fa; }
+    .sidebar-nav { padding: .5rem 0; flex: 1; }
+    .sidebar-nav .nav-link {
+      color: #94a3b8;
+      padding: .55rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      font-size: .875rem;
+      border-radius: 0;
+      transition: background .15s, color .15s;
+    }
+    .sidebar-nav .nav-link:hover,
+    .sidebar-nav .nav-link.active {
+      color: #e2e8f0;
+      background: rgba(255,255,255,.06);
+    }
+    .sidebar-nav .nav-link.active { border-left: 3px solid #60a5fa; }
+    .sidebar-section { padding: .35rem 1rem .2rem; color: #475569; font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; }
+    .main-content {
+      margin-left: var(--sidebar-width);
+      min-height: 100vh;
+    }
+    .topbar {
+      background: #fff;
+      border-bottom: 1px solid #e5e7eb;
+      padding: .75rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .page-body { padding: 0; }
+    .page-body-inner { padding: 1.5rem; }
+    .page-body-sticky-top { padding: 1.5rem 1.5rem 0; }
+    .badge-status { font-size: .75em; }
+    .table-hover tbody tr:hover { background: #f1f5f9; }
+    .htmx-indicator { opacity: 0; transition: opacity 0.2s; }
+    .htmx-request .htmx-indicator { opacity: 1; }
+    .filter-sidebar { background: #fff; border-right: 1px solid #e5e7eb; min-height: calc(100vh - 56px); }
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main-content { margin-left: 0; }
+    }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+{% if user.is_authenticated %}
+{% load role_tags %}
+<aside class="sidebar">
+  <a href="/" class="sidebar-brand">
+    <i class="bi bi-receipt-cutoff me-2"></i>Faktury <span>KSeF</span>
+  </a>
+  <nav class="sidebar-nav">
+    <div class="sidebar-section mt-2">Faktury</div>
+    <a href="{% url 'invoices:list' %}" class="nav-link {% if request.resolver_match.app_name == 'invoices' %}active{% endif %}">
+      <i class="bi bi-file-earmark-text"></i> Lista faktur
+    </a>
+
+    <div class="sidebar-section mt-2">Płatności</div>
+    {% has_role 'approver' as can_approve %}
+    {% if can_approve %}
+    <a href="{% url 'payments:create' %}" class="nav-link {% if request.resolver_match.app_name == 'payments' and 'create' in request.path %}active{% endif %}">
+      <i class="bi bi-send"></i> Generuj przelewy
+    </a>
+    <a href="{% url 'payments:list' %}" class="nav-link {% if request.resolver_match.app_name == 'payments' and 'create' not in request.path %}active{% endif %}">
+      <i class="bi bi-archive"></i> Historia plików
+    </a>
+    {% endif %}
+
+    <div class="sidebar-section mt-2">Bank</div>
+    {% has_role 'accountant' as can_accounting %}
+    {% if can_accounting %}
+    <a href="{% url 'bank_statements:upload' %}" class="nav-link {% if 'upload' in request.path %}active{% endif %}">
+      <i class="bi bi-upload"></i> Wgraj wyciąg
+    </a>
+    <a href="{% url 'bank_statements:list' %}" class="nav-link {% if request.resolver_match.app_name == 'bank_statements' and 'upload' not in request.path %}active{% endif %}">
+      <i class="bi bi-bank"></i> Wyciągi
+    </a>
+    {% endif %}
+
+    {% has_role 'admin' as is_admin %}
+    {% if is_admin %}
+    <div class="sidebar-section mt-2">KSeF / System</div>
+    <a href="{% url 'ksef:config' %}" class="nav-link {% if request.resolver_match.app_name == 'ksef' %}active{% endif %}">
+      <i class="bi bi-gear"></i> Konfiguracja KSeF
+    </a>
+    <a href="{% url 'ksef:logs' %}" class="nav-link">
+      <i class="bi bi-clock-history"></i> Logi synchronizacji
+    </a>
+    <a href="{% url 'accounts:user_list' %}" class="nav-link {% if request.resolver_match.app_name == 'accounts' and 'login' not in request.path %}active{% endif %}">
+      <i class="bi bi-people"></i> Użytkownicy
+    </a>
+    <a href="{% url 'audit:list' %}" class="nav-link {% if request.resolver_match.app_name == 'audit' %}active{% endif %}">
+      <i class="bi bi-journal-text"></i> Logi audytu
+    </a>
+    {% endif %}
+  </nav>
+  <div class="p-3 border-top border-secondary-subtle">
+    <small class="text-secondary d-block mb-1">{{ user.get_full_name|default:user.username }}</small>
+    <small class="text-secondary">{{ user.get_role_display }}</small>
+    <a href="{% url 'accounts:logout' %}" class="btn btn-sm btn-outline-secondary w-100 mt-2">
+      <i class="bi bi-box-arrow-right"></i> Wyloguj
+    </a>
+  </div>
+</aside>
+
+<div class="main-content">
+  <div class="topbar">
+    <h6 class="mb-0 fw-semibold">{% block page_title %}{% endblock %}</h6>
+    <div class="ms-auto d-flex align-items-center gap-2">
+      <span class="htmx-indicator spinner-border spinner-border-sm text-primary" id="global-spinner"></span>
+      {% block topbar_actions %}{% endblock %}
+    </div>
+  </div>
+
+  {% if ksef_alert == 'expired' %}
+  <div class="alert alert-danger rounded-0 mb-0 py-2 px-4 d-flex align-items-center gap-2" style="font-size:.875rem;">
+    <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+    <span><strong>Token KSeF wygasł.</strong> Synchronizacja faktur nie działa. Zaktualizuj token w <a href="{% url 'ksef:config' %}" class="alert-link">Konfiguracji KSeF</a>.</span>
+  </div>
+  {% elif ksef_alert == 'expiring' %}
+  <div class="alert alert-warning rounded-0 mb-0 py-2 px-4 d-flex align-items-center gap-2" style="font-size:.875rem;">
+    <i class="bi bi-clock-history flex-shrink-0"></i>
+    <span><strong>Token KSeF wygasa za {{ ksef_alert_days }} {% if ksef_alert_days == 1 %}dzień{% else %}dni{% endif %}.</strong> Zaktualizuj token w <a href="{% url 'ksef:config' %}" class="alert-link">Konfiguracji KSeF</a>.</span>
+  </div>
+  {% elif ksef_alert == 'no_config' %}
+  <div class="alert alert-warning rounded-0 mb-0 py-2 px-4 d-flex align-items-center gap-2" style="font-size:.875rem;">
+    <i class="bi bi-gear flex-shrink-0"></i>
+    <span><strong>Brak konfiguracji KSeF.</strong> <a href="{% url 'ksef:config' %}" class="alert-link">Skonfiguruj połączenie</a>.</span>
+  </div>
+  {% endif %}
+
+  <div class="page-body">
+    {% block sticky_bar %}{% endblock %}
+    <div class="page-body-inner">
+      {% if messages %}
+      <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show py-2" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</div>
+{% else %}
+{% block auth_content %}{% endblock %}
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/htmx.org@1.9.12"></script>
+<script>
+  htmx.config.globalViewTransitions = true;
+  document.body.addEventListener('htmx:beforeRequest', () => {
+    document.getElementById('global-spinner')?.classList.remove('htmx-indicator');
+  });
+  document.body.addEventListener('htmx:afterRequest', () => {
+    document.getElementById('global-spinner')?.classList.add('htmx-indicator');
+  });
+  document.body.addEventListener('htmx:configRequest', (evt) => {
+    evt.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+  });
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% load role_tags %}
+{% block title %}Logi audytu{% endblock %}
+{% block page_title %}Logi audytu{% endblock %}
+
+{% block sticky_bar %}
+<form method="get"
+      style="position:sticky; top:0; z-index:50; background:#fff; border-bottom:1px solid #e5e7eb; box-shadow:0 2px 6px rgba(0,0,0,.06);">
+  <div class="px-4 py-2">
+    <div class="row g-2 align-items-center">
+
+      <div class="col-auto">
+        <select name="action" class="form-select form-select-sm" style="width:220px;" onchange="this.form.submit()">
+          <option value="">— Wszystkie akcje —</option>
+          {% for value, label in action_choices %}
+          <option value="{{ value }}" {% if selected_action == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-auto">
+        <input type="text" name="actor" class="form-control form-control-sm"
+               placeholder="Użytkownik" style="width:160px;"
+               value="{{ actor_query }}">
+      </div>
+
+      <div class="col-auto">
+        <input type="date" name="date_from" class="form-control form-control-sm"
+               title="Od" value="{{ date_from }}">
+      </div>
+      <div class="col-auto d-flex align-items-center gap-1">
+        <span class="text-muted small">–</span>
+        <input type="date" name="date_to" class="form-control form-control-sm"
+               title="Do" value="{{ date_to }}">
+      </div>
+
+      <div class="col-auto">
+        <button type="submit" class="btn btn-outline-primary btn-sm">Szukaj</button>
+      </div>
+
+      <div class="col-auto ms-auto">
+        <a href="{% url 'audit:list' %}" class="btn btn-outline-secondary btn-sm" title="Wyczyść filtry">
+          <i class="bi bi-x-lg"></i>
+        </a>
+      </div>
+
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm">
+  <div class="card-header bg-white border-bottom d-flex align-items-center py-2">
+    <span class="small text-muted">Znaleziono: <strong>{{ total_count }}</strong> wpisów</span>
+    <div class="ms-auto">
+      {% if page_obj.paginator.num_pages > 1 %}
+      <span class="small text-muted">Strona {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+      {% endif %}
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0 align-middle" style="font-size:.875rem;">
+      <thead class="table-light">
+        <tr>
+          <th style="width:160px;">Czas</th>
+          <th style="width:130px;">Użytkownik</th>
+          <th style="width:210px;">Akcja</th>
+          <th>Obiekt</th>
+          <th>Szczegóły</th>
+          <th style="width:110px;" class="text-muted small">IP</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in page_obj %}
+        <tr>
+          <td class="font-monospace small text-muted text-nowrap">
+            {{ entry.timestamp|date:"d.m.Y H:i:s" }}
+          </td>
+          <td class="small">
+            {% if entry.actor %}
+              <span class="fw-medium">{{ entry.actor.username }}</span>
+            {% else %}
+              <span class="text-muted fst-italic">system</span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="badge bg-{{ entry.get_action_color }}-subtle text-{{ entry.get_action_color }} border border-{{ entry.get_action_color }}-subtle">
+              {{ entry.get_action_display }}
+            </span>
+          </td>
+          <td class="small">
+            {% if entry.entity_repr %}
+              <span class="text-truncate d-inline-block" style="max-width:220px;" title="{{ entry.entity_repr }}">
+                {{ entry.entity_repr }}
+              </span>
+            {% else %}—{% endif %}
+          </td>
+          <td class="small text-muted">
+            {% for k, v in entry.detail.items %}
+              <span class="me-2"><span class="fw-medium">{{ k }}:</span> {{ v }}</span>
+            {% endfor %}
+          </td>
+          <td class="font-monospace small text-muted">{{ entry.ip_address|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center text-muted py-5">
+            <i class="bi bi-journal-x display-5 d-block mb-2"></i>
+            Brak wpisów spełniających kryteria.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if page_obj.paginator.num_pages > 1 %}
+  <div class="card-footer bg-white border-top py-2">
+    <nav>
+      <ul class="pagination pagination-sm mb-0 justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?{% querystring page=page_obj.previous_page_number %}">‹</a></li>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+          {% if page_obj.number == num %}
+          <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+          {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+          <li class="page-item"><a class="page-link" href="?{% querystring page=num %}">{{ num }}</a></li>
+          {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?{% querystring page=page_obj.next_page_number %}">›</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

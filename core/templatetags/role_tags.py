@@ -1,0 +1,38 @@
+from django import template
+from core.permissions import has_min_role
+
+register = template.Library()
+
+
+@register.simple_tag(takes_context=True)
+def has_role(context, min_role: str) -> bool:
+    request = context.get('request')
+    if not request:
+        return False
+    return has_min_role(request.user, min_role)
+
+
+@register.filter
+def get_item(dictionary, key):
+    """{{ mydict|get_item:key }}"""
+    if isinstance(dictionary, dict):
+        return dictionary.get(key)
+    return None
+
+
+@register.simple_tag(takes_context=True)
+def querystring(context, **kwargs):
+    """
+    Zwraca aktualny query string z podmienionymi wartościami.
+    Użycie: ?{% querystring page=3 %}
+    """
+    request = context.get('request')
+    if not request:
+        return ''
+    params = request.GET.copy()
+    for key, value in kwargs.items():
+        if value is None:
+            params.pop(key, None)
+        else:
+            params[key] = value
+    return params.urlencode()

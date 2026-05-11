@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block page_title %}Wgraj wyciąg bankowy (MT940){% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'bank_statements:list' %}" class="btn btn-outline-secondary btn-sm">
+  <i class="bi bi-arrow-left me-1"></i>Powrót
+</a>
+{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <div class="alert alert-info py-2 small mb-4">
+          <i class="bi bi-info-circle me-1"></i>
+          Akceptowane formaty: <strong>MT940 (.sta, .mt940, .txt)</strong>. Kodowanie: UTF-8, ISO-8859-1, Windows-1250.
+          Po wgraniu wyciągu system automatycznie dopasuje transakcje do faktur ze statusem "Przekazano do opłacenia".
+        </div>
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="mb-4">
+            <label class="form-label fw-medium">Plik MT940</label>
+            <input type="file" name="mt940_file" class="form-control"
+                   accept=".sta,.mt940,.txt,.940" required>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="bi bi-upload me-1"></i>Wgraj i analizuj
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

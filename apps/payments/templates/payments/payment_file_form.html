@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block page_title %}Generuj plik przelewów{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'payments:list' %}" class="btn btn-outline-secondary btn-sm">
+  <i class="bi bi-archive me-1"></i>Historia plików
+</a>
+{% endblock %}
+{% block content %}
+<form method="post" id="payment-form">
+  {% csrf_token %}
+  <div class="row g-3">
+    <!-- Tabela faktur -->
+    <div class="col-lg-9">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom d-flex align-items-center py-2">
+          <span class="fw-semibold small">Faktury zaakceptowane do opłacenia</span>
+          <span class="badge bg-primary ms-2">{{ invoices|length }}</span>
+        </div>
+        {% if not invoices %}
+        <div class="card-body text-center text-muted py-5">
+          <i class="bi bi-inbox display-5 d-block mb-2"></i>
+          Brak faktur w statusie "Zaakceptowana" z uzupełnionym numerem konta.<br>
+          <small>Faktury muszą mieć status "Zaakceptowana" i numer rachunku bankowego sprzedawcy.</small>
+        </div>
+        {% else %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0 align-middle" style="font-size:.875rem;">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-3" style="width:36px;">
+                  <input type="checkbox" class="form-check-input" id="select-all">
+                </th>
+                <th>Nr faktury</th><th>Sprzedawca</th><th>Konto bankowe</th>
+                <th class="text-center">MPP</th><th>Termin</th><th class="text-end">Brutto</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for inv in invoices %}
+              <tr>
+                <td class="ps-3">
+                  <input type="checkbox" class="form-check-input inv-cb" name="invoice_ids" value="{{ inv.pk }}" checked>
+                </td>
+                <td class="fw-medium">{{ inv.invoice_number|truncatechars:25 }}</td>
+                <td class="text-truncate" style="max-width:160px;">{{ inv.seller_name }}</td>
+                <td class="font-monospace small text-muted">{{ inv.bank_account_number }}</td>
+                <td class="text-center">
+                  {% if inv.is_split_payment %}
+                  <span class="badge bg-info-subtle text-info border border-info-subtle">MPP</span>
+                  {% else %}—{% endif %}
+                </td>
+                <td class="small text-muted">{{ inv.payment_due_date|date:"d.m.Y"|default:"—" }}</td>
+                <td class="text-end fw-medium font-monospace">{{ inv.amount_gross|floatformat:2 }} {{ inv.currency }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Panel generowania -->
+    <div class="col-lg-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom py-2 fw-semibold small">Format pliku</div>
+        <div class="card-body">
+          {% for value, label in format_choices %}
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="radio" name="format" value="{{ value }}"
+                   id="fmt_{{ value }}" {% if forloop.first %}checked{% endif %}>
+            <label class="form-check-label small" for="fmt_{{ value }}">{{ label }}</label>
+          </div>
+          {% endfor %}
+          <hr class="my-2">
+          <div id="summary" class="small text-muted mb-3">
+            Zaznaczono: <strong id="cnt">{{ invoices|length }}</strong> faktur
+          </div>
+          {% if invoices %}
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="bi bi-download me-1"></i>Generuj i pobierz
+          </button>
+          <p class="small text-muted mt-2 mb-0">
+            <i class="bi bi-info-circle me-1"></i>
+            Statusy wybranych faktur zmienią się automatycznie na "Przekazano do opłacenia".
+          </p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+
+<script>
+const allCb = document.getElementById('select-all');
+const cbs = document.querySelectorAll('.inv-cb');
+const cnt = document.getElementById('cnt');
+
+function updateCount() {
+  cnt.textContent = document.querySelectorAll('.inv-cb:checked').length;
+}
+
+allCb?.addEventListener('change', () => {
+  cbs.forEach(cb => cb.checked = allCb.checked);
+  updateCount();
+});
+cbs.forEach(cb => cb.addEventListener('change', updateCount));
+</script>
+{% endblock %}

@@ -1,0 +1,11 @@
+from django.urls import path
+from . import views
+
+app_name = 'ksef'
+
+urlpatterns = [
+    path('config/', views.KSeFConfigView.as_view(), name='config'),
+    path('sync/', views.KSeFManualSyncView.as_view(), name='manual_sync'),
+    path('logs/', views.KSeFSyncLogListView.as_view(), name='logs'),
+    path('test-notification/', views.TestNotificationView.as_view(), name='test_notification'),
+]
