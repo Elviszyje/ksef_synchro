@@ -263,3 +263,101 @@ class InvoiceExportView(RoleRequiredMixin, View):
         )
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
+
+
+class InvoiceDashboardView(RoleRequiredMixin, View):
+    min_role = 'viewer'
+    template_name = 'invoices/dashboard.html'
+
+    _MONTHS_PL = ['', 'sty', 'lut', 'mar', 'kwi', 'maj', 'cze', 'lip', 'sie', 'wrz', 'paź', 'lis', 'gru']
+
+    def get(self, request):
+        import json
+        from decimal import Decimal
+        from collections import defaultdict
+        from django.db.models import Sum, Count, Max
+        from django.db.models.functions import TruncMonth
+        from django.template.response import TemplateResponse
+
+        today = date.today()
+        date_from = today.replace(day=1) - relativedelta(months=11)
+
+        monthly_qs = (
+            Invoice.objects
+            .filter(issue_date__gte=date_from)
+            .annotate(month=TruncMonth('issue_date'))
+            .values('month')
+            .annotate(
+                total_gross=Sum('amount_gross'),
+                total_net=Sum('amount_net'),
+                count=Count('id'),
+            )
+            .order_by('month')
+        )
+
+        # Grupowanie po (miesiąc, NIP) — jeden sprzedawca może wystawiać
+        # faktury z nieznacznie różnymi nazwami; Max('seller_name') daje
+        # deterministyczny wynik przy minimalnym koszcie zapytania.
+        sellers_qs = (
+            Invoice.objects
+            .filter(issue_date__gte=date_from)
+            .annotate(month=TruncMonth('issue_date'))
+            .values('month', 'seller_nip')
+            .annotate(
+                total_gross=Sum('amount_gross'),
+                count=Count('id'),
+                seller_name=Max('seller_name'),
+            )
+            .order_by('month', '-total_gross')
+        )
+
+        top_by_month: dict[str, list] = defaultdict(list)
+        for row in sellers_qs:
+            key = row['month'].strftime('%Y-%m')
+            if len(top_by_month[key]) < 5:
+                top_by_month[key].append({
+                    'seller_name': row['seller_name'],
+                    'seller_nip': row['seller_nip'],
+                    'total_gross': row['total_gross'] or Decimal('0'),
+                    'count': row['count'],
+                })
+
+        monthly_totals = []
+        for row in monthly_qs:
+            m = row['month']
+            key = m.strftime('%Y-%m')
+            monthly_totals.append({
+                'key': key,
+                'label': f"{self._MONTHS_PL[m.month]} {m.year}",
+                'total_gross': row['total_gross'] or Decimal('0'),
+                'total_net': row['total_net'] or Decimal('0'),
+                'count': row['count'],
+                'top_sellers': top_by_month.get(key, []),
+            })
+
+        chart_data = json.dumps({
+            'labels': [m['label'] for m in monthly_totals],
+            'datasets': [{
+                'label': 'Koszty brutto (PLN)',
+                'data': [float(m['total_gross']) for m in monthly_totals],
+                'backgroundColor': 'rgba(96, 165, 250, 0.7)',
+                'borderColor': 'rgba(96, 165, 250, 1)',
+                'borderWidth': 1,
+                'borderRadius': 4,
+                'hoverBackgroundColor': 'rgba(96, 165, 250, 0.9)',
+            }]
+        })
+
+        total_gross = sum((m['total_gross'] for m in monthly_totals), Decimal('0'))
+        total_count = sum(m['count'] for m in monthly_totals)
+        months_with_data = sum(1 for m in monthly_totals if m['count'] > 0)
+        avg_gross = (total_gross / months_with_data) if months_with_data else Decimal('0')
+
+        return TemplateResponse(request, self.template_name, {
+            'monthly_totals': monthly_totals,
+            'months_for_tabs': list(reversed(monthly_totals)),
+            'chart_data_json': chart_data,
+            'total_gross_12m': total_gross,
+            'total_count_12m': total_count,
+            'avg_gross_12m': avg_gross,
+        })

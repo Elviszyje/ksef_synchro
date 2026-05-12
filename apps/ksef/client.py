@@ -278,26 +278,93 @@ class KSeFClient:
                 break
             page_offset += page_size
 
-    def get_invoice_xml(self, session_token: str, ksef_reference_number: str) -> bytes | None:
+    def check_quota(self, session_token: str) -> int | None:
         """
-        Pobiera surowy XML FA faktury. Zwraca None jeśli niedostępny (404).
-        Rzuca KSeFRateLimitError przy 429.
+        Sprawdza pozostały limit zapytań dla bieżącego kontekstu (NIP).
+        Zwraca liczbę pozostałych zapytań na godzinę lub None jeśli nie można ustalić.
+        Rzuca KSeFRateLimitError gdy limit jest wyczerpany (remaining == 0).
+        Fail-open: błąd/404 endpointu nie blokuje synca.
         """
         headers = {'Authorization': f'Bearer {session_token}'}
-        for path in [
-            f'invoices/{ksef_reference_number}/content',
-            f'invoices/{ksef_reference_number}',
-        ]:
-            resp = self._http.get(
-                self._url(path),
-                headers={**headers, 'Accept': 'application/octet-stream'},
-            )
-            if resp.status_code == 404:
+        for path in ('limits/context', 'limits/subject', 'rate-limits'):
+            try:
+                resp = self._http.get(self._url(path), headers=headers)
+            except Exception as exc:
+                logger.warning('KSeF quota check error (%s): %s', path, exc)
                 continue
-            self._raise_for_status(resp)
-            return resp.content
-        logger.warning('KSeF: brak XML dla %s (404 na wszystkich ścieżkach)', ksef_reference_number)
+            if resp.status_code == 404:
+                logger.debug('KSeF quota endpoint %s: 404, pomijam', path)
+                continue
+            if resp.status_code == 429:
+                raise KSeFRateLimitError()
+            if resp.status_code >= 400:
+                logger.warning('KSeF quota endpoint %s → HTTP %s', path, resp.status_code)
+                continue
+            try:
+                data = resp.json()
+            except Exception:
+                continue
+            logger.info('KSeF quota (%s): %s', path, data)
+            remaining = self._extract_remaining(data)
+            if remaining is not None:
+                if remaining <= 0:
+                    logger.warning('KSeF: limit API wyczerpany (remaining=%s) — sync pominięty', remaining)
+                    raise KSeFRateLimitError(wait_seconds=3600)
+                logger.info('KSeF: pozostały limit zapytań: %d', remaining)
+                return remaining
+        logger.debug('KSeF: nie udało się odczytać limitu — kontynuuję (fail-open)')
         return None
+
+    @staticmethod
+    def _extract_remaining(data: dict | list) -> int | None:
+        """
+        Heurystycznie wyciąga minimalną liczbę pozostałych zapytań z odpowiedzi endpointu limitów.
+        Obsługuje różne struktury odpowiedzi KSeF 2.0.
+        """
+        REMAINING_KEYS = ('remaining', 'requestsRemaining', 'availableRequests',
+                          'remainingRequests', 'left', 'available')
+
+        def _find(obj, depth=0) -> list[int]:
+            if depth > 4:
+                return []
+            if isinstance(obj, dict):
+                found = []
+                for key in REMAINING_KEYS:
+                    val = obj.get(key)
+                    if isinstance(val, int) and val >= 0:
+                        found.append(val)
+                if found:
+                    return found
+                for v in obj.values():
+                    found.extend(_find(v, depth + 1))
+                return found
+            if isinstance(obj, list):
+                found = []
+                for item in obj:
+                    found.extend(_find(item, depth + 1))
+                return found
+            return []
+
+        values = _find(data)
+        return min(values) if values else None
+
+    def get_invoice_xml(self, session_token: str, ksef_reference_number: str) -> bytes | None:
+        """
+        Pobiera surowy XML FA faktury.
+        Zwraca None przy 404 (brak uprawnień lub faktura niedostępna).
+        Rzuca KSeFRateLimitError przy 429.
+        """
+        resp = self._http.get(
+            self._url(f'invoices/{ksef_reference_number}/content'),
+            headers={
+                'Authorization': f'Bearer {session_token}',
+                'Accept': 'application/octet-stream',
+            },
+        )
+        if resp.status_code == 404:
+            return None
+        self._raise_for_status(resp)
+        return resp.content
 
     def close(self):
         self._http.close()

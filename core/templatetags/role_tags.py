@@ -20,6 +20,19 @@ def get_item(dictionary, key):
     return None
 
 
+@register.filter
+def plmoney(value):
+    """Formatuje kwotę w stylu polskim: 1 234 567,89"""
+    try:
+        from decimal import Decimal
+        val = Decimal(str(value))
+        formatted = f"{val:,.2f}"
+        integer_part, decimal_part = formatted.split('.')
+        return f"{integer_part.replace(',', ' ')},{decimal_part}"
+    except (ValueError, TypeError):
+        return str(value)
+
+
 @register.simple_tag(takes_context=True)
 def querystring(context, **kwargs):
     """

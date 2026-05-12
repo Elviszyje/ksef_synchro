@@ -83,8 +83,11 @@
   </a>
   <nav class="sidebar-nav">
     <div class="sidebar-section mt-2">Faktury</div>
-    <a href="{% url 'invoices:list' %}" class="nav-link {% if request.resolver_match.app_name == 'invoices' %}active{% endif %}">
+    <a href="{% url 'invoices:list' %}" class="nav-link {% if request.resolver_match.app_name == 'invoices' and 'dashboard' not in request.path %}active{% endif %}">
       <i class="bi bi-file-earmark-text"></i> Lista faktur
+    </a>
+    <a href="{% url 'invoices:dashboard' %}" class="nav-link {% if 'dashboard' in request.path %}active{% endif %}">
+      <i class="bi bi-bar-chart-line"></i> Dashboard kosztów
     </a>
 
     <div class="sidebar-section mt-2">Płatności</div>

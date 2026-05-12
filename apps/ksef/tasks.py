@@ -55,11 +55,19 @@ def sync_ksef_invoices(self, force=False):
             date_to - timedelta(days=30)
         )
 
+        fetched = 0
+        new_count = 0
+        new_refs = []
+
         with KSeFClient(config.base_url, config.nip, token) as client:
             session_token = client.init_session()
-            fetched = 0
-            new_count = 0
-            new_refs = []
+
+            # Pre-flight: sprawdź dostępny limit przed pętlą pobierania
+            # Rzuca KSeFRateLimitError gdy remaining==0; None = nie można ustalić (fail-open)
+            client.check_quota(session_token)
+
+            # None = nie sprawdzano, True = XML działa, False = 404 (skip dla reszty)
+            xml_available = None
 
             try:
                 for header in client.iter_purchase_invoices(session_token, date_from, date_to):
@@ -68,21 +76,31 @@ def sync_ksef_invoices(self, force=False):
                         continue
 
                     fetched += 1
+                    parsed = None
 
-                    # XML download tymczasowo wyłączony — API KSeF zwraca 404
-                    # dla wszystkich faktur przy aktualnych uprawnieniach tokena.
-                    # Faktury tworzone z metadanych zapytania.
-                    parsed = _parsed_from_metadata(header)
+                    if xml_available is not False:
+                        xml_bytes = client.get_invoice_xml(session_token, ksef_ref)
+                        if xml_bytes is not None:
+                            xml_available = True
+                            parsed = parser.parse(xml_bytes, ksef_ref)
+                        elif xml_available is None:
+                            # Pierwsza próba — 404 → nie próbuj dla kolejnych faktur
+                            xml_available = False
+                            logger.info('KSeF: XML niedostępny (404) — sync tylko z metadanych')
 
-                    # Zapisz lub pomiń istniejące
+                    if parsed is None:
+                        parsed = _parsed_from_metadata(header, buyer_nip_fallback=config.nip)
+
                     defaults = _parsed_to_invoice_fields(parsed)
-                    _, created = Invoice.objects.get_or_create(
+                    obj, created = Invoice.objects.get_or_create(
                         ksef_reference_number=ksef_ref,
                         defaults=defaults,
                     )
                     if created:
                         new_count += 1
                         new_refs.append(ksef_ref)
+                    else:
+                        _update_invoice_from_api(obj, defaults)
 
             finally:
                 client.terminate_session(session_token)
@@ -220,22 +238,96 @@ def _parsed_to_invoice_fields(parsed) -> dict:
     }
 
 
-def _parsed_from_metadata(header: dict):
-    """Tworzy ParsedInvoice z metadanych query (gdy XML niedostępny)."""
+def _parsed_from_metadata(header: dict, buyer_nip_fallback: str = ''):
+    """
+    Tworzy ParsedInvoice z metadanych query (gdy XML niedostępny lub nieuprawiony).
+
+    KSeF 2.0 używa struktury subjectBy/subjectTo (nie seller/buyer jak v1).
+    Obsługuje oba warianty dla kompatybilności wstecznej.
+    Przy zapytaniu Subject2 (nabywca = my) API często nie zwraca buyer info —
+    wtedy używa buyer_nip_fallback (NIP z konfiguracji KSeF).
+    """
     from decimal import Decimal
     from apps.ksef.parser import ParsedInvoice
+
+    logger.debug('KSeF metadata header: %s', header)
+
     ref = header.get('ksefNumber') or header.get('ksefReferenceNumber', '')
-    seller = header.get('seller') or {}
-    buyer = header.get('buyer') or {}
-    gross = header.get('grossAmount') or 0
-    parsed = ParsedInvoice(
+
+    # Numer faktury (P_2) — pole 'invoiceNumber' w API v2
+    invoice_no = header.get('invoiceNumber') or header.get('invoiceNo') or ''
+
+    # Sprzedawca — KSeF v2: subjectBy; fallback: seller (v1/niestandardowe)
+    subj_by = header.get('subjectBy') or header.get('seller') or {}
+    ident_by = subj_by.get('identifier') or subj_by.get('subjectIdentifier') or {}
+    seller_nip = (
+        subj_by.get('nip')
+        or ident_by.get('identifier')
+        or ident_by.get('value')
+        or ''
+    )
+    seller_name = (
+        subj_by.get('subjectName')
+        or subj_by.get('name')
+        or subj_by.get('fullName')
+        or 'Nieznany sprzedawca'
+    )
+
+    # Nabywca — w trybie Subject2 API może nie zwracać buyer info
+    subj_to = header.get('subjectTo') or header.get('buyer') or {}
+    ident_to = subj_to.get('identifier') or subj_to.get('subjectIdentifier') or {}
+    buyer_nip = (
+        subj_to.get('nip')
+        or ident_to.get('identifier')
+        or ident_to.get('value')
+        or buyer_nip_fallback
+    )
+
+    # Kwoty — API v2 używa 'gross'/'net'/'vat'; fallback: grossAmount itp.
+    gross = header.get('gross') or header.get('grossAmount') or header.get('grossValue') or 0
+    net   = header.get('net')   or header.get('netAmount')   or header.get('netValue')   or 0
+    vat   = header.get('vat')   or header.get('vatAmount')   or header.get('vatValue')   or 0
+
+    currency = header.get('currency') or header.get('currencyCode') or 'PLN'
+
+    return ParsedInvoice(
         ksef_reference_number=ref,
-        invoice_number=ref,
-        seller_nip=seller.get('nip', ''),
-        seller_name=seller.get('name', 'Nieznany sprzedawca'),
-        buyer_nip=buyer.get('nip', ''),
+        invoice_number=invoice_no or ref,
+        seller_nip=seller_nip,
+        seller_name=seller_name,
+        buyer_nip=buyer_nip,
         issue_date=header.get('invoiceIssueDate', ''),
         amount_gross=Decimal(str(gross)),
-        payment_title=f'Faktura {ref}',
+        amount_net=Decimal(str(net)),
+        amount_vat=Decimal(str(vat)),
+        currency=currency,
+        payment_title=f'Faktura {invoice_no}' if invoice_no else f'Faktura {ref}',
     )
-    return parsed
+
+
+def _update_invoice_from_api(invoice, defaults: dict):
+    """
+    Aktualizuje istniejącą fakturę danymi z API.
+    Zachowuje pola edytowane przez użytkownika: status, notes, updated_by.
+    Pola XML (termin płatności, konto, kwoty netto/VAT) — nadpisuje tylko gdy
+    nowe dane są niepuste (unikamy wyzerowania wartości pobranych wcześniej z XML).
+    """
+    from decimal import Decimal
+    from apps.invoices.models import Invoice as InvoiceModel
+
+    ALWAYS = ('invoice_number', 'seller_name', 'seller_nip', 'buyer_nip',
+              'amount_gross', 'currency', 'issue_date', 'payment_title')
+    FROM_XML = ('amount_net', 'amount_vat', 'payment_due_date',
+                'bank_account_number', 'seller_address', 'raw_xml',
+                'is_split_payment', 'vat_amount_split')
+
+    updates = {f: defaults[f] for f in ALWAYS if f in defaults}
+
+    for f in FROM_XML:
+        val = defaults.get(f)
+        # Nie nadpisuj zerami/pustymi — oznaczałoby to brak XML, nie rzeczywiste zero
+        if val not in (None, '', 0, False, Decimal('0')):
+            updates[f] = val
+
+    if updates:
+        InvoiceModel.objects.filter(pk=invoice.pk).update(**updates)

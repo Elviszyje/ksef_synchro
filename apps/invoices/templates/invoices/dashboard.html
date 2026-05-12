@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% load role_tags %}
+{% block title %}Dashboard kosztów{% endblock %}
+{% block page_title %}Dashboard kosztów{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+  .stat-card .stat-value { font-size: 1.6rem; font-weight: 700; line-height: 1.2; }
+  .stat-card .stat-label { font-size: .75rem; color: #64748b; text-transform: uppercase; letter-spacing: .05em; }
+  .nav-tabs .nav-link { font-size: .8rem; padding: .35rem .75rem; }
+  .top-seller-rank { width: 1.8rem; text-align: center; color: #94a3b8; font-size: .8rem; }
+  .seller-bar {
+    display: block; height: 4px; border-radius: 2px;
+    background: rgba(96,165,250,.25);
+    margin-top: 3px;
+  }
+  .seller-bar-fill { display: block; height: 4px; border-radius: 2px; background: #60a5fa; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{# ── Karty podsumowania ── #}
+<div class="row g-3 mb-4">
+  <div class="col-sm-4">
+    <div class="card border-0 shadow-sm h-100 stat-card">
+      <div class="card-body">
+        <div class="stat-label mb-1">Faktury (12 mies.)</div>
+        <div class="stat-value">{{ total_count_12m }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-4">
+    <div class="card border-0 shadow-sm h-100 stat-card">
+      <div class="card-body">
+        <div class="stat-label mb-1">Suma kosztów brutto</div>
+        <div class="stat-value">{{ total_gross_12m|plmoney }} <small class="fw-normal fs-6 text-muted">PLN</small></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-4">
+    <div class="card border-0 shadow-sm h-100 stat-card">
+      <div class="card-body">
+        <div class="stat-label mb-1">Średnio / miesiąc</div>
+        <div class="stat-value">{{ avg_gross_12m|plmoney }} <small class="fw-normal fs-6 text-muted">PLN</small></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ── Wykres słupkowy ── #}
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body">
+    <p class="fw-semibold text-secondary mb-3" style="font-size:.8rem; text-transform:uppercase; letter-spacing:.07em;">
+      Koszty brutto miesięcznie — ostatnie 12 miesięcy
+    </p>
+    {% if monthly_totals %}
+    <canvas id="monthlyCostChart" style="max-height:280px;"></canvas>
+    {% else %}
+    <p class="text-muted text-center py-5 mb-0">Brak faktur do wyświetlenia.</p>
+    {% endif %}
+  </div>
+</div>
+
+{# ── Top 5 sprzedawców per miesiąc ── #}
+{% if months_for_tabs %}
+<div class="card border-0 shadow-sm">
+  <div class="card-body">
+    <p class="fw-semibold text-secondary mb-3" style="font-size:.8rem; text-transform:uppercase; letter-spacing:.07em;">
+      Top 5 sprzedawców — per miesiąc
+    </p>
+
+    <ul class="nav nav-tabs mb-0" role="tablist">
+      {% for m in months_for_tabs %}
+      <li class="nav-item" role="presentation">
+        <button class="nav-link{% if forloop.first %} active{% endif %}"
+                id="tab-{{ m.key }}"
+                data-bs-toggle="tab"
+                data-bs-target="#pane-{{ m.key }}"
+                type="button" role="tab">
+          {{ m.label }}
+        </button>
+      </li>
+      {% endfor %}
+    </ul>
+
+    <div class="tab-content border border-top-0 rounded-bottom">
+      {% for m in months_for_tabs %}
+      <div class="tab-pane fade{% if forloop.first %} show active{% endif %} p-3"
+           id="pane-{{ m.key }}"
+           role="tabpanel">
+
+        {% if m.top_sellers %}
+        {# Oblicz max do skalowania pasków #}
+        {% with max_gross=m.top_sellers.0.total_gross %}
+        <table class="table table-sm mb-0 align-middle" style="font-size:.875rem;">
+          <thead class="table-light">
+            <tr>
+              <th style="width:2rem;"></th>
+              <th>Sprzedawca</th>
+              <th class="d-none d-md-table-cell text-muted" style="width:8rem;">NIP</th>
+              <th class="text-center" style="width:5rem;">Faktur</th>
+              <th class="text-end" style="width:10rem;">Brutto (PLN)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in m.top_sellers %}
+            <tr>
+              <td class="top-seller-rank">{{ forloop.counter }}</td>
+              <td>
+                <span class="d-block">{{ s.seller_name|truncatechars:55 }}</span>
+                {% if max_gross %}
+                <span class="seller-bar"><span class="seller-bar-fill" style="width:{% widthratio s.total_gross max_gross 100 %}%"></span></span>
+                {% endif %}
+              </td>
+              <td class="d-none d-md-table-cell text-muted font-monospace" style="font-size:.8rem;">{{ s.seller_nip }}</td>
+              <td class="text-center text-muted">{{ s.count }}</td>
+              <td class="text-end fw-semibold">{{ s.total_gross|plmoney }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot class="table-light">
+            <tr>
+              <td colspan="3" class="text-muted" style="font-size:.8rem;">Łącznie w miesiącu ({{ m.count }} faktur)</td>
+              <td></td>
+              <td class="text-end fw-bold">{{ m.total_gross|plmoney }}</td>
+            </tr>
+          </tfoot>
+        </table>
+        {% endwith %}
+        {% else %}
+        <p class="text-muted text-center py-4 mb-0">Brak faktur w {{ m.label }}.</p>
+        {% endif %}
+
+      </div>
+      {% endfor %}
+    </div>
+
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+{% if monthly_totals %}
+<script>
+new Chart(document.getElementById('monthlyCostChart'), {
+  type: 'bar',
+  data: {{ chart_data_json|safe }},
+  options: {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => {
+            const v = ctx.parsed.y;
+            return ' ' + v.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' PLN';
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: v => v.toLocaleString('pl-PL', { maximumFractionDigits: 0 }) + ' PLN',
+          font: { size: 11 },
+          color: '#94a3b8'
+        },
+        grid: { color: 'rgba(0,0,0,0.05)' },
+        border: { display: false }
+      },
+      x: {
+        ticks: { font: { size: 11 }, color: '#64748b' },
+        grid: { display: false },
+        border: { display: false }
+      }
+    }
+  }
+});
+</script>
+{% endif %}
+{% endblock %}

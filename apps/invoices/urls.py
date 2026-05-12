@@ -5,6 +5,7 @@ app_name = 'invoices'
 
 urlpatterns = [
     path('', views.InvoiceListView.as_view(), name='list'),
+    path('dashboard/', views.InvoiceDashboardView.as_view(), name='dashboard'),
     path('<int:pk>/', views.InvoiceDetailView.as_view(), name='detail'),
     path('<int:pk>/status/', views.InvoiceStatusChangeView.as_view(), name='status_change'),
     path('<int:pk>/quick-status/', views.InvoiceQuickStatusView.as_view(), name='quick_status'),
