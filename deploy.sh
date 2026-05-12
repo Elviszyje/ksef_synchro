@@ -40,6 +40,11 @@ ok "Gałąź: ${BRANCH} | Commit: ${COMMIT}"
 step "Build: web, celery, celery-beat"
 $DC build $NO_CACHE web celery celery-beat
 
+# ── migracje bazy danych ──────────────────────────────────────────────────────
+step "Migracje bazy danych"
+$DC run --rm web python manage.py migrate --no-input
+ok "Migracje zakończone"
+
 # ── restart kontenerów aplikacji z nowym obrazem ─────────────────────────────
 step "Restart kontenerów aplikacji"
 $DC up -d --no-deps web celery celery-beat
