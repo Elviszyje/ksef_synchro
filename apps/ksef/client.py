@@ -104,24 +104,31 @@ class KSeFClient:
         )
         return base64.b64encode(encrypted).decode()
 
-    def _wait_for_auth(self, reference_number: str, max_wait: int = 30):
+    def _wait_for_auth(self, reference_number: str, auth_token: str, max_wait: int = 30):
         """
-        Odpytuje GET /auth/status/{ref} aż status != 100 (pending).
-        Status 200 = gotowe do token/redeem. Inne = błąd.
+        Odpytuje GET /auth/{referenceNumber} aż status != 100 (pending).
+        Status 200 = gotowe do token/redeem.
         """
         for attempt in range(max_wait):
-            resp = self._http.get(self._url(f'auth/status/{reference_number}'))
+            resp = self._http.get(
+                self._url(f'auth/{reference_number}'),
+                headers={'Authorization': f'Bearer {auth_token}'},
+            )
             self._raise_for_status(resp)
             data = resp.json()
-            status = data.get('processingCode') or data.get('status') or data.get('authenticationStatus')
-            logger.debug('KSeF auth status check %d: %s', attempt + 1, data)
+            status = (
+                data.get('processingCode')
+                or data.get('authenticationStatus')
+                or data.get('status')
+            )
+            logger.debug('KSeF auth status check %d/%d: %s', attempt + 1, max_wait, data)
             if status != 100:
                 if status == 200:
-                    logger.info('KSeF auth gotowa (status 200)')
+                    logger.info('KSeF auth gotowa (status 200) po %d próbach', attempt + 1)
                     return
-                raise KSeFAuthError(f'Błąd autoryzacji KSeF, status: {status}, odpowiedź: {data}')
+                raise KSeFAuthError(f'Błąd autoryzacji KSeF, status={status}: {data}')
             time.sleep(1)
-        raise KSeFAuthError(f'Timeout oczekiwania na autoryzację KSeF (ref: {reference_number})')
+        raise KSeFAuthError(f'Timeout autoryzacji KSeF po {max_wait}s (ref: {reference_number})')
 
     def init_session(self) -> str:
         """
@@ -163,7 +170,7 @@ class KSeFClient:
 
         # Krok 2b: poczekaj aż autoryzacja przejdzie ze statusu 100 → 200 (async)
         if reference_number:
-            self._wait_for_auth(reference_number)
+            self._wait_for_auth(reference_number, auth_token)
 
         # Krok 3: wymień na accessToken
         resp = self._http.post(
