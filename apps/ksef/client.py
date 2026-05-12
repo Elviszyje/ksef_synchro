@@ -4,6 +4,7 @@ Dokumentacja: https://api-test.ksef.mf.gov.pl/docs/v2
 """
 import base64
 import logging
+import time
 from datetime import datetime, timezone
 from typing import Iterator
 
@@ -103,6 +104,25 @@ class KSeFClient:
         )
         return base64.b64encode(encrypted).decode()
 
+    def _wait_for_auth(self, reference_number: str, max_wait: int = 30):
+        """
+        Odpytuje GET /auth/status/{ref} aż status != 100 (pending).
+        Status 200 = gotowe do token/redeem. Inne = błąd.
+        """
+        for attempt in range(max_wait):
+            resp = self._http.get(self._url(f'auth/status/{reference_number}'))
+            self._raise_for_status(resp)
+            data = resp.json()
+            status = data.get('processingCode') or data.get('status') or data.get('authenticationStatus')
+            logger.debug('KSeF auth status check %d: %s', attempt + 1, data)
+            if status != 100:
+                if status == 200:
+                    logger.info('KSeF auth gotowa (status 200)')
+                    return
+                raise KSeFAuthError(f'Błąd autoryzacji KSeF, status: {status}, odpowiedź: {data}')
+            time.sleep(1)
+        raise KSeFAuthError(f'Timeout oczekiwania na autoryzację KSeF (ref: {reference_number})')
+
     def init_session(self) -> str:
         """
         Autoryzuje się tokenem API KSeF 2.0.
@@ -131,6 +151,7 @@ class KSeFClient:
         )
         self._raise_for_status(resp)
         data = resp.json()
+        reference_number = data.get('referenceNumber')
         auth_token_obj = data.get('authenticationToken')
         # authenticationToken to obiekt {"token": "...", "validUntil": "..."}
         auth_token = (
@@ -139,6 +160,10 @@ class KSeFClient:
         )
         if not auth_token:
             raise KSeFAuthError(f'Brak authenticationToken w odpowiedzi: {data}')
+
+        # Krok 2b: poczekaj aż autoryzacja przejdzie ze statusu 100 → 200 (async)
+        if reference_number:
+            self._wait_for_auth(reference_number)
 
         # Krok 3: wymień na accessToken
         resp = self._http.post(
