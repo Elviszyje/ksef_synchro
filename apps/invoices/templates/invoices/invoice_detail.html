@@ -109,6 +109,31 @@
       </div>
     </div>
 
+    <!-- Raw XML (tylko admin) -->
+    {% has_role 'admin' as is_admin %}
+    {% if is_admin and invoice.raw_xml %}
+    <div class="card border-0 shadow-sm mt-3">
+      <div class="card-header bg-white border-bottom py-2 d-flex align-items-center gap-2">
+        <span class="fw-semibold small">Raw XML</span>
+        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle ms-1"
+              style="font-size:.7em;">{{ invoice.ksef_reference_number }}</span>
+        <button class="btn btn-outline-secondary btn-sm ms-auto"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#raw-xml-collapse"
+                aria-expanded="false">
+          <i class="bi bi-code-slash me-1"></i>Pokaż / ukryj
+        </button>
+      </div>
+      <div class="collapse" id="raw-xml-collapse">
+        <div class="card-body p-0">
+          <pre class="m-0 p-3 small font-monospace overflow-auto"
+               style="max-height:70vh; background:#f8f9fa; font-size:.75rem; white-space:pre; tab-size:2;">{{ invoice.raw_xml|pretty_xml }}</pre>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
   </div>
 
   <!-- Prawa kolumna: zmiana statusu + historia -->

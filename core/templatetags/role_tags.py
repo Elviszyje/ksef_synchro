@@ -33,6 +33,20 @@ def plmoney(value):
         return str(value)
 
 
+@register.filter
+def pretty_xml(value):
+    """Formatuje XML do czytelnej postaci z wcięciami."""
+    if not value:
+        return ''
+    try:
+        import xml.dom.minidom
+        return xml.dom.minidom.parseString(
+            value.encode('utf-8') if isinstance(value, str) else value
+        ).toprettyxml(indent='  ')
+    except Exception:
+        return value
+
+
 @register.simple_tag(takes_context=True)
 def querystring(context, **kwargs):
     """
