@@ -351,11 +351,11 @@ class KSeFClient:
     def get_invoice_xml(self, session_token: str, ksef_reference_number: str) -> bytes | None:
         """
         Pobiera surowy XML FA faktury.
-        Zwraca None przy 404 (brak uprawnień lub faktura niedostępna).
-        Rzuca KSeFRateLimitError przy 429.
+        Endpoint: GET /api/v2/invoices/ksef/{ksefNumber} (limit: 64/h)
+        Zwraca None przy 404. Rzuca KSeFRateLimitError przy 429.
         """
         resp = self._http.get(
-            self._url(f'invoices/{ksef_reference_number}/content'),
+            self._url(f'invoices/ksef/{ksef_reference_number}'),
             headers={
                 'Authorization': f'Bearer {session_token}',
                 'Accept': 'application/octet-stream',
