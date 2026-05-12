@@ -62,6 +62,9 @@ class ParsedInvoice:
     amount_gross: Decimal = field(default_factory=lambda: Decimal('0'))
     currency: str = 'PLN'
 
+    invoice_type: str = ''
+    description: str = ''
+
     is_split_payment: bool = False
     vat_amount_split: Optional[Decimal] = None
 
@@ -133,6 +136,19 @@ class FA2Parser:
             or _text(root, './/fa:Naglowek/fa:KodWaluty', NS)
             or 'PLN'
         )
+
+        # Rodzaj faktury (VAT, KOR, ZAL, ...)
+        result.invoice_type = _text(root, './/fa:RodzajFaktury', NS)
+
+        # Opis — unikalne wartości P_7 z wierszy faktury
+        p7_values: list[str] = []
+        seen: set[str] = set()
+        for wiersz in root.findall('.//fa:FaWiersz', NS):
+            val = _text(wiersz, 'fa:P_7', NS)
+            if val and val not in seen:
+                seen.add(val)
+                p7_values.append(val)
+        result.description = '; '.join(p7_values)
 
         # Split payment
         mpp = _text(root, './/fa:Platnosc/fa:MechanizmPodzielonejPlatnosci', NS)

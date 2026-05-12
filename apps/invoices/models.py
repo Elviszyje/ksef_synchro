@@ -87,8 +87,15 @@ class Invoice(models.Model):
     # Notatki
     notes = models.TextField(blank=True, verbose_name='Notatki')
 
+    # Rodzaj dokumentu i opis
+    invoice_type = models.CharField(
+        max_length=20, blank=True,
+        verbose_name='Rodzaj faktury',  # VAT, KOR, ZAL, ROZ, UPR, ...
+    )
+    description = models.TextField(blank=True, verbose_name='Opis przedmiotu')
+
     # Surowe dane XML
-    raw_xml = models.TextField(blank=True, verbose_name='Surowy XML FA(2)')
+    raw_xml = models.TextField(blank=True, verbose_name='Surowy XML FA(2)/FA(3)')
 
     # Metadane
     synced_at = models.DateTimeField(auto_now_add=True, verbose_name='Data synchronizacji')

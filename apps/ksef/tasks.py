@@ -272,6 +272,8 @@ def _parsed_to_invoice_fields(parsed) -> dict:
         'payment_due_date': parse_date(parsed.payment_due_date),
         'bank_account_number': parsed.bank_account_number,
         'payment_title': parsed.payment_title,
+        'invoice_type': parsed.invoice_type,
+        'description': parsed.description,
         'raw_xml': parsed.raw_xml,
         'status': Invoice.STATUS_NEW,
     }
@@ -361,7 +363,8 @@ def _update_invoice_from_api(invoice, defaults: dict):
               'amount_gross', 'currency', 'issue_date', 'payment_title')
     FROM_XML = ('amount_net', 'amount_vat', 'payment_due_date',
                 'bank_account_number', 'seller_address', 'raw_xml',
-                'is_split_payment', 'vat_amount_split')
+                'is_split_payment', 'vat_amount_split',
+                'invoice_type', 'description')
 
     updates = {f: defaults[f] for f in ALWAYS if f in defaults}
 

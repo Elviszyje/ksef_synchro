@@ -26,6 +26,9 @@
         <span class="ms-auto badge bg-{{ invoice.get_status_color }}-subtle text-{{ invoice.get_status_color }} border border-{{ invoice.get_status_color }}-subtle fs-6 px-3 py-1">
           {{ invoice.get_status_display }}
         </span>
+        {% if invoice.invoice_type %}
+        <span class="badge bg-light text-secondary border">{{ invoice.invoice_type }}</span>
+        {% endif %}
         {% if invoice.is_split_payment %}
         <span class="badge bg-info-subtle text-info border border-info-subtle">MPP</span>
         {% endif %}
@@ -42,6 +45,11 @@
             <p class="mb-1 text-muted small font-monospace">NIP: {{ invoice.seller_nip|default:"—" }}</p>
             {% if invoice.seller_address %}
             <p class="mb-0 text-muted small">{{ invoice.seller_address }}</p>
+            {% endif %}
+            {% if invoice.description %}
+            <p class="mb-0 mt-2 text-muted small fst-italic">
+              <i class="bi bi-card-text me-1"></i>{{ invoice.description }}
+            </p>
             {% endif %}
           </div>
 
