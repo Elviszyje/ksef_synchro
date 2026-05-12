@@ -175,20 +175,27 @@ class FA2Parser:
         return ', '.join(parts)[:60]
 
     def _extract_amounts(self, root, NS) -> tuple[Decimal, Decimal, Decimal]:
-        net = _decimal(root, './/fa:Fa/fa:P_15', NS)
-        gross = _decimal(root, './/fa:Fa/fa:P_9', NS)
-        vat = gross - net if gross and net else Decimal('0')
+        # P_15 = łączna kwota należności (brutto)
+        # P_13_X = suma netto dla stawki X (1=23%, 2=8%, 3=5%, 4=0%, 5=zw, 6=oo, 7=np)
+        # P_14_X = suma VAT dla stawki X (nie istnieje dla zw/oo/np)
+        gross = _decimal(root, './/fa:Fa/fa:P_15', NS)
+
+        net = Decimal('0')
+        vat = Decimal('0')
+        for i in range(1, 8):
+            net += _decimal(root, f'.//fa:Fa/fa:P_13_{i}', NS)
+            vat += _decimal(root, f'.//fa:Fa/fa:P_14_{i}', NS)
 
         if net == 0:
-            net_sum = Decimal('0')
-            vat_sum = Decimal('0')
-            for wiersz in root.findall('.//fa:Fa/fa:FaWiersz', NS):
-                net_sum += _decimal(wiersz, 'fa:P_11', NS)
-                vat_sum += _decimal(wiersz, 'fa:P_12', NS)
-            if net_sum:
-                net = net_sum
-                vat = vat_sum
-                gross = net + vat
+            # Fallback: sumuj wartości netto z wierszy faktury
+            for wiersz in root.findall('.//fa:FaWiersz', NS):
+                net += _decimal(wiersz, 'fa:P_11', NS)
+            # P_12 to kod stawki ("23", "zw", ...) — VAT obliczamy jako gross-net
+            if net and gross:
+                vat = gross - net
+
+        if not gross and net:
+            gross = net + vat
 
         return net, vat, gross
 
