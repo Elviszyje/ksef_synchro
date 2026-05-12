@@ -14,7 +14,7 @@ def sync_ksef_invoices(self, force=False):
     force=True pomija guardy sync_enabled, okna czasowego i interwału (ręczne wywołanie).
     """
     from apps.ksef.models import KSeFConfig, KSeFSyncLog
-    from apps.ksef.client import KSeFClient, KSeFAPIError, KSeFAuthError
+    from apps.ksef.client import KSeFClient, KSeFAPIError, KSeFAuthError, KSeFRateLimitError
     from apps.ksef.parser import FA2Parser
     from apps.invoices.models import Invoice
 
@@ -107,6 +107,21 @@ def sync_ksef_invoices(self, force=False):
             maybe_notify(new_invoices)
 
         logger.info('KSeF sync zakończony: %d pobranych, %d nowych', fetched, new_count)
+
+    except KSeFRateLimitError as exc:
+        # Rate limit — zapisz częściowy postęp żeby następny sync nie powtarzał
+        # już pobranych faktur; nie retryuj (quota wyczerpana na X minut/godzin)
+        log.invoices_fetched = fetched
+        log.invoices_new = new_count
+        log.status = KSeFSyncLog.STATUS_ERROR
+        log.error_message = str(exc)
+        log.finished_at = dj_timezone.now()
+        log.save()
+        if fetched > 0:
+            config.last_sync_at = dj_timezone.now()
+            config.save(update_fields=['last_sync_at'])
+            logger.warning('KSeF rate limit: zapisano %d faktur, last_sync_at zaktualizowany', fetched)
+        logger.error('KSeF sync przerwany limitem API: %s', exc)
 
     except (KSeFAuthError, KSeFAPIError, Exception) as exc:
         log.status = KSeFSyncLog.STATUS_ERROR

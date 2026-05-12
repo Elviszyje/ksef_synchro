@@ -259,20 +259,12 @@ class KSeFClient:
                 'pageSize': page_size,
                 'pageOffset': page_offset,
             }
-            for _attempt in range(3):
-                resp = self._http.post(
-                    self._url('invoices/query/metadata'),
-                    json=payload,
-                    headers=headers,
-                )
-                try:
-                    self._raise_for_status(resp)
-                    break
-                except KSeFRateLimitError as e:
-                    logger.warning('KSeF rate limit (query) — czekam %ds', e.wait_seconds)
-                    time.sleep(e.wait_seconds)
-            else:
-                self._raise_for_status(resp)
+            resp = self._http.post(
+                self._url('invoices/query/metadata'),
+                json=payload,
+                headers=headers,
+            )
+            self._raise_for_status(resp)
             data = resp.json()
             invoices = data.get('invoices', [])
             logger.info('KSeF v2 zapytanie %s–%s offset=%d: %d faktur',
