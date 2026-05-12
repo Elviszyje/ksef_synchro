@@ -97,14 +97,24 @@ class FA2Parser:
         # Sprzedawca (Podmiot1)
         podmiot1 = root.find('.//fa:Podmiot1', NS)
         if podmiot1 is not None:
-            result.seller_nip = _text(podmiot1, 'fa:DaneIdentyfikacyjne/fa:NIP', NS)
+            result.seller_nip = (
+                _text(podmiot1, 'fa:DaneIdentyfikacyjne/fa:NIP', NS)
+                or _text(podmiot1, './/fa:NIP', NS)
+            )
             result.seller_name = (
                 _text(podmiot1, 'fa:DaneIdentyfikacyjne/fa:PelnaNazwa', NS)
+                or _text(podmiot1, './/fa:PelnaNazwa', NS)
                 or ' '.join(filter(None, [
-                    _text(podmiot1, 'fa:DaneIdentyfikacyjne/fa:Imie', NS),
-                    _text(podmiot1, 'fa:DaneIdentyfikacyjne/fa:Nazwisko', NS),
+                    _text(podmiot1, 'fa:DaneIdentyfikacyjne/fa:Imie', NS)
+                    or _text(podmiot1, './/fa:Imie', NS),
+                    _text(podmiot1, 'fa:DaneIdentyfikacyjne/fa:Nazwisko', NS)
+                    or _text(podmiot1, './/fa:Nazwisko', NS),
                 ]))
             )
+            if not result.seller_name:
+                logger.warning('KSeF: brak nazwy sprzedawcy (NIP=%s ref=%s); podmiot1 XML: %s',
+                               result.seller_nip, ksef_reference_number,
+                               etree.tostring(podmiot1, encoding='unicode')[:500])
             result.seller_address = self._extract_address(podmiot1, NS)
 
         # Nabywca (Podmiot2)

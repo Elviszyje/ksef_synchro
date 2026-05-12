@@ -258,7 +258,7 @@ def _parsed_to_invoice_fields(parsed) -> dict:
 
     return {
         'invoice_number': parsed.invoice_number or parsed.ksef_reference_number,
-        'seller_name': parsed.seller_name or 'Nieznany sprzedawca',
+        'seller_name': parsed.seller_name or parsed.seller_nip or 'Nieznany sprzedawca',
         'seller_nip': parsed.seller_nip,
         'seller_address': parsed.seller_address,
         'buyer_nip': parsed.buyer_nip,
@@ -309,8 +309,11 @@ def _parsed_from_metadata(header: dict, buyer_nip_fallback: str = ''):
         subj_by.get('subjectName')
         or subj_by.get('name')
         or subj_by.get('fullName')
-        or 'Nieznany sprzedawca'
+        or subj_by.get('tradeName')
+        or ''
     )
+    if not seller_name:
+        logger.warning('KSeF metadata: brak nazwy sprzedawcy (ref=%s) subjectBy=%s', ref, subj_by)
 
     # Nabywca — w trybie Subject2 API może nie zwracać buyer info
     subj_to = header.get('subjectTo') or header.get('buyer') or {}
