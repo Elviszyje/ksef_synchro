@@ -265,7 +265,7 @@ def _parsed_to_invoice_fields(parsed) -> dict:
         'amount_net': parsed.amount_net,
         'amount_vat': parsed.amount_vat,
         'amount_gross': parsed.amount_gross,
-        'currency': parsed.currency or 'PLN',
+        'currency': (parsed.currency or 'PLN')[:3].strip().upper(),
         'is_split_payment': parsed.is_split_payment,
         'vat_amount_split': parsed.vat_amount_split,
         'issue_date': parse_date(parsed.issue_date) or __import__('datetime').date.today(),
