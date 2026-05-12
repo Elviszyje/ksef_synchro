@@ -68,17 +68,24 @@ class KSeFClient:
                          response.status_code, full_body)
 
             if response.status_code == 429:
-                wait = 60
+                wait = 3600  # domyślnie godzina gdy nie uda się sparsować
                 try:
                     import re
                     details = response.json().get('status', {}).get('details', [])
                     for d in details:
-                        m = re.search(r'po\s+(\d+)\s+sekund', d)
-                        if m:
-                            wait = int(m.group(1)) + 2
+                        total = 0
+                        for h in re.findall(r'(\d+)\s+godzin', d):
+                            total += int(h) * 3600
+                        for m in re.findall(r'(\d+)\s+minut', d):
+                            total += int(m) * 60
+                        for s in re.findall(r'(\d+)\s+sekund', d):
+                            total += int(s)
+                        if total:
+                            wait = total + 5
                             break
                 except Exception:
                     pass
+                logger.warning('KSeF rate limit — czekam %ds (%dm)', wait, wait // 60)
                 raise KSeFRateLimitError(wait)
 
             try:

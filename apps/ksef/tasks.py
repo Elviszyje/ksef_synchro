@@ -14,8 +14,8 @@ def sync_ksef_invoices(self, force=False):
     force=True pomija guardy sync_enabled, okna czasowego i interwału (ręczne wywołanie).
     """
     from apps.ksef.models import KSeFConfig, KSeFSyncLog
-    from apps.ksef.client import KSeFClient, KSeFAPIError, KSeFAuthError, KSeFRateLimitError
-    from apps.ksef.parser import FA2Parser, ParsedInvoice
+    from apps.ksef.client import KSeFClient, KSeFAPIError, KSeFAuthError
+    from apps.ksef.parser import FA2Parser
     from apps.invoices.models import Invoice
 
     config = KSeFConfig.get_active()
@@ -69,24 +69,10 @@ def sync_ksef_invoices(self, force=False):
 
                     fetched += 1
 
-                    # Pobierz XML faktury (None = niedostępny, użyj metadanych)
-                    xml_bytes = None
-                    try:
-                        xml_bytes = client.get_invoice_xml(session_token, ksef_ref)
-                    except KSeFRateLimitError as e:
-                        logger.warning('KSeF rate limit — czekam %ds', e.wait_seconds)
-                        import time; time.sleep(e.wait_seconds)
-                        try:
-                            xml_bytes = client.get_invoice_xml(session_token, ksef_ref)
-                        except KSeFAPIError as e2:
-                            logger.error('Błąd pobierania XML %s po retry: %s', ksef_ref, e2)
-                    except KSeFAPIError as e:
-                        logger.error('Błąd pobierania XML %s: %s', ksef_ref, e)
-
-                    if xml_bytes:
-                        parsed = parser.parse(xml_bytes, ksef_reference_number=ksef_ref)
-                    else:
-                        parsed = _parsed_from_metadata(header)
+                    # XML download tymczasowo wyłączony — API KSeF zwraca 404
+                    # dla wszystkich faktur przy aktualnych uprawnieniach tokena.
+                    # Faktury tworzone z metadanych zapytania.
+                    parsed = _parsed_from_metadata(header)
 
                     # Zapisz lub pomiń istniejące
                     defaults = _parsed_to_invoice_fields(parsed)
