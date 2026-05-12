@@ -30,21 +30,40 @@ class Command(BaseCommand):
         total = qs.count()
         self.stdout.write(f'Faktury do przetworzenia: {total}')
 
+        from datetime import date as _date
+
+        def _parse_date(s):
+            if not s:
+                return None
+            try:
+                return _date.fromisoformat(s[:10])
+            except (ValueError, TypeError):
+                return None
+
         updated = 0
         errors = 0
         for inv in qs.iterator(chunk_size=100):
             try:
                 parsed = parser.parse(inv.raw_xml.encode('utf-8'), inv.ksef_reference_number)
-                fields = {}
+                fields = {
+                    'amount_net': parsed.amount_net,
+                    'amount_vat': parsed.amount_vat,
+                    'amount_gross': parsed.amount_gross,
+                    'currency': (parsed.currency or 'PLN')[:3].strip().upper(),
+                }
                 if parsed.invoice_type:
                     fields['invoice_type'] = parsed.invoice_type
                 if parsed.description:
                     fields['description'] = parsed.description
                 if parsed.seller_name and parsed.seller_name not in ('Nieznany sprzedawca',):
                     fields['seller_name'] = parsed.seller_name
-                if fields:
-                    Invoice.objects.filter(pk=inv.pk).update(**fields)
-                    updated += 1
+                due = _parse_date(parsed.payment_due_date)
+                if due:
+                    fields['payment_due_date'] = due
+                if parsed.bank_account_number:
+                    fields['bank_account_number'] = parsed.bank_account_number
+                Invoice.objects.filter(pk=inv.pk).update(**fields)
+                updated += 1
             except Exception as exc:
                 self.stderr.write(f'Błąd {inv.ksef_reference_number}: {exc}')
                 errors += 1
