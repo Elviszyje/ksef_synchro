@@ -145,22 +145,42 @@ class KSeFSyncStatusView(RoleRequiredMixin, View):
 
 
 class KSeFSyncCancelView(RoleRequiredMixin, View):
-    """Ustawia flagę anulowania na bieżącym jobie."""
+    """Natychmiast ustawia CANCELLED w DB i próbuje odwołać task Celery."""
     min_role = 'admin'
 
     def post(self, request):
         from django.template.response import TemplateResponse
+        from django.utils import timezone as dj_tz
 
         running = KSeFSyncLog.objects.filter(
             status=KSeFSyncLog.STATUS_RUNNING
         ).order_by('-started_at').first()
 
-        if running and not running.cancel_requested:
-            KSeFSyncLog.objects.filter(pk=running.pk).update(cancel_requested=True)
-            running.cancel_requested = True
+        if running:
+            KSeFSyncLog.objects.filter(pk=running.pk).update(
+                cancel_requested=True,
+                status=KSeFSyncLog.STATUS_CANCELLED,
+                error_message=(
+                    f'Anulowano przez użytkownika'
+                    f' (pobrano {running.invoices_fetched} faktur,'
+                    f' {running.invoices_new} nowych)'
+                ),
+                finished_at=dj_tz.now(),
+                current_stage='',
+            )
+            if running.celery_task_id:
+                try:
+                    from celery import current_app
+                    current_app.control.revoke(
+                        running.celery_task_id, terminate=True, signal='SIGTERM',
+                    )
+                except Exception:
+                    pass
 
-        return TemplateResponse(
+        response = TemplateResponse(
             request,
             'ksef/partials/sync_status.html',
-            {'running': running},
+            {'running': None},
         )
+        response['HX-Refresh'] = 'true'
+        return response

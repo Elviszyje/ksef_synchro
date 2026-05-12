@@ -108,13 +108,18 @@ def sync_ksef_invoices(self, force=False):
                     # Co 5 faktur: aktualizuj progress i sprawdź czy nie anulowano
                     if fetched % 5 == 0:
                         mode = 'XML' if xml_available else 'metadane'
-                        KSeFSyncLog.objects.filter(pk=log.pk).update(
+                        # Używamy filter(status=RUNNING) — nie nadpisujemy jeśli UI już anulowało
+                        still_running = KSeFSyncLog.objects.filter(
+                            pk=log.pk, status=KSeFSyncLog.STATUS_RUNNING,
+                        ).update(
                             invoices_fetched=fetched,
                             invoices_new=new_count,
                             current_stage=f'Pobieranie ({mode}): {fetched} faktur...',
                         )
-                        if KSeFSyncLog.objects.filter(pk=log.pk, cancel_requested=True).exists():
-                            logger.info('KSeF sync: anulowanie na żądanie po %d fakturach', fetched)
+                        if not still_running or KSeFSyncLog.objects.filter(
+                            pk=log.pk, cancel_requested=True,
+                        ).exists():
+                            logger.info('KSeF sync: zatrzymanie po %d fakturach', fetched)
                             cancelled = True
                             break
 
@@ -122,25 +127,28 @@ def sync_ksef_invoices(self, force=False):
                 client.terminate_session(session_token)
 
         if cancelled:
-            log.invoices_fetched = fetched
-            log.invoices_new = new_count
-            log.status = KSeFSyncLog.STATUS_CANCELLED
-            log.current_stage = ''
-            log.error_message = f'Anulowano po pobraniu {fetched} faktur ({new_count} nowych)'
-            log.finished_at = dj_timezone.now()
-            log.save()
+            # Zapisz tylko gdy UI jeszcze nie ustawiło CANCELLED
+            KSeFSyncLog.objects.filter(pk=log.pk, status=KSeFSyncLog.STATUS_RUNNING).update(
+                invoices_fetched=fetched,
+                invoices_new=new_count,
+                status=KSeFSyncLog.STATUS_CANCELLED,
+                current_stage='',
+                error_message=f'Anulowano po pobraniu {fetched} faktur ({new_count} nowych)',
+                finished_at=dj_timezone.now(),
+            )
             if fetched > 0:
                 config.last_sync_at = dj_timezone.now()
                 config.save(update_fields=['last_sync_at'])
             logger.info('KSeF sync anulowany: %d pobranych, %d nowych', fetched, new_count)
             return
 
-        log.invoices_fetched = fetched
-        log.invoices_new = new_count
-        log.status = KSeFSyncLog.STATUS_SUCCESS
-        log.current_stage = ''
-        log.finished_at = dj_timezone.now()
-        log.save()
+        KSeFSyncLog.objects.filter(pk=log.pk, status=KSeFSyncLog.STATUS_RUNNING).update(
+            invoices_fetched=fetched,
+            invoices_new=new_count,
+            status=KSeFSyncLog.STATUS_SUCCESS,
+            current_stage='',
+            finished_at=dj_timezone.now(),
+        )
 
         config.last_sync_at = dj_timezone.now()
         config.save(update_fields=['last_sync_at'])
