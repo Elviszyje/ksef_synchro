@@ -5,7 +5,7 @@ Dokumentacja: https://api-test.ksef.mf.gov.pl/docs/v2
 import base64
 import logging
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Iterator
 
 import httpx
@@ -201,8 +201,22 @@ class KSeFClient:
     ) -> Iterator[dict]:
         """
         Iteruje po fakturach zakupowych (nabywca = nasza firma NIP).
-        Każdy element to dict z polami: ksefNumber, seller, buyer, grossAmount, ...
+        Automatycznie dzieli zakresy > 89 dni na chunki (limit API: 3 miesiące).
         """
+        _MAX_CHUNK = timedelta(days=89)
+        chunk_from = date_from
+        while chunk_from < date_to:
+            chunk_to = min(chunk_from + _MAX_CHUNK, date_to)
+            yield from self._query_chunk(session_token, chunk_from, chunk_to, page_size)
+            chunk_from = chunk_to
+
+    def _query_chunk(
+        self,
+        session_token: str,
+        date_from: datetime,
+        date_to: datetime,
+        page_size: int,
+    ) -> Iterator[dict]:
         headers = {'Authorization': f'Bearer {session_token}'}
         page_offset = 0
 
@@ -225,7 +239,9 @@ class KSeFClient:
             self._raise_for_status(resp)
             data = resp.json()
             invoices = data.get('invoices', [])
-            logger.info('KSeF v2 zapytanie offset=%d zwróciło %d faktur', page_offset, len(invoices))
+            logger.info('KSeF v2 zapytanie %s–%s offset=%d: %d faktur',
+                        date_from.strftime('%Y-%m-%d'), date_to.strftime('%Y-%m-%d'),
+                        page_offset, len(invoices))
 
             for inv in invoices:
                 yield inv

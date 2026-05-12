@@ -52,7 +52,7 @@ def sync_ksef_invoices(self, force=False):
 
         date_to = datetime.now(tz=timezone.utc)
         date_from = config.last_sync_at.replace(tzinfo=timezone.utc) if config.last_sync_at else (
-            date_to - timedelta(days=90)
+            date_to - timedelta(days=30)
         )
 
         with KSeFClient(config.base_url, config.nip, token) as client:
