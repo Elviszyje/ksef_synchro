@@ -272,10 +272,12 @@ def _parsed_to_invoice_fields(parsed) -> dict:
         'payment_due_date': parse_date(parsed.payment_due_date),
         'bank_account_number': parsed.bank_account_number,
         'payment_title': parsed.payment_title,
+        'payment_date': parse_date(parsed.payment_date),
+        'payment_form': parsed.payment_form,
         'invoice_type': parsed.invoice_type,
         'description': parsed.description,
         'raw_xml': parsed.raw_xml,
-        'status': Invoice.STATUS_NEW,
+        'status': Invoice.STATUS_PAID if parsed.is_paid else Invoice.STATUS_NEW,
     }
 
 
@@ -364,7 +366,8 @@ def _update_invoice_from_api(invoice, defaults: dict):
     FROM_XML = ('amount_net', 'amount_vat', 'payment_due_date',
                 'bank_account_number', 'seller_address', 'raw_xml',
                 'is_split_payment', 'vat_amount_split',
-                'invoice_type', 'description')
+                'invoice_type', 'description',
+                'payment_date', 'payment_form')
 
     updates = {f: defaults[f] for f in ALWAYS if f in defaults}
 
@@ -378,6 +381,10 @@ def _update_invoice_from_api(invoice, defaults: dict):
     seller_name = defaults.get('seller_name', '')
     if seller_name and seller_name != 'Nieznany sprzedawca':
         updates['seller_name'] = seller_name
+
+    # Auto-zmiana statusu na oplacona gdy XML potwierdza zapłatę
+    if defaults.get('payment_date') and invoice.status != InvoiceModel.STATUS_PAID:
+        updates['status'] = InvoiceModel.STATUS_PAID
 
     if updates:
         InvoiceModel.objects.filter(pk=invoice.pk).update(**updates)

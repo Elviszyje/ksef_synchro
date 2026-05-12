@@ -76,6 +76,14 @@ class Invoice(models.Model):
         max_length=255, blank=True,
         verbose_name='Tytuł płatności',
     )
+    payment_date = models.DateField(
+        null=True, blank=True,
+        verbose_name='Data zapłaty (z XML)',
+    )
+    payment_form = models.CharField(
+        max_length=30, blank=True,
+        verbose_name='Forma płatności',
+    )
 
     # Status
     status = models.CharField(

@@ -44,6 +44,17 @@ def _decimal(el, path: str, ns: dict) -> Decimal:
         return Decimal('0')
 
 
+_PAYMENT_FORMS = {
+    '1': 'gotówka',
+    '2': 'karta',
+    '3': 'bon/voucher',
+    '4': 'czek',
+    '5': 'kredyt',
+    '6': 'przelew',
+    '7': 'płatność mobilna',
+}
+
+
 @dataclass
 class ParsedInvoice:
     invoice_number: str = ''
@@ -70,6 +81,10 @@ class ParsedInvoice:
 
     bank_account_number: str = ''
     payment_title: str = ''
+
+    is_paid: bool = False
+    payment_date: Optional[str] = None
+    payment_form: str = ''
 
     raw_xml: str = ''
 
@@ -180,6 +195,12 @@ class FA2Parser:
         # Split payment
         mpp = _text(root, './/fa:Platnosc/fa:MechanizmPodzielonejPlatnosci', NS)
         result.is_split_payment = mpp == 'T'
+
+        # Dane zapłaty
+        result.is_paid = _text(root, './/fa:Platnosc/fa:Zaplacono', NS) == '1'
+        result.payment_date = _text(root, './/fa:Platnosc/fa:DataZaplaty', NS) or None
+        form_code = _text(root, './/fa:Platnosc/fa:FormaPlatnosci', NS)
+        result.payment_form = _PAYMENT_FORMS.get(form_code, form_code)
 
         # Numer rachunku bankowego sprzedawcy
         result.bank_account_number = self._extract_bank_account(root, NS)

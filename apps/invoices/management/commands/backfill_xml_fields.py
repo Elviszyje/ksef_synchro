@@ -60,6 +60,12 @@ class Command(BaseCommand):
                 due = _parse_date(parsed.payment_due_date)
                 if due:
                     fields['payment_due_date'] = due
+                paid = _parse_date(parsed.payment_date)
+                if paid:
+                    fields['payment_date'] = paid
+                    fields['status'] = 'oplacona'
+                if parsed.payment_form:
+                    fields['payment_form'] = parsed.payment_form
                 if parsed.bank_account_number:
                     fields['bank_account_number'] = parsed.bank_account_number
                 Invoice.objects.filter(pk=inv.pk).update(**fields)
