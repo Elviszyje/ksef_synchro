@@ -155,13 +155,22 @@ class FA2Parser:
         return net, vat, gross
 
     def _extract_bank_account(self, root, NS) -> str:
+        # FA(2)/FA(3): rachunek bankowy w sekcji Platnosc lub Podmiot1.
+        # Pole to NrRB (nie NumerRachunku) w węźle NrKonta lub RachunekBankowy.
         for path in [
+            './/fa:Platnosc/fa:NrKonta/fa:NrRB',
+            './/fa:Platnosc/fa:RachunekBankowy/fa:NrRB',
             './/fa:Platnosc/fa:RachunekBankowy/fa:NumerRachunku',
+            './/fa:Podmiot1/fa:NrKonta/fa:NrRB',
+            './/fa:Podmiot1/fa:RachunekBankowy/fa:NrRB',
             './/fa:Podmiot1/fa:RachunekBankowy/fa:NumerRachunku',
         ]:
-            acc = _text(root, path, NS)
-            if acc:
-                acc = acc.replace(' ', '').replace('PL', '')
-                if len(acc) == 26 and acc.isdigit():
-                    return acc
+            raw = _text(root, path, NS)
+            if not raw:
+                continue
+            acc = raw.replace(' ', '').upper()
+            if acc.startswith('PL'):
+                acc = acc[2:]
+            if len(acc) == 26 and acc.isdigit():
+                return acc
         return ''
