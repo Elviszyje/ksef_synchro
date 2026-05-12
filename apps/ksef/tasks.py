@@ -354,7 +354,7 @@ def _update_invoice_from_api(invoice, defaults: dict):
     from decimal import Decimal
     from apps.invoices.models import Invoice as InvoiceModel
 
-    ALWAYS = ('invoice_number', 'seller_name', 'seller_nip', 'buyer_nip',
+    ALWAYS = ('invoice_number', 'seller_nip', 'buyer_nip',
               'amount_gross', 'currency', 'issue_date', 'payment_title')
     FROM_XML = ('amount_net', 'amount_vat', 'payment_due_date',
                 'bank_account_number', 'seller_address', 'raw_xml',
@@ -367,6 +367,11 @@ def _update_invoice_from_api(invoice, defaults: dict):
         # Nie nadpisuj zerami/pustymi — oznaczałoby to brak XML, nie rzeczywiste zero
         if val not in (None, '', 0, False, Decimal('0')):
             updates[f] = val
+
+    # seller_name: nadpisuj tylko prawdziwą nazwą (nie placeholderem)
+    seller_name = defaults.get('seller_name', '')
+    if seller_name and seller_name != 'Nieznany sprzedawca':
+        updates['seller_name'] = seller_name
 
     if updates:
         InvoiceModel.objects.filter(pk=invoice.pk).update(**updates)

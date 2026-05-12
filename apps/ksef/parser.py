@@ -98,7 +98,13 @@ class FA2Parser:
         podmiot1 = root.find('.//fa:Podmiot1', NS)
         if podmiot1 is not None:
             result.seller_nip = _text(podmiot1, 'fa:DaneIdentyfikacyjne/fa:NIP', NS)
-            result.seller_name = _text(podmiot1, 'fa:DaneIdentyfikacyjne/fa:PelnaNazwa', NS)
+            result.seller_name = (
+                _text(podmiot1, 'fa:DaneIdentyfikacyjne/fa:PelnaNazwa', NS)
+                or ' '.join(filter(None, [
+                    _text(podmiot1, 'fa:DaneIdentyfikacyjne/fa:Imie', NS),
+                    _text(podmiot1, 'fa:DaneIdentyfikacyjne/fa:Nazwisko', NS),
+                ]))
+            )
             result.seller_address = self._extract_address(podmiot1, NS)
 
         # Nabywca (Podmiot2)
@@ -110,7 +116,11 @@ class FA2Parser:
         result.amount_net, result.amount_vat, result.amount_gross = self._extract_amounts(root, NS)
 
         # Waluta
-        result.currency = _text(root, './/fa:Fa/fa:P_1M', NS) or 'PLN'
+        result.currency = (
+            _text(root, './/fa:Fa/fa:KodWaluty', NS)
+            or _text(root, './/fa:Naglowek/fa:KodWaluty', NS)
+            or 'PLN'
+        )
 
         # Split payment
         mpp = _text(root, './/fa:Platnosc/fa:MechanizmPodzielonejPlatnosci', NS)
