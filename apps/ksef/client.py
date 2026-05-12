@@ -116,17 +116,14 @@ class KSeFClient:
             )
             self._raise_for_status(resp)
             data = resp.json()
-            status = (
-                data.get('processingCode')
-                or data.get('authenticationStatus')
-                or data.get('status')
-            )
-            logger.debug('KSeF auth status check %d/%d: %s', attempt + 1, max_wait, data)
-            if status != 100:
-                if status == 200:
+            status_obj = data.get('status') or data.get('processingCode') or data.get('authenticationStatus')
+            code = status_obj.get('code') if isinstance(status_obj, dict) else status_obj
+            logger.debug('KSeF auth status check %d/%d: code=%s', attempt + 1, max_wait, code)
+            if code != 100:
+                if code == 200:
                     logger.info('KSeF auth gotowa (status 200) po %d próbach', attempt + 1)
                     return
-                raise KSeFAuthError(f'Błąd autoryzacji KSeF, status={status}: {data}')
+                raise KSeFAuthError(f'Błąd autoryzacji KSeF, status={code}: {data}')
             time.sleep(1)
         raise KSeFAuthError(f'Timeout autoryzacji KSeF po {max_wait}s (ref: {reference_number})')
 
