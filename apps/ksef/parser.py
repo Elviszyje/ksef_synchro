@@ -13,7 +13,8 @@ logger = logging.getLogger(__name__)
 # Znane namespace'y schematu FA
 _KNOWN_NS = [
     'http://crd.gov.pl/wzor/2023/06/29/12648/',  # FA(2)
-    'http://crd.gov.pl/wzor/2024/06/19/12648/',  # FA(3) potencjalny
+    'http://crd.gov.pl/wzor/2024/06/19/12648/',  # FA(3) — wersja robocza
+    'http://crd.gov.pl/wzor/2025/06/25/13775/',  # FA(3) — wersja produkcyjna
 ]
 
 
@@ -101,14 +102,15 @@ class FA2Parser:
                 _text(podmiot1, 'fa:DaneIdentyfikacyjne/fa:NIP', NS)
                 or _text(podmiot1, './/fa:NIP', NS)
             )
+            # FA(2): PelnaNazwa; FA(3): Nazwa — oba warianty
             result.seller_name = (
                 _text(podmiot1, 'fa:DaneIdentyfikacyjne/fa:PelnaNazwa', NS)
+                or _text(podmiot1, 'fa:DaneIdentyfikacyjne/fa:Nazwa', NS)
                 or _text(podmiot1, './/fa:PelnaNazwa', NS)
+                or _text(podmiot1, './/fa:Nazwa', NS)
                 or ' '.join(filter(None, [
-                    _text(podmiot1, 'fa:DaneIdentyfikacyjne/fa:Imie', NS)
-                    or _text(podmiot1, './/fa:Imie', NS),
-                    _text(podmiot1, 'fa:DaneIdentyfikacyjne/fa:Nazwisko', NS)
-                    or _text(podmiot1, './/fa:Nazwisko', NS),
+                    _text(podmiot1, './/fa:Imie', NS),
+                    _text(podmiot1, './/fa:Nazwisko', NS),
                 ]))
             )
             if not result.seller_name:
