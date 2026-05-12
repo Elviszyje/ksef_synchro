@@ -12,6 +12,9 @@
 </a>
 {% endblock %}
 {% block content %}
+
+{% include "ksef/partials/sync_status.html" with running=running %}
+
 <div class="card border-0 shadow-sm">
   <div class="table-responsive">
     <table class="table table-hover mb-0 align-middle" style="font-size:.875rem;">
@@ -31,6 +34,8 @@
             <span class="badge bg-success-subtle text-success border border-success-subtle">Sukces</span>
             {% elif log.status == 'error' %}
             <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Błąd</span>
+            {% elif log.status == 'cancelled' %}
+            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Anulowano</span>
             {% else %}
             <span class="badge bg-warning-subtle text-warning border border-warning-subtle">
               <span class="spinner-border spinner-border-sm me-1" style="width:.6rem;height:.6rem;"></span>W toku

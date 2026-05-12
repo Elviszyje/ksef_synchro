@@ -106,3 +106,61 @@ class KSeFSyncLogListView(RoleRequiredMixin, ListView):
     context_object_name = 'logs'
     paginate_by = 30
     ordering = ['-started_at']
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['running'] = KSeFSyncLog.objects.filter(
+            status=KSeFSyncLog.STATUS_RUNNING
+        ).order_by('-started_at').first()
+        return ctx
+
+
+class KSeFSyncStatusView(RoleRequiredMixin, View):
+    """Partial dla HTMX — zwraca kartę statusu bieżącego joba."""
+    min_role = 'admin'
+
+    def get(self, request):
+        from django.template.response import TemplateResponse
+        from django.utils import timezone as dj_tz
+
+        running = KSeFSyncLog.objects.filter(
+            status=KSeFSyncLog.STATUS_RUNNING
+        ).order_by('-started_at').first()
+
+        response = TemplateResponse(
+            request,
+            'ksef/partials/sync_status.html',
+            {'running': running},
+        )
+        # Gdy job właśnie się skończył — odśwież stronę (HTMX header)
+        if not running:
+            recent = KSeFSyncLog.objects.exclude(
+                status=KSeFSyncLog.STATUS_RUNNING
+            ).order_by('-finished_at').first()
+            if recent and recent.finished_at:
+                age = (dj_tz.now() - recent.finished_at).total_seconds()
+                if age < 10:
+                    response['HX-Refresh'] = 'true'
+        return response
+
+
+class KSeFSyncCancelView(RoleRequiredMixin, View):
+    """Ustawia flagę anulowania na bieżącym jobie."""
+    min_role = 'admin'
+
+    def post(self, request):
+        from django.template.response import TemplateResponse
+
+        running = KSeFSyncLog.objects.filter(
+            status=KSeFSyncLog.STATUS_RUNNING
+        ).order_by('-started_at').first()
+
+        if running and not running.cancel_requested:
+            KSeFSyncLog.objects.filter(pk=running.pk).update(cancel_requested=True)
+            running.cancel_requested = True
+
+        return TemplateResponse(
+            request,
+            'ksef/partials/sync_status.html',
+            {'running': running},
+        )

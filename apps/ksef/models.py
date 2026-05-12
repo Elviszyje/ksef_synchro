@@ -75,10 +75,12 @@ class KSeFSyncLog(models.Model):
     STATUS_RUNNING = 'running'
     STATUS_SUCCESS = 'success'
     STATUS_ERROR = 'error'
+    STATUS_CANCELLED = 'cancelled'
     STATUSES = [
         (STATUS_RUNNING, 'W toku'),
         (STATUS_SUCCESS, 'Sukces'),
         (STATUS_ERROR, 'Błąd'),
+        (STATUS_CANCELLED, 'Anulowano'),
     ]
 
     started_at = models.DateTimeField(auto_now_add=True, verbose_name='Rozpoczęto')
@@ -88,6 +90,8 @@ class KSeFSyncLog(models.Model):
     invoices_new = models.IntegerField(default=0, verbose_name='Nowych faktur')
     error_message = models.TextField(blank=True, verbose_name='Komunikat błędu')
     celery_task_id = models.CharField(max_length=255, blank=True)
+    current_stage = models.CharField(max_length=120, blank=True, verbose_name='Etap')
+    cancel_requested = models.BooleanField(default=False, verbose_name='Żądanie anulowania')
 
     class Meta:
         verbose_name = 'Log synchronizacji KSeF'

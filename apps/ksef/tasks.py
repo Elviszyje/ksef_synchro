@@ -58,13 +58,17 @@ def sync_ksef_invoices(self, force=False):
         fetched = 0
         new_count = 0
         new_refs = []
+        cancelled = False
+
+        KSeFSyncLog.objects.filter(pk=log.pk).update(current_stage='Autoryzacja...')
 
         with KSeFClient(config.base_url, config.nip, token) as client:
             session_token = client.init_session()
 
-            # Pre-flight: sprawdź dostępny limit przed pętlą pobierania
-            # Rzuca KSeFRateLimitError gdy remaining==0; None = nie można ustalić (fail-open)
+            KSeFSyncLog.objects.filter(pk=log.pk).update(current_stage='Sprawdzanie limitów...')
             client.check_quota(session_token)
+
+            KSeFSyncLog.objects.filter(pk=log.pk).update(current_stage='Pobieranie faktur...')
 
             # None = nie sprawdzano, True = XML działa, False = 404 (skip dla reszty)
             xml_available = None
@@ -84,7 +88,6 @@ def sync_ksef_invoices(self, force=False):
                             xml_available = True
                             parsed = parser.parse(xml_bytes, ksef_ref)
                         elif xml_available is None:
-                            # Pierwsza próba — 404 → nie próbuj dla kolejnych faktur
                             xml_available = False
                             logger.info('KSeF: XML niedostępny (404) — sync tylko z metadanych')
 
@@ -102,12 +105,40 @@ def sync_ksef_invoices(self, force=False):
                     else:
                         _update_invoice_from_api(obj, defaults)
 
+                    # Co 5 faktur: aktualizuj progress i sprawdź czy nie anulowano
+                    if fetched % 5 == 0:
+                        mode = 'XML' if xml_available else 'metadane'
+                        KSeFSyncLog.objects.filter(pk=log.pk).update(
+                            invoices_fetched=fetched,
+                            invoices_new=new_count,
+                            current_stage=f'Pobieranie ({mode}): {fetched} faktur...',
+                        )
+                        if KSeFSyncLog.objects.filter(pk=log.pk, cancel_requested=True).exists():
+                            logger.info('KSeF sync: anulowanie na żądanie po %d fakturach', fetched)
+                            cancelled = True
+                            break
+
             finally:
                 client.terminate_session(session_token)
+
+        if cancelled:
+            log.invoices_fetched = fetched
+            log.invoices_new = new_count
+            log.status = KSeFSyncLog.STATUS_CANCELLED
+            log.current_stage = ''
+            log.error_message = f'Anulowano po pobraniu {fetched} faktur ({new_count} nowych)'
+            log.finished_at = dj_timezone.now()
+            log.save()
+            if fetched > 0:
+                config.last_sync_at = dj_timezone.now()
+                config.save(update_fields=['last_sync_at'])
+            logger.info('KSeF sync anulowany: %d pobranych, %d nowych', fetched, new_count)
+            return
 
         log.invoices_fetched = fetched
         log.invoices_new = new_count
         log.status = KSeFSyncLog.STATUS_SUCCESS
+        log.current_stage = ''
         log.finished_at = dj_timezone.now()
         log.save()
 
