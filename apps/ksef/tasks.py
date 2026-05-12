@@ -14,8 +14,8 @@ def sync_ksef_invoices(self, force=False):
     force=True pomija guardy sync_enabled, okna czasowego i interwału (ręczne wywołanie).
     """
     from apps.ksef.models import KSeFConfig, KSeFSyncLog
-    from apps.ksef.client import KSeFClient, KSeFAPIError, KSeFAuthError
-    from apps.ksef.parser import FA2Parser
+    from apps.ksef.client import KSeFClient, KSeFAPIError, KSeFAuthError, KSeFRateLimitError
+    from apps.ksef.parser import FA2Parser, ParsedInvoice
     from apps.invoices.models import Invoice
 
     config = KSeFConfig.get_active()
@@ -69,13 +69,24 @@ def sync_ksef_invoices(self, force=False):
 
                     fetched += 1
 
-                    # Pobierz XML faktury
+                    # Pobierz XML faktury (None = niedostępny, użyj metadanych)
+                    xml_bytes = None
                     try:
                         xml_bytes = client.get_invoice_xml(session_token, ksef_ref)
-                        parsed = parser.parse(xml_bytes, ksef_reference_number=ksef_ref)
+                    except KSeFRateLimitError as e:
+                        logger.warning('KSeF rate limit — czekam %ds', e.wait_seconds)
+                        import time; time.sleep(e.wait_seconds)
+                        try:
+                            xml_bytes = client.get_invoice_xml(session_token, ksef_ref)
+                        except KSeFAPIError as e2:
+                            logger.error('Błąd pobierania XML %s po retry: %s', ksef_ref, e2)
                     except KSeFAPIError as e:
-                        logger.error('Błąd pobierania faktury %s: %s', ksef_ref, e)
-                        continue
+                        logger.error('Błąd pobierania XML %s: %s', ksef_ref, e)
+
+                    if xml_bytes:
+                        parsed = parser.parse(xml_bytes, ksef_reference_number=ksef_ref)
+                    else:
+                        parsed = _parsed_from_metadata(header)
 
                     # Zapisz lub pomiń istniejące
                     defaults = _parsed_to_invoice_fields(parsed)
@@ -206,3 +217,23 @@ def _parsed_to_invoice_fields(parsed) -> dict:
         'raw_xml': parsed.raw_xml,
         'status': Invoice.STATUS_NEW,
     }
+
+
+def _parsed_from_metadata(header: dict) -> 'ParsedInvoice':
+    """Tworzy ParsedInvoice z metadanych query (gdy XML niedostępny)."""
+    from decimal import Decimal
+    ref = header.get('ksefNumber') or header.get('ksefReferenceNumber', '')
+    seller = header.get('seller') or {}
+    buyer = header.get('buyer') or {}
+    gross = header.get('grossAmount') or 0
+    parsed = ParsedInvoice(
+        ksef_reference_number=ref,
+        invoice_number=ref,
+        seller_nip=seller.get('nip', ''),
+        seller_name=seller.get('name', 'Nieznany sprzedawca'),
+        buyer_nip=buyer.get('nip', ''),
+        issue_date=header.get('invoiceIssueDate', ''),
+        amount_gross=Decimal(str(gross)),
+        payment_title=f'Faktura {ref}',
+    )
+    return parsed

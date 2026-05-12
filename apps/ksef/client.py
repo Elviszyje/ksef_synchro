@@ -22,6 +22,12 @@ class KSeFAuthError(Exception):
     pass
 
 
+class KSeFRateLimitError(Exception):
+    def __init__(self, wait_seconds: int = 60):
+        super().__init__(f'Rate limit KSeF, czekam {wait_seconds}s')
+        self.wait_seconds = wait_seconds
+
+
 class KSeFAPIError(Exception):
     def __init__(self, message: str, status_code: int = 0):
         super().__init__(message)
@@ -60,6 +66,21 @@ class KSeFClient:
             logger.error('KSeF API %s %s → %s\nBody: %s',
                          response.request.method, response.url,
                          response.status_code, full_body)
+
+            if response.status_code == 429:
+                wait = 60
+                try:
+                    import re
+                    details = response.json().get('status', {}).get('details', [])
+                    for d in details:
+                        m = re.search(r'po\s+(\d+)\s+sekund', d)
+                        if m:
+                            wait = int(m.group(1)) + 2
+                            break
+                except Exception:
+                    pass
+                raise KSeFRateLimitError(wait)
+
             try:
                 data = response.json()
                 detail = (
@@ -231,12 +252,20 @@ class KSeFClient:
                 'pageSize': page_size,
                 'pageOffset': page_offset,
             }
-            resp = self._http.post(
-                self._url('invoices/query/metadata'),
-                json=payload,
-                headers=headers,
-            )
-            self._raise_for_status(resp)
+            for _attempt in range(3):
+                resp = self._http.post(
+                    self._url('invoices/query/metadata'),
+                    json=payload,
+                    headers=headers,
+                )
+                try:
+                    self._raise_for_status(resp)
+                    break
+                except KSeFRateLimitError as e:
+                    logger.warning('KSeF rate limit (query) — czekam %ds', e.wait_seconds)
+                    time.sleep(e.wait_seconds)
+            else:
+                self._raise_for_status(resp)
             data = resp.json()
             invoices = data.get('invoices', [])
             logger.info('KSeF v2 zapytanie %s–%s offset=%d: %d faktur',
@@ -250,17 +279,26 @@ class KSeFClient:
                 break
             page_offset += page_size
 
-    def get_invoice_xml(self, session_token: str, ksef_reference_number: str) -> bytes:
-        """Pobiera surowy XML FA faktury."""
-        resp = self._http.get(
-            self._url(f'invoices/{ksef_reference_number}'),
-            headers={
-                'Authorization': f'Bearer {session_token}',
-                'Accept': 'application/octet-stream',
-            },
-        )
-        self._raise_for_status(resp)
-        return resp.content
+    def get_invoice_xml(self, session_token: str, ksef_reference_number: str) -> bytes | None:
+        """
+        Pobiera surowy XML FA faktury. Zwraca None jeśli niedostępny (404).
+        Rzuca KSeFRateLimitError przy 429.
+        """
+        headers = {'Authorization': f'Bearer {session_token}'}
+        for path in [
+            f'invoices/{ksef_reference_number}/content',
+            f'invoices/{ksef_reference_number}',
+        ]:
+            resp = self._http.get(
+                self._url(path),
+                headers={**headers, 'Accept': 'application/octet-stream'},
+            )
+            if resp.status_code == 404:
+                continue
+            self._raise_for_status(resp)
+            return resp.content
+        logger.warning('KSeF: brak XML dla %s (404 na wszystkich ścieżkach)', ksef_reference_number)
+        return None
 
     def close(self):
         self._http.close()
