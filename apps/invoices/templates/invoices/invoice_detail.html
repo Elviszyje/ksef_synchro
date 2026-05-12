@@ -97,6 +97,49 @@
       </div>
     </div>
 
+    <!-- Pozycje faktury -->
+    {% if line_items %}
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-white border-bottom py-2 fw-semibold small">
+        Pozycje faktury
+        <span class="text-muted fw-normal ms-1">({{ line_items|length }})</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0" style="font-size:.8rem;">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3" style="width:2rem;">#</th>
+              <th>Nazwa / opis</th>
+              <th class="text-end">Ilość</th>
+              <th>J.m.</th>
+              <th class="text-end">Cena netto</th>
+              <th class="text-end">Wartość netto</th>
+              <th class="text-center">VAT</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in line_items %}
+            <tr>
+              <td class="ps-3 text-muted">{{ item.nr }}</td>
+              <td>{{ item.name }}</td>
+              <td class="text-end font-monospace">{{ item.qty }}</td>
+              <td class="text-muted">{{ item.unit }}</td>
+              <td class="text-end font-monospace">{{ item.unit_price }}</td>
+              <td class="text-end font-monospace fw-medium">{{ item.net_value }}</td>
+              <td class="text-center">
+                <span class="badge {% if item.vat_rate == 'zw' or item.vat_rate == 'np' or item.vat_rate == 'oo' %}bg-secondary-subtle text-secondary border border-secondary-subtle{% else %}bg-warning-subtle text-warning-emphasis border border-warning-subtle{% endif %}"
+                      style="font-size:.7em;">
+                  {{ item.vat_rate }}{% if item.vat_rate != 'zw' and item.vat_rate != 'np' and item.vat_rate != 'oo' %}%{% endif %}
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+
     <!-- Notatki -->
     <div class="card border-0 shadow-sm">
       <div class="card-header bg-white border-bottom py-2 fw-semibold small">Notatki</div>

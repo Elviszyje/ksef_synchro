@@ -74,6 +74,33 @@ class ParsedInvoice:
     raw_xml: str = ''
 
 
+def parse_line_items(raw_xml: str) -> list[dict]:
+    """
+    Zwraca listę pozycji faktury (FaWiersz) z raw_xml.
+    Każda pozycja: nr, name, unit, qty, unit_price, net_value, vat_rate.
+    """
+    if not raw_xml:
+        return []
+    try:
+        root = etree.fromstring(raw_xml.encode('utf-8', errors='replace'))
+    except etree.XMLSyntaxError:
+        return []
+
+    NS = _detect_ns(root)
+    items = []
+    for wiersz in root.findall('.//fa:FaWiersz', NS):
+        items.append({
+            'nr':         _text(wiersz, 'fa:NrWierszaFa', NS),
+            'name':       _text(wiersz, 'fa:P_7', NS),
+            'unit':       _text(wiersz, 'fa:P_8A', NS),
+            'qty':        _text(wiersz, 'fa:P_8B', NS),
+            'unit_price': _text(wiersz, 'fa:P_9A', NS),
+            'net_value':  _text(wiersz, 'fa:P_11', NS),
+            'vat_rate':   _text(wiersz, 'fa:P_12', NS),
+        })
+    return items
+
+
 class FA2Parser:
     """
     Parsuje XML faktury KSeF — obsługuje FA(2) i FA(3) przez auto-detect namespace.

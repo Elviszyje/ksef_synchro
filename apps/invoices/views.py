@@ -72,6 +72,11 @@ class InvoiceDetailView(RoleRequiredMixin, DetailView):
         ctx['allowed_transitions'] = STATUS_TRANSITIONS.get(self.object.status, [])
         ctx['status_labels'] = dict(Invoice.STATUS_CHOICES)
         ctx['status_colors'] = Invoice.STATUS_COLORS
+        if self.object.raw_xml:
+            from apps.ksef.parser import parse_line_items
+            ctx['line_items'] = parse_line_items(self.object.raw_xml)
+        else:
+            ctx['line_items'] = []
         return ctx
 
 
