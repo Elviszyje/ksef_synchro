@@ -219,9 +219,10 @@ def _parsed_to_invoice_fields(parsed) -> dict:
     }
 
 
-def _parsed_from_metadata(header: dict) -> 'ParsedInvoice':
+def _parsed_from_metadata(header: dict):
     """Tworzy ParsedInvoice z metadanych query (gdy XML niedostępny)."""
     from decimal import Decimal
+    from apps.ksef.parser import ParsedInvoice
     ref = header.get('ksefNumber') or header.get('ksefReferenceNumber', '')
     seller = header.get('seller') or {}
     buyer = header.get('buyer') or {}
