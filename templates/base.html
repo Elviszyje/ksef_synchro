@@ -69,8 +69,10 @@
     @media (max-width: 767px) {
       .sidebar { display: none; }
       .main-content { margin-left: 0; }
-      .page-body-inner { padding: 1rem; }
+      .page-body-inner { padding: 0; }
+      .page-body-inner > .mb-3 { padding: .75rem .75rem 0; } /* alerty/messages */
       .topbar { padding: .5rem 1rem; }
+      .page-body-inner .card { border-radius: 0 !important; box-shadow: none !important; }
     }
   </style>
   {% block extra_head %}{% endblock %}
