@@ -31,34 +31,34 @@
       hx-trigger="change, keyup delay:400ms"
       hx-indicator="#global-spinner"
       style="position:sticky; top:0; z-index:50; background:#fff; border-bottom:1px solid #e5e7eb; box-shadow:0 2px 6px rgba(0,0,0,.06);">
-  <div class="px-4 py-2">
+  <div class="px-3 py-2">
     <div class="row g-2 align-items-center">
 
-      <div class="col-auto">
-        <input type="text" name="seller_name" class="form-control form-control-sm"
-               placeholder="Sprzedawca" style="width:170px;"
+      <div class="col-12 col-sm-6 col-md-auto">
+        <input type="text" name="seller_name" class="form-control form-control-sm w-100"
+               placeholder="Sprzedawca"
                value="{{ filter.form.seller_name.value|default:'' }}">
       </div>
 
-      <div class="col-auto">
+      <div class="col-6 col-sm-4 col-md-auto">
         <input type="text" name="seller_nip" class="form-control form-control-sm"
-               placeholder="NIP" style="width:110px;"
+               placeholder="NIP"
                value="{{ filter.form.seller_nip.value|default:'' }}">
       </div>
 
-      <div class="col-auto">
+      <div class="col-6 col-sm-4 col-md-auto">
         <input type="text" name="invoice_number" class="form-control form-control-sm"
-               placeholder="Nr faktury" style="width:130px;"
+               placeholder="Nr faktury"
                value="{{ filter.form.invoice_number.value|default:'' }}">
       </div>
 
-      <div class="col-auto">
+      <div class="col-6 col-sm-auto">
         <input type="date" name="issue_date_from" class="form-control form-control-sm"
                title="Data wystawienia od"
                value="{{ filter.form.issue_date_from.value|default:'' }}">
       </div>
-      <div class="col-auto d-flex align-items-center gap-1">
-        <span class="text-muted small">–</span>
+      <div class="col-6 col-sm-auto d-flex align-items-center gap-1">
+        <span class="text-muted small d-none d-sm-inline">–</span>
         <input type="date" name="issue_date_to" class="form-control form-control-sm"
                title="Data wystawienia do"
                value="{{ filter.form.issue_date_to.value|default:'' }}">
@@ -86,7 +86,7 @@
         </div>
       </div>
 
-      <div class="col-auto ms-auto">
+      <div class="col-auto ms-sm-auto">
         <a href="{% url 'invoices:list' %}" class="btn btn-outline-secondary btn-sm" title="Wyczyść filtry">
           <i class="bi bi-x-lg"></i>
         </a>

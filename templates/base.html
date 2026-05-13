@@ -66,9 +66,11 @@
     .htmx-indicator { opacity: 0; transition: opacity 0.2s; }
     .htmx-request .htmx-indicator { opacity: 1; }
     .filter-sidebar { background: #fff; border-right: 1px solid #e5e7eb; min-height: calc(100vh - 56px); }
-    @media (max-width: 768px) {
+    @media (max-width: 767px) {
       .sidebar { display: none; }
       .main-content { margin-left: 0; }
+      .page-body-inner { padding: 1rem; }
+      .topbar { padding: .5rem 1rem; }
     }
   </style>
   {% block extra_head %}{% endblock %}
@@ -140,6 +142,10 @@
 
 <div class="main-content">
   <div class="topbar">
+    <button class="btn btn-link p-0 me-2 d-md-none text-secondary"
+            data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar" aria-label="Menu">
+      <i class="bi bi-list fs-5"></i>
+    </button>
     <h6 class="mb-0 fw-semibold">{% block page_title %}{% endblock %}</h6>
     <div class="ms-auto d-flex align-items-center gap-2">
       <span class="htmx-indicator spinner-border spinner-border-sm text-primary" id="global-spinner"></span>
@@ -183,6 +189,70 @@
 </div>
 {% else %}
 {% block auth_content %}{% endblock %}
+{% endif %}
+
+{% if user.is_authenticated %}
+<div class="offcanvas offcanvas-start d-md-none" tabindex="-1" id="mobileSidebar"
+     style="width:240px; background:#1a1a2e;">
+  <div class="offcanvas-header border-bottom border-secondary-subtle py-3">
+    <span class="fw-bold" style="color:#e2e8f0;">Faktury <span style="color:#60a5fa;">KSeF</span></span>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body p-0 d-flex flex-column">
+    <nav class="sidebar-nav flex-grow-1">
+      <div class="sidebar-section mt-2">Faktury</div>
+      <a href="{% url 'invoices:list' %}" class="nav-link" data-bs-dismiss="offcanvas">
+        <i class="bi bi-file-earmark-text"></i> Lista faktur
+      </a>
+      <a href="{% url 'invoices:dashboard' %}" class="nav-link" data-bs-dismiss="offcanvas">
+        <i class="bi bi-bar-chart-line"></i> Dashboard kosztów
+      </a>
+      {% has_role 'approver' as mob_can_approve %}
+      {% if mob_can_approve %}
+      <div class="sidebar-section mt-2">Płatności</div>
+      <a href="{% url 'payments:create' %}" class="nav-link" data-bs-dismiss="offcanvas">
+        <i class="bi bi-send"></i> Generuj przelewy
+      </a>
+      <a href="{% url 'payments:list' %}" class="nav-link" data-bs-dismiss="offcanvas">
+        <i class="bi bi-archive"></i> Historia plików
+      </a>
+      {% endif %}
+      {% has_role 'accountant' as mob_can_accounting %}
+      {% if mob_can_accounting %}
+      <div class="sidebar-section mt-2">Bank</div>
+      <a href="{% url 'bank_statements:upload' %}" class="nav-link" data-bs-dismiss="offcanvas">
+        <i class="bi bi-upload"></i> Wgraj wyciąg
+      </a>
+      <a href="{% url 'bank_statements:list' %}" class="nav-link" data-bs-dismiss="offcanvas">
+        <i class="bi bi-bank"></i> Wyciągi
+      </a>
+      {% endif %}
+      {% has_role 'admin' as mob_is_admin %}
+      {% if mob_is_admin %}
+      <div class="sidebar-section mt-2">KSeF / System</div>
+      <a href="{% url 'ksef:config' %}" class="nav-link" data-bs-dismiss="offcanvas">
+        <i class="bi bi-gear"></i> Konfiguracja KSeF
+      </a>
+      <a href="{% url 'ksef:logs' %}" class="nav-link" data-bs-dismiss="offcanvas">
+        <i class="bi bi-clock-history"></i> Logi synchronizacji
+      </a>
+      <a href="{% url 'accounts:user_list' %}" class="nav-link" data-bs-dismiss="offcanvas">
+        <i class="bi bi-people"></i> Użytkownicy
+      </a>
+      <a href="{% url 'audit:list' %}" class="nav-link" data-bs-dismiss="offcanvas">
+        <i class="bi bi-journal-text"></i> Logi audytu
+      </a>
+      {% endif %}
+    </nav>
+    <div class="p-3 border-top border-secondary-subtle">
+      <small class="text-secondary d-block mb-1">{{ user.get_full_name|default:user.username }}</small>
+      <small class="text-secondary">{{ user.get_role_display }}</small>
+      <a href="{% url 'accounts:logout' %}" class="btn btn-sm btn-outline-secondary w-100 mt-2">
+        <i class="bi bi-box-arrow-right"></i> Wyloguj
+      </a>
+    </div>
+  </div>
+</div>
 {% endif %}
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

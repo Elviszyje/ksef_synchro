@@ -116,8 +116,8 @@
               <th class="ps-3" style="width:2rem;">#</th>
               <th>Nazwa / opis</th>
               <th class="text-end">Ilość</th>
-              <th>J.m.</th>
-              <th class="text-end">Cena netto</th>
+              <th class="d-none d-sm-table-cell">J.m.</th>
+              <th class="text-end d-none d-sm-table-cell">Cena netto</th>
               <th class="text-end">Wartość netto</th>
               <th class="text-center">VAT</th>
             </tr>
@@ -128,8 +128,8 @@
               <td class="ps-3 text-muted">{{ item.nr }}</td>
               <td>{{ item.name }}</td>
               <td class="text-end font-monospace">{{ item.qty }}</td>
-              <td class="text-muted">{{ item.unit }}</td>
-              <td class="text-end font-monospace">{{ item.unit_price }}</td>
+              <td class="text-muted d-none d-sm-table-cell">{{ item.unit }}</td>
+              <td class="text-end font-monospace d-none d-sm-table-cell">{{ item.unit_price }}</td>
               <td class="text-end font-monospace fw-medium">{{ item.net_value }}</td>
               <td class="text-center">
                 <span class="badge {% if item.vat_rate == 'zw' or item.vat_rate == 'np' or item.vat_rate == 'oo' %}bg-secondary-subtle text-secondary border border-secondary-subtle{% else %}bg-warning-subtle text-warning-emphasis border border-warning-subtle{% endif %}"
