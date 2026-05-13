@@ -7,13 +7,18 @@ ROLE_HIERARCHY = {
     'accountant': 1,
     'approver': 2,
     'admin': 3,
+    'super_admin': 4,
 }
+
+
+def is_super_admin(user) -> bool:
+    return user.is_superuser or getattr(user, 'role', '') == 'super_admin'
 
 
 def has_min_role(user, min_role: str) -> bool:
     if not user.is_authenticated:
         return False
-    if user.is_superuser:
+    if is_super_admin(user):
         return True
     return ROLE_HIERARCHY.get(user.role, -1) >= ROLE_HIERARCHY.get(min_role, 999)
 
@@ -25,7 +30,7 @@ class RoleRequiredMixin(LoginRequiredMixin):
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return self.handle_no_permission()
-        if self.superuser_only and not request.user.is_superuser:
+        if self.superuser_only and not is_super_admin(request.user):
             raise PermissionDenied
         if not has_min_role(request.user, self.min_role):
             raise PermissionDenied
@@ -44,12 +49,12 @@ def role_required(min_role: str):
 
 
 class CompanyQuerysetMixin:
-    """Filtruje queryset do danych firmy zalogowanego usera. Superuser widzi wszystko."""
+    """Filtruje queryset do danych firmy zalogowanego usera. Super admin widzi wszystko."""
 
     def get_queryset(self):
         qs = super().get_queryset()
         user = self.request.user
-        if user.is_superuser:
+        if is_super_admin(user):
             return qs
         if user.company_id:
             return qs.filter(company_id=user.company_id)
@@ -62,7 +67,7 @@ class CompanyObjectMixin:
     def get_object(self, queryset=None):
         obj = super().get_object(queryset)
         user = self.request.user
-        if user.is_superuser:
+        if is_super_admin(user):
             return obj
         if hasattr(obj, 'company_id') and obj.company_id != user.company_id:
             raise PermissionDenied
@@ -74,7 +79,7 @@ class CompanyAccessMixin(CompanyQuerysetMixin, CompanyObjectMixin):
 
 
 def company_filter(user) -> dict:
-    """Zwraca dict do filtrowania querysetu po firmie. Superuser — bez filtra."""
-    if user.is_superuser:
+    """Zwraca dict do filtrowania querysetu po firmie. Super admin — bez filtra."""
+    if is_super_admin(user):
         return {}
     return {'company_id': user.company_id}

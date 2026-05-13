@@ -26,18 +26,33 @@ class CompanyForm(forms.ModelForm):
         self.fields['is_active'].widget.attrs['class'] = 'form-check-input'
 
 
+def _apply_user_widgets(form):
+    for field in form.fields.values():
+        field.widget.attrs.setdefault('class', 'form-control')
+    form.fields['role'].widget.attrs['class'] = 'form-select'
+    form.fields['company'].widget.attrs['class'] = 'form-select'
+    form.fields['is_active'].widget.attrs['class'] = 'form-check-input'
+
+
+def _filter_roles(form, requesting_user):
+    from core.permissions import is_super_admin
+    if not is_super_admin(requesting_user):
+        form.fields['role'].choices = [
+            (k, v) for k, v in form.fields['role'].choices
+            if k != CustomUser.ROLE_SUPER_ADMIN
+        ]
+
+
 class UserCreateForm(UserCreationForm):
     class Meta:
         model = CustomUser
         fields = ('username', 'first_name', 'last_name', 'email', 'role', 'company', 'is_active')
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, requesting_user=None, **kwargs):
         super().__init__(*args, **kwargs)
-        for field in self.fields.values():
-            field.widget.attrs.setdefault('class', 'form-control')
-        self.fields['role'].widget.attrs['class'] = 'form-select'
-        self.fields['company'].widget.attrs['class'] = 'form-select'
-        self.fields['is_active'].widget.attrs['class'] = 'form-check-input'
+        _apply_user_widgets(self)
+        if requesting_user is not None:
+            _filter_roles(self, requesting_user)
 
 
 class UserUpdateForm(UserChangeForm):
@@ -47,10 +62,8 @@ class UserUpdateForm(UserChangeForm):
         model = CustomUser
         fields = ('username', 'first_name', 'last_name', 'email', 'role', 'company', 'is_active')
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, requesting_user=None, **kwargs):
         super().__init__(*args, **kwargs)
-        for field in self.fields.values():
-            field.widget.attrs.setdefault('class', 'form-control')
-        self.fields['role'].widget.attrs['class'] = 'form-select'
-        self.fields['company'].widget.attrs['class'] = 'form-select'
-        self.fields['is_active'].widget.attrs['class'] = 'form-check-input'
+        _apply_user_widgets(self)
+        if requesting_user is not None:
+            _filter_roles(self, requesting_user)

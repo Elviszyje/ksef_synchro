@@ -3,7 +3,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.contrib import messages
-from core.permissions import RoleRequiredMixin, company_filter
+from core.permissions import RoleRequiredMixin, company_filter, is_super_admin
 from core.audit import log_event
 from core.models import AuditLog
 from .models import CustomUser, Company
@@ -41,7 +41,15 @@ class UserCreateView(RoleRequiredMixin, CreateView):
     template_name = 'accounts/user_form.html'
     success_url = reverse_lazy('accounts:user_list')
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['requesting_user'] = self.request.user
+        return kwargs
+
     def form_valid(self, form):
+        if form.instance.role == CustomUser.ROLE_SUPER_ADMIN and not is_super_admin(self.request.user):
+            form.add_error('role', 'Nie masz uprawnień do nadania tej roli.')
+            return self.form_invalid(form)
         response = super().form_valid(form)
         log_event(self.request.user, AuditLog.ACTION_USER_CREATE, entity=form.instance,
                   request=self.request,
@@ -57,7 +65,15 @@ class UserUpdateView(RoleRequiredMixin, UpdateView):
     template_name = 'accounts/user_form.html'
     success_url = reverse_lazy('accounts:user_list')
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['requesting_user'] = self.request.user
+        return kwargs
+
     def form_valid(self, form):
+        if form.instance.role == CustomUser.ROLE_SUPER_ADMIN and not is_super_admin(self.request.user):
+            form.add_error('role', 'Nie masz uprawnień do nadania tej roli.')
+            return self.form_invalid(form)
         response = super().form_valid(form)
         log_event(self.request.user, AuditLog.ACTION_USER_MODIFY, entity=form.instance,
                   request=self.request,

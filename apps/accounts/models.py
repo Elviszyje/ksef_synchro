@@ -24,12 +24,14 @@ class CustomUser(AbstractUser):
     ROLE_ACCOUNTANT = 'accountant'
     ROLE_APPROVER = 'approver'
     ROLE_ADMIN = 'admin'
+    ROLE_SUPER_ADMIN = 'super_admin'
 
     ROLES = [
         (ROLE_VIEWER, 'Przeglądający'),
         (ROLE_ACCOUNTANT, 'Księgowy'),
         (ROLE_APPROVER, 'Akceptujący płatności'),
-        (ROLE_ADMIN, 'Administrator'),
+        (ROLE_ADMIN, 'Administrator firmy'),
+        (ROLE_SUPER_ADMIN, 'Super administrator'),
     ]
 
     role = models.CharField(
