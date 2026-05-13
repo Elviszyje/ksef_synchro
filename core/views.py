@@ -7,7 +7,7 @@ from .models import AuditLog
 
 
 class AuditLogListView(RoleRequiredMixin, View):
-    min_role = 'admin'
+    superuser_only = True
     template_name = 'core/audit_log.html'
     paginate_by = 50
 

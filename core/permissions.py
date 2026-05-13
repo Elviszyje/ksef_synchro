@@ -20,10 +20,13 @@ def has_min_role(user, min_role: str) -> bool:
 
 class RoleRequiredMixin(LoginRequiredMixin):
     min_role: str = 'viewer'
+    superuser_only: bool = False
 
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return self.handle_no_permission()
+        if self.superuser_only and not request.user.is_superuser:
+            raise PermissionDenied
         if not has_min_role(request.user, self.min_role):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)

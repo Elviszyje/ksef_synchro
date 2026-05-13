@@ -133,9 +133,11 @@
       <i class="bi bi-building"></i> Firmy
     </a>
     {% endif %}
+    {% if request.user.is_superuser %}
     <a href="{% url 'audit:list' %}" class="nav-link {% if request.resolver_match.app_name == 'audit' %}active{% endif %}">
       <i class="bi bi-journal-text"></i> Logi audytu
     </a>
+    {% endif %}
     {% endif %}
   </nav>
   <div class="p-3 border-top border-secondary-subtle">
@@ -249,9 +251,11 @@
       <a href="{% url 'accounts:user_list' %}" class="nav-link" data-bs-dismiss="offcanvas">
         <i class="bi bi-people"></i> Użytkownicy
       </a>
+      {% if request.user.is_superuser %}
       <a href="{% url 'audit:list' %}" class="nav-link" data-bs-dismiss="offcanvas">
         <i class="bi bi-journal-text"></i> Logi audytu
       </a>
+      {% endif %}
       {% endif %}
     </nav>
     <div class="p-3 border-top border-secondary-subtle">
