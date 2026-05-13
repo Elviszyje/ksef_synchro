@@ -15,14 +15,17 @@
           <th class="ps-3" style="width:36px;">
             <input type="checkbox" class="form-check-input" id="select-all">
           </th>
-          <th>Nr faktury</th>
-          <th>Sprzedawca</th>
-          <th>NIP</th>
-          <th>Wystawiona</th>
-          <th>Termin</th>
-          <th class="text-end">Netto</th>
+          <!-- mobile: jedna kolumna zbiorcza -->
+          <th class="d-md-none">Sprzedawca / Termin</th>
+          <!-- desktop: pełny zestaw kolumn -->
+          <th class="d-none d-md-table-cell">Nr faktury</th>
+          <th class="d-none d-md-table-cell">Sprzedawca</th>
+          <th class="d-none d-md-table-cell">NIP</th>
+          <th class="d-none d-md-table-cell">Wystawiona</th>
+          <th class="d-none d-md-table-cell">Termin</th>
+          <th class="text-end d-none d-md-table-cell">Netto</th>
           <th class="text-end">Brutto</th>
-          <th>Status</th>
+          <th class="d-none d-md-table-cell">Status</th>
           <th></th>
         </tr>
       </thead>
