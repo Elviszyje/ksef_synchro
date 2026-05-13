@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import ListView, View
 from django.template.response import TemplateResponse
 
-from core.permissions import RoleRequiredMixin
+from core.permissions import RoleRequiredMixin, CompanyAccessMixin, company_filter
 from core.audit import log_event
 from core.models import AuditLog
 from apps.invoices.models import Invoice, InvoiceStatusLog
@@ -27,7 +27,7 @@ def _get_generator(fmt: str):
     return ElixirGenerator(**kwargs)
 
 
-class PaymentFileListView(RoleRequiredMixin, ListView):
+class PaymentFileListView(RoleRequiredMixin, CompanyAccessMixin, ListView):
     min_role = 'approver'
     model = PaymentFile
     template_name = 'payments/payment_file_list.html'
@@ -39,13 +39,14 @@ class PaymentFileCreateView(RoleRequiredMixin, View):
     min_role = 'approver'
     template_name = 'payments/payment_file_form.html'
 
-    def _get_accepted_invoices(self):
+    def _get_accepted_invoices(self, request):
         return Invoice.objects.filter(
             status=Invoice.STATUS_ACCEPTED,
+            **company_filter(request.user),
         ).exclude(bank_account_number='').order_by('-issue_date')
 
     def get(self, request):
-        invoices = self._get_accepted_invoices()
+        invoices = self._get_accepted_invoices(request)
         return TemplateResponse(request, self.template_name, {
             'invoices': invoices,
             'format_choices': PaymentFile.FORMAT_CHOICES,
@@ -66,6 +67,7 @@ class PaymentFileCreateView(RoleRequiredMixin, View):
         invoices = Invoice.objects.filter(
             pk__in=invoice_ids,
             status=Invoice.STATUS_ACCEPTED,
+            **company_filter(request.user),
         ).exclude(bank_account_number='')
 
         if not invoices.exists():
@@ -83,6 +85,7 @@ class PaymentFileCreateView(RoleRequiredMixin, View):
         total = sum(inv.amount_gross for inv in invoices)
 
         pf = PaymentFile.objects.create(
+            company=request.user.company if not request.user.is_superuser else None,
             format=fmt,
             file_name=file_name,
             file_content=content_bytes,
@@ -125,7 +128,7 @@ class PaymentFileDownloadView(RoleRequiredMixin, View):
     min_role = 'approver'
 
     def get(self, request, pk):
-        pf = get_object_or_404(PaymentFile, pk=pk)
+        pf = get_object_or_404(PaymentFile, pk=pk, **company_filter(request.user))
         encoding = 'windows-1250' if pf.format == PaymentFile.FORMAT_ERSTE else 'cp1250'
         response = HttpResponse(
             bytes(pf.file_content),

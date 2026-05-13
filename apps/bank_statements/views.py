@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.views.generic import ListView, View
 from django.template.response import TemplateResponse
 
-from core.permissions import RoleRequiredMixin
+from core.permissions import RoleRequiredMixin, CompanyAccessMixin, company_filter
 from core.audit import log_event
 from core.models import AuditLog
 from apps.invoices.models import Invoice, InvoiceStatusLog
@@ -12,7 +12,7 @@ from .models import BankStatement, BankTransaction, TransactionMatch
 from .parsers.mt940 import MT940Parser, InvoiceMatcher
 
 
-class BankStatementListView(RoleRequiredMixin, ListView):
+class BankStatementListView(RoleRequiredMixin, CompanyAccessMixin, ListView):
     min_role = 'accountant'
     model = BankStatement
     template_name = 'bank_statements/statement_list.html'
@@ -54,6 +54,7 @@ class BankStatementUploadView(RoleRequiredMixin, View):
             return TemplateResponse(request, self.template_name, {})
 
         stmt = BankStatement.objects.create(
+            company=request.user.company if not request.user.is_superuser else None,
             file_name=uploaded_file.name,
             account_number=stmt_data.account_number,
             statement_date=stmt_data.statement_date,
@@ -85,12 +86,12 @@ class BankStatementReviewView(RoleRequiredMixin, View):
     template_name = 'bank_statements/match_review.html'
 
     def get(self, request, pk):
-        stmt = get_object_or_404(BankStatement, pk=pk)
+        stmt = get_object_or_404(BankStatement, pk=pk, **company_filter(request.user))
         transactions = stmt.transactions.prefetch_related('matches__invoice').order_by('transaction_date')
 
         # Uruchom matcher jeśli brak dopasowań
         if not TransactionMatch.objects.filter(transaction__statement=stmt).exists():
-            self._run_matcher(stmt)
+            self._run_matcher(stmt, request)
 
         # Odśwież
         transactions = stmt.transactions.prefetch_related('matches__invoice').order_by('transaction_date')
@@ -100,12 +101,12 @@ class BankStatementReviewView(RoleRequiredMixin, View):
             'transactions': transactions,
         })
 
-    def _run_matcher(self, stmt: BankStatement):
+    def _run_matcher(self, stmt: BankStatement, request):
         matcher = InvoiceMatcher()
         transactions = list(stmt.transactions.all())
-        # Szukaj faktur ze statusem "przekazano do opłacenia"
         invoices_qs = Invoice.objects.filter(
             status=Invoice.STATUS_SENT_FOR_PAYMENT,
+            **company_filter(request.user),
         )
         matches = matcher.match(
             [type('TX', (), {
@@ -166,7 +167,7 @@ class BankStatementConfirmView(RoleRequiredMixin, View):
     min_role = 'accountant'
 
     def post(self, request, pk):
-        stmt = get_object_or_404(BankStatement, pk=pk)
+        stmt = get_object_or_404(BankStatement, pk=pk, **company_filter(request.user))
         confirmed_matches = TransactionMatch.objects.filter(
             transaction__statement=stmt,
             is_confirmed=True,

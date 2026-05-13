@@ -125,9 +125,14 @@
     <a href="{% url 'ksef:logs' %}" class="nav-link">
       <i class="bi bi-clock-history"></i> Logi synchronizacji
     </a>
-    <a href="{% url 'accounts:user_list' %}" class="nav-link {% if request.resolver_match.app_name == 'accounts' and 'login' not in request.path %}active{% endif %}">
+    <a href="{% url 'accounts:user_list' %}" class="nav-link {% if request.resolver_match.app_name == 'accounts' and 'login' not in request.path and 'compan' not in request.path %}active{% endif %}">
       <i class="bi bi-people"></i> Użytkownicy
     </a>
+    {% if request.user.is_superuser %}
+    <a href="{% url 'accounts:company_list' %}" class="nav-link {% if 'compan' in request.path %}active{% endif %}">
+      <i class="bi bi-building"></i> Firmy
+    </a>
+    {% endif %}
     <a href="{% url 'audit:list' %}" class="nav-link {% if request.resolver_match.app_name == 'audit' %}active{% endif %}">
       <i class="bi bi-journal-text"></i> Logi audytu
     </a>

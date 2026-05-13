@@ -3,7 +3,7 @@ from django.shortcuts import redirect
 from django.views.generic import CreateView, UpdateView, ListView, View
 from django.urls import reverse_lazy
 
-from core.permissions import RoleRequiredMixin
+from core.permissions import RoleRequiredMixin, CompanyAccessMixin, company_filter
 from core.audit import log_event
 from core.models import AuditLog
 from .models import KSeFConfig, KSeFSyncLog, NotificationConfig
@@ -15,12 +15,12 @@ class KSeFConfigView(RoleRequiredMixin, View):
     template_name = 'ksef/config.html'
 
     def get_object(self):
-        return KSeFConfig.get_active()
+        return KSeFConfig.objects.filter(**company_filter(self.request.user)).first()
 
     def _get_context(self, form=None, notif_form=None):
         from django.conf import settings
         obj = self.get_object()
-        notif_obj = NotificationConfig.get_active()
+        notif_obj = NotificationConfig.objects.filter(**company_filter(self.request.user)).first()
         if form is None:
             initial = {}
             if not obj and settings.COMPANY_NIP:
@@ -40,7 +40,7 @@ class KSeFConfigView(RoleRequiredMixin, View):
     def post(self, request):
         from django.template.response import TemplateResponse
         obj = self.get_object()
-        notif_obj = NotificationConfig.get_active()
+        notif_obj = NotificationConfig.objects.filter(**company_filter(self.request.user)).first()
         action = request.POST.get('_action', 'ksef')
 
         if action == 'notification':
@@ -67,12 +67,13 @@ class KSeFManualSyncView(RoleRequiredMixin, View):
 
     def post(self, request):
         from .tasks import sync_ksef_invoices
-        config = KSeFConfig.get_active()
+        config = KSeFConfig.objects.filter(**company_filter(request.user)).first()
         if not config:
             messages.error(request, 'Brak konfiguracji KSeF. Skonfiguruj połączenie najpierw.')
             return redirect('ksef:config')
         date_from = request.POST.get('date_from', '').strip() or None
-        sync_ksef_invoices.delay(force=True, date_from_override=date_from)
+        company_id = None if request.user.is_superuser else request.user.company_id
+        sync_ksef_invoices.delay(force=True, date_from_override=date_from, company_id=company_id)
         log_event(request.user, AuditLog.ACTION_KSEF_SYNC,
                   detail={'triggered_by': 'manual', 'date_from': date_from}, request=request)
         msg = f'Synchronizacja uruchomiona od {date_from}.' if date_from else 'Synchronizacja z KSeF uruchomiona w tle.'
@@ -87,7 +88,7 @@ class TestNotificationView(RoleRequiredMixin, View):
         from django.http import HttpResponse
         from .models import NotificationConfig
         from .notifications import send_telegram
-        config = NotificationConfig.get_active()
+        config = NotificationConfig.objects.filter(**company_filter(request.user)).first()
         if not config or not config.telegram_chat_id:
             return HttpResponse(
                 '<span class="badge bg-danger">Brak konfiguracji</span>', status=200)
@@ -101,7 +102,7 @@ class TestNotificationView(RoleRequiredMixin, View):
         return HttpResponse('<span class="badge bg-danger">Błąd wysyłki</span>')
 
 
-class KSeFSyncLogListView(RoleRequiredMixin, ListView):
+class KSeFSyncLogListView(RoleRequiredMixin, CompanyAccessMixin, ListView):
     min_role = 'admin'
     model = KSeFSyncLog
     template_name = 'ksef/sync_log_list.html'
@@ -112,7 +113,7 @@ class KSeFSyncLogListView(RoleRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['running'] = KSeFSyncLog.objects.filter(
-            status=KSeFSyncLog.STATUS_RUNNING
+            status=KSeFSyncLog.STATUS_RUNNING, **company_filter(self.request.user)
         ).order_by('-started_at').first()
         return ctx
 
@@ -126,7 +127,7 @@ class KSeFSyncStatusView(RoleRequiredMixin, View):
         from django.utils import timezone as dj_tz
 
         running = KSeFSyncLog.objects.filter(
-            status=KSeFSyncLog.STATUS_RUNNING
+            status=KSeFSyncLog.STATUS_RUNNING, **company_filter(request.user)
         ).order_by('-started_at').first()
 
         response = TemplateResponse(
@@ -155,7 +156,7 @@ class KSeFSyncCancelView(RoleRequiredMixin, View):
         from django.utils import timezone as dj_tz
 
         running = KSeFSyncLog.objects.filter(
-            status=KSeFSyncLog.STATUS_RUNNING
+            status=KSeFSyncLog.STATUS_RUNNING, **company_filter(request.user)
         ).order_by('-started_at').first()
 
         if running:

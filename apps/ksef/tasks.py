@@ -8,18 +8,22 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=300, queue='ksef_sync')
-def sync_ksef_invoices(self, force=False, date_from_override: str | None = None):
+def sync_ksef_invoices(self, force=False, date_from_override: str | None = None, company_id: int | None = None):
     """
     Główne zadanie synchronizacji faktur z KSeF.
     force=True pomija guardy sync_enabled, okna czasowego i interwału (ręczne wywołanie).
     date_from_override: ISO date string (YYYY-MM-DD) — wymusza zakres od tej daty.
+    company_id: ID firmy do synchronizacji. None = brak izolacji (tryb single-tenant legacy).
     """
     from apps.ksef.models import KSeFConfig, KSeFSyncLog
     from apps.ksef.client import KSeFClient, KSeFAPIError, KSeFAuthError, KSeFRateLimitError
     from apps.ksef.parser import FA2Parser
     from apps.invoices.models import Invoice
 
-    config = KSeFConfig.get_active()
+    if company_id is not None:
+        config = KSeFConfig.objects.filter(company_id=company_id).first()
+    else:
+        config = KSeFConfig.objects.first()
     if not config:
         logger.warning('KSeF sync: brak konfiguracji')
         return
@@ -43,7 +47,10 @@ def sync_ksef_invoices(self, force=False, date_from_override: str | None = None)
                 logger.debug('KSeF sync: za wcześnie (%.1fh < %dh)', elapsed_h, config.sync_interval_hours)
                 return
 
-    log = KSeFSyncLog.objects.create(celery_task_id=self.request.id or '')
+    log = KSeFSyncLog.objects.create(
+        celery_task_id=self.request.id or '',
+        company_id=company_id,
+    )
     parser = FA2Parser()
 
     try:
@@ -99,8 +106,11 @@ def sync_ksef_invoices(self, force=False, date_from_override: str | None = None)
                         parsed = _parsed_from_metadata(header, buyer_nip_fallback=config.nip)
 
                     defaults = _parsed_to_invoice_fields(parsed)
+                    if company_id is not None:
+                        defaults['company_id'] = company_id
                     obj, created = Invoice.objects.get_or_create(
                         ksef_reference_number=ksef_ref,
+                        company_id=company_id,
                         defaults=defaults,
                     )
                     if created:
@@ -164,8 +174,11 @@ def sync_ksef_invoices(self, force=False, date_from_override: str | None = None)
 
         if new_refs:
             from .notifications import maybe_notify
-            new_invoices = list(Invoice.objects.filter(ksef_reference_number__in=new_refs))
-            maybe_notify(new_invoices)
+            new_invoices = list(Invoice.objects.filter(
+                ksef_reference_number__in=new_refs,
+                company_id=company_id,
+            ))
+            maybe_notify(new_invoices, company_id=company_id)
 
         logger.info('KSeF sync zakończony: %d pobranych, %d nowych', fetched, new_count)
 
@@ -194,58 +207,71 @@ def sync_ksef_invoices(self, force=False, date_from_override: str | None = None)
 
 
 @shared_task(queue='ksef_sync')
+def dispatch_company_syncs():
+    """Uruchamia sync_ksef_invoices per firma — wywoływana przez beat co godzinę."""
+    from apps.ksef.models import KSeFConfig
+
+    dispatched = 0
+    for config in KSeFConfig.objects.filter(sync_enabled=True).select_related('company'):
+        company_id = config.company_id
+        sync_ksef_invoices.delay(company_id=company_id)
+        dispatched += 1
+    logger.info('Dispatched KSeF sync dla %d firm', dispatched)
+
+
+@shared_task(queue='ksef_sync')
 def refresh_ksef_token():
-    """Loguje alert gdy token KSeF wygasa w ciągu 14 dni."""
+    """Loguje alert gdy token KSeF wygasa w ciągu 14 dni — iteruje po wszystkich firmach."""
     from apps.ksef.models import KSeFConfig
     from core.audit import log_event
     from core.models import AuditLog
 
-    config = KSeFConfig.get_active()
-    if not config or not config.token_expiry:
-        return
+    for config in KSeFConfig.objects.filter(sync_enabled=True).select_related('company'):
+        if not config.token_expiry:
+            continue
 
-    remaining = config.token_expiry - dj_timezone.now()
-    days = remaining.days
+        remaining = config.token_expiry - dj_timezone.now()
+        days = remaining.days
+        nip = config.nip
 
-    if remaining.total_seconds() <= 0:
-        logger.error('KSeF token WYGASŁ (%s) — synchronizacja nie działa!', config.token_expiry)
-        log_event(None, AuditLog.ACTION_KSEF_CONFIG,
-                  detail={'alert': 'token_expired', 'expired_at': config.token_expiry.isoformat()})
-    elif days <= 14:
-        logger.warning('KSeF token wygasa za %d dni (%s)', days, config.token_expiry)
-        log_event(None, AuditLog.ACTION_KSEF_CONFIG,
-                  detail={'alert': 'token_expiring_soon', 'days_left': days,
-                          'expires_at': config.token_expiry.isoformat()})
-        # Nowy token wymaga inicjalizacji sesji przez użytkownika (zapis w panelu admina)
+        if remaining.total_seconds() <= 0:
+            logger.error('KSeF token WYGASŁ (NIP %s, %s) — synchronizacja nie działa!', nip, config.token_expiry)
+            log_event(None, AuditLog.ACTION_KSEF_CONFIG,
+                      detail={'alert': 'token_expired', 'nip': nip, 'expired_at': config.token_expiry.isoformat()})
+        elif days <= 14:
+            logger.warning('KSeF token wygasa za %d dni (NIP %s, %s)', days, nip, config.token_expiry)
+            log_event(None, AuditLog.ACTION_KSEF_CONFIG,
+                      detail={'alert': 'token_expiring_soon', 'nip': nip, 'days_left': days,
+                              'expires_at': config.token_expiry.isoformat()})
 
 
 @shared_task(queue='ksef_sync')
 def send_morning_digest():
-    """Wysyła poranny digest zakolejkowanych powiadomień."""
+    """Wysyła poranny digest zakolejkowanych powiadomień — per firma."""
     from apps.ksef.models import NotificationConfig, PendingNotification
     from apps.ksef.notifications import send_telegram, format_digest_message
 
-    config = NotificationConfig.get_active()
-    if not config or not config.enabled:
-        return
-
     now_h = dj_timezone.localtime().hour
-    if now_h != config.digest_time.hour:
-        return
 
-    pending = list(PendingNotification.objects.filter(sent=False).order_by('created_at'))
-    if not pending:
-        return
+    for config in NotificationConfig.objects.filter(enabled=True).select_related('company'):
+        if now_h != config.digest_time.hour:
+            continue
 
-    text = format_digest_message(pending)
-    ok = send_telegram(config.get_bot_token(), config.telegram_chat_id, text)
-    if ok:
-        PendingNotification.objects.filter(pk__in=[p.pk for p in pending]).update(
-            sent=True, sent_at=dj_timezone.now(),
+        pending = list(
+            PendingNotification.objects.filter(sent=False, company=config.company).order_by('created_at')
         )
-        logger.info('Digest wysłany: %d powiadomień', len(pending))
-    else:
-        logger.error('Błąd wysyłki digestu')
+        if not pending:
+            continue
+
+        text = format_digest_message(pending)
+        ok = send_telegram(config.get_bot_token(), config.telegram_chat_id, text)
+        if ok:
+            PendingNotification.objects.filter(pk__in=[p.pk for p in pending]).update(
+                sent=True, sent_at=dj_timezone.now(),
+            )
+            logger.info('Digest wysłany (firma %s): %d powiadomień', config.company, len(pending))
+        else:
+            logger.error('Błąd wysyłki digestu (firma %s)', config.company)
 
 
 def _parsed_to_invoice_fields(parsed) -> dict:

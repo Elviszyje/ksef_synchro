@@ -12,6 +12,13 @@ class BankStatement(models.Model):
         (STATUS_CONFIRMED, 'Zatwierdzony'),
     ]
 
+    company = models.ForeignKey(
+        'accounts.Company',
+        on_delete=models.CASCADE,
+        null=True,
+        verbose_name='Firma',
+        db_index=True,
+    )
     file_name = models.CharField(max_length=255, verbose_name='Nazwa pliku')
     account_number = models.CharField(max_length=34, blank=True, verbose_name='Numer rachunku')
     statement_date = models.DateField(null=True, blank=True, verbose_name='Data wyciągu')

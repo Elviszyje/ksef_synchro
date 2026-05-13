@@ -38,3 +38,40 @@ def role_required(min_role: str):
             return view_func(request, *args, **kwargs)
         return wrapper
     return decorator
+
+
+class CompanyQuerysetMixin:
+    """Filtruje queryset do danych firmy zalogowanego usera. Superuser widzi wszystko."""
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        user = self.request.user
+        if user.is_superuser:
+            return qs
+        if user.company_id:
+            return qs.filter(company_id=user.company_id)
+        return qs.none()
+
+
+class CompanyObjectMixin:
+    """Weryfikuje dostęp do obiektu — 403 jeśli należy do innej firmy."""
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        user = self.request.user
+        if user.is_superuser:
+            return obj
+        if hasattr(obj, 'company_id') and obj.company_id != user.company_id:
+            raise PermissionDenied
+        return obj
+
+
+class CompanyAccessMixin(CompanyQuerysetMixin, CompanyObjectMixin):
+    """Łączy filtrowanie querysetu i weryfikację dostępu do obiektu."""
+
+
+def company_filter(user) -> dict:
+    """Zwraca dict do filtrowania querysetu po firmie. Superuser — bez filtra."""
+    if user.is_superuser:
+        return {}
+    return {'company_id': user.company_id}

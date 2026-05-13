@@ -56,9 +56,12 @@ def format_digest_message(pending_qs) -> str:
     return '\n'.join(lines)
 
 
-def maybe_notify(new_invoices: list):
+def maybe_notify(new_invoices: list, company_id: int | None = None):
     from .models import NotificationConfig, PendingNotification
-    config = NotificationConfig.get_active()
+    if company_id is not None:
+        config = NotificationConfig.objects.filter(company_id=company_id).first()
+    else:
+        config = NotificationConfig.objects.first()
     if not config or not config.enabled:
         return
 
@@ -67,6 +70,7 @@ def maybe_notify(new_invoices: list):
 
     if is_quiet(now_t, config.quiet_from, config.quiet_to):
         PendingNotification.objects.create(
+            company_id=company_id,
             invoice_count=len(new_invoices),
             summary=text,
         )

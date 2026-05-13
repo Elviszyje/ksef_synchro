@@ -10,7 +10,10 @@ def ksef_token_alert(request):
 
     try:
         from apps.ksef.models import KSeFConfig
-        config = KSeFConfig.get_active()
+        if request.user.is_superuser:
+            config = KSeFConfig.objects.first()
+        else:
+            config = KSeFConfig.objects.filter(company_id=request.user.company_id).first()
     except Exception:
         return {}
 

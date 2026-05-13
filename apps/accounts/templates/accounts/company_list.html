@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block page_title %}Firmy{% endblock %}
+{% block topbar_actions %}
+{% if request.user.is_superuser %}
+<a href="{% url 'accounts:company_create' %}" class="btn btn-primary btn-sm">
+  <i class="bi bi-building-add me-1"></i>Dodaj firmę
+</a>
+{% endif %}
+{% endblock %}
+{% block content %}
+<div class="card border-0 shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>NIP</th><th>Nazwa</th><th>Konto bankowe</th><th>Status</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for company in companies %}
+        <tr>
+          <td class="fw-medium font-monospace">{{ company.nip }}</td>
+          <td>{{ company.name }}</td>
+          <td class="text-muted font-monospace small">{{ company.bank_account|default:"—" }}</td>
+          <td>
+            {% if company.is_active %}
+            <span class="badge bg-success-subtle text-success border border-success-subtle">Aktywna</span>
+            {% else %}
+            <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Nieaktywna</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            <a href="{% url 'accounts:company_edit' company.pk %}" class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-pencil"></i>
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center text-muted py-4">Brak firm.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

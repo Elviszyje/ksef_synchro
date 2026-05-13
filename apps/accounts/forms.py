@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, UserChangeForm
-from .models import CustomUser
+from .models import CustomUser, Company
 
 
 class LoginForm(AuthenticationForm):
@@ -14,16 +14,29 @@ class LoginForm(AuthenticationForm):
     )
 
 
+class CompanyForm(forms.ModelForm):
+    class Meta:
+        model = Company
+        fields = ('nip', 'name', 'address', 'bank_account', 'is_active')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.setdefault('class', 'form-control')
+        self.fields['is_active'].widget.attrs['class'] = 'form-check-input'
+
+
 class UserCreateForm(UserCreationForm):
     class Meta:
         model = CustomUser
-        fields = ('username', 'first_name', 'last_name', 'email', 'role', 'is_active')
+        fields = ('username', 'first_name', 'last_name', 'email', 'role', 'company', 'is_active')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             field.widget.attrs.setdefault('class', 'form-control')
         self.fields['role'].widget.attrs['class'] = 'form-select'
+        self.fields['company'].widget.attrs['class'] = 'form-select'
         self.fields['is_active'].widget.attrs['class'] = 'form-check-input'
 
 
@@ -32,11 +45,12 @@ class UserUpdateForm(UserChangeForm):
 
     class Meta:
         model = CustomUser
-        fields = ('username', 'first_name', 'last_name', 'email', 'role', 'is_active')
+        fields = ('username', 'first_name', 'last_name', 'email', 'role', 'company', 'is_active')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             field.widget.attrs.setdefault('class', 'form-control')
         self.fields['role'].widget.attrs['class'] = 'form-select'
+        self.fields['company'].widget.attrs['class'] = 'form-select'
         self.fields['is_active'].widget.attrs['class'] = 'form-check-input'

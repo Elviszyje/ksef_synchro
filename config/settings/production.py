@@ -1,5 +1,5 @@
 from .base import *  # noqa
-from decouple import config
+from decouple import config, Csv
 
 DEBUG = False
 
@@ -7,7 +7,14 @@ SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 
-# Włącz tylko gdy aplikacja działa za HTTPS (np. za reverse proxy z SSL)
 HTTPS_ONLY = config('HTTPS_ONLY', default=False, cast=bool)
 SESSION_COOKIE_SECURE = HTTPS_ONLY
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Strict'
 CSRF_COOKIE_SECURE = HTTPS_ONLY
+CSRF_COOKIE_HTTPONLY = True
+SECURE_SSL_REDIRECT = HTTPS_ONLY
+SECURE_HSTS_SECONDS = config('SECURE_HSTS_SECONDS', default=0, cast=int)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='', cast=Csv())

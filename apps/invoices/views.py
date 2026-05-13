@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.views.generic import DetailView, View
 from django.views.generic.list import MultipleObjectMixin
 
-from core.permissions import RoleRequiredMixin
+from core.permissions import RoleRequiredMixin, CompanyAccessMixin, company_filter
 from core.audit import log_event
 from core.models import AuditLog
 from .export import generate_excel
@@ -42,7 +42,7 @@ class InvoiceListView(RoleRequiredMixin, View):
         from django.core.paginator import Paginator
         from django.template.response import TemplateResponse
 
-        qs = Invoice.objects.select_related('updated_by').order_by('-issue_date', '-synced_at')
+        qs = Invoice.objects.filter(**company_filter(request.user)).select_related('updated_by').order_by('-issue_date', '-synced_at')
         f = InvoiceFilter(request.GET, queryset=qs)
         paginator = Paginator(f.qs, self.paginate_by)
         page_number = request.GET.get('page', 1)
@@ -60,7 +60,7 @@ class InvoiceListView(RoleRequiredMixin, View):
         return TemplateResponse(request, self.template_name, context)
 
 
-class InvoiceDetailView(RoleRequiredMixin, DetailView):
+class InvoiceDetailView(RoleRequiredMixin, CompanyAccessMixin, DetailView):
     min_role = 'viewer'
     model = Invoice
     template_name = 'invoices/invoice_detail.html'
@@ -84,7 +84,7 @@ class InvoiceStatusChangeView(RoleRequiredMixin, View):
     min_role = 'accountant'
 
     def post(self, request, pk):
-        invoice = get_object_or_404(Invoice, pk=pk)
+        invoice = get_object_or_404(Invoice, pk=pk, **company_filter(request.user))
         new_status = request.POST.get('status')
         note = request.POST.get('note', '').strip()
 
@@ -126,7 +126,7 @@ class InvoiceQuickStatusView(RoleRequiredMixin, View):
 
     def post(self, request, pk):
         from django.template.response import TemplateResponse
-        invoice = get_object_or_404(Invoice, pk=pk)
+        invoice = get_object_or_404(Invoice, pk=pk, **company_filter(request.user))
         new_status = request.POST.get('status')
 
         allowed = STATUS_TRANSITIONS.get(invoice.status, [])
@@ -168,7 +168,7 @@ class InvoiceBulkStatusView(RoleRequiredMixin, View):
         except ValueError:
             return JsonResponse({'changed': 0, 'error': 'Nieprawidłowe ID'}, status=400)
 
-        invoices = Invoice.objects.filter(pk__in=ids)
+        invoices = Invoice.objects.filter(pk__in=ids, **company_filter(request.user))
         changed = 0
 
         for invoice in invoices:
@@ -203,7 +203,7 @@ class InvoiceNoteUpdateView(RoleRequiredMixin, View):
     min_role = 'accountant'
 
     def post(self, request, pk):
-        invoice = get_object_or_404(Invoice, pk=pk)
+        invoice = get_object_or_404(Invoice, pk=pk, **company_filter(request.user))
         invoice.notes = request.POST.get('notes', '')
         invoice.updated_by = request.user
         invoice.save(update_fields=['notes', 'updated_by', 'updated_at'])
@@ -216,7 +216,7 @@ class InvoiceXmlDownloadView(RoleRequiredMixin, View):
     min_role = 'viewer'
 
     def get(self, request, pk):
-        invoice = get_object_or_404(Invoice, pk=pk)
+        invoice = get_object_or_404(Invoice, pk=pk, **company_filter(request.user))
         if not invoice.raw_xml:
             from django.http import Http404
             raise Http404
@@ -234,7 +234,7 @@ class InvoiceExportView(RoleRequiredMixin, View):
         period = request.GET.get('period', 'full')
         today = date.today()
 
-        qs = Invoice.objects.order_by('-issue_date')
+        qs = Invoice.objects.filter(**company_filter(request.user)).order_by('-issue_date')
 
         # Filtr statusów z bieżących parametrów
         status_filter = request.GET.getlist('status')
@@ -289,7 +289,7 @@ class InvoiceDashboardView(RoleRequiredMixin, View):
 
         monthly_qs = (
             Invoice.objects
-            .filter(issue_date__gte=date_from)
+            .filter(issue_date__gte=date_from, **company_filter(request.user))
             .annotate(month=TruncMonth('issue_date'))
             .values('month')
             .annotate(
@@ -305,7 +305,7 @@ class InvoiceDashboardView(RoleRequiredMixin, View):
         # deterministyczny wynik przy minimalnym koszcie zapytania.
         sellers_qs = (
             Invoice.objects
-            .filter(issue_date__gte=date_from)
+            .filter(issue_date__gte=date_from, **company_filter(request.user))
             .annotate(month=TruncMonth('issue_date'))
             .values('month', 'seller_nip')
             .annotate(

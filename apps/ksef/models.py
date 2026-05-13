@@ -4,6 +4,13 @@ from django.db import models
 
 
 class KSeFConfig(models.Model):
+    company = models.OneToOneField(
+        'accounts.Company',
+        on_delete=models.CASCADE,
+        null=True,
+        related_name='ksef_config',
+        verbose_name='Firma',
+    )
     ENV_TEST = 'test'
     ENV_PROD = 'prod'
     ENVIRONMENTS = [(ENV_TEST, 'Testowe'), (ENV_PROD, 'Produkcyjne')]
@@ -72,6 +79,14 @@ class KSeFConfig(models.Model):
 
 
 class KSeFSyncLog(models.Model):
+    company = models.ForeignKey(
+        'accounts.Company',
+        on_delete=models.CASCADE,
+        null=True,
+        related_name='sync_logs',
+        verbose_name='Firma',
+        db_index=True,
+    )
     STATUS_RUNNING = 'running'
     STATUS_SUCCESS = 'success'
     STATUS_ERROR = 'error'
@@ -104,6 +119,13 @@ class KSeFSyncLog(models.Model):
 
 
 class NotificationConfig(models.Model):
+    company = models.OneToOneField(
+        'accounts.Company',
+        on_delete=models.CASCADE,
+        null=True,
+        related_name='notification_config',
+        verbose_name='Firma',
+    )
     enabled = models.BooleanField(default=False, verbose_name='Powiadomienia włączone')
     telegram_bot_token_encrypted = models.TextField(blank=True, verbose_name='Token bota Telegram (zaszyfrowany)')
     telegram_chat_id = models.CharField(max_length=100, blank=True, verbose_name='Chat ID')
@@ -145,6 +167,14 @@ class NotificationConfig(models.Model):
 
 
 class PendingNotification(models.Model):
+    company = models.ForeignKey(
+        'accounts.Company',
+        on_delete=models.CASCADE,
+        null=True,
+        related_name='pending_notifications',
+        verbose_name='Firma',
+        db_index=True,
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Czas zdarzenia')
     invoice_count = models.IntegerField(verbose_name='Liczba faktur')
     summary = models.TextField(verbose_name='Treść powiadomienia')

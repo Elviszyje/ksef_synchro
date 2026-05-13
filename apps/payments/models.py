@@ -10,6 +10,13 @@ class PaymentFile(models.Model):
         (FORMAT_ELIXIR, 'Elixir-0 (.pli)'),
     ]
 
+    company = models.ForeignKey(
+        'accounts.Company',
+        on_delete=models.CASCADE,
+        null=True,
+        verbose_name='Firma',
+        db_index=True,
+    )
     format = models.CharField(max_length=10, choices=FORMAT_CHOICES, verbose_name='Format pliku')
     file_name = models.CharField(max_length=255, verbose_name='Nazwa pliku')
     file_content = models.BinaryField(verbose_name='Zawartość pliku')

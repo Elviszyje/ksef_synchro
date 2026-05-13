@@ -3,11 +3,11 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.contrib import messages
-from core.permissions import RoleRequiredMixin
+from core.permissions import RoleRequiredMixin, company_filter
 from core.audit import log_event
 from core.models import AuditLog
-from .models import CustomUser
-from .forms import LoginForm, UserCreateForm, UserUpdateForm
+from .models import CustomUser, Company
+from .forms import LoginForm, UserCreateForm, UserUpdateForm, CompanyForm
 
 
 class CustomLoginView(LoginView):
@@ -26,6 +26,12 @@ class UserListView(RoleRequiredMixin, ListView):
     template_name = 'accounts/user_list.html'
     context_object_name = 'users'
     ordering = ['username']
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.user.is_superuser:
+            return qs
+        return qs.filter(company=self.request.user.company)
 
 
 class UserCreateView(RoleRequiredMixin, CreateView):
@@ -76,3 +82,55 @@ class UserDeleteView(RoleRequiredMixin, DeleteView):
                   request=self.request, detail={'username': username})
         messages.success(self.request, f'Użytkownik {username} został usunięty.')
         return super().form_valid(form)
+
+
+class CompanyListView(RoleRequiredMixin, ListView):
+    min_role = 'admin'
+    model = Company
+    template_name = 'accounts/company_list.html'
+    context_object_name = 'companies'
+    ordering = ['name']
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.user.is_superuser:
+            return qs
+        return qs.filter(pk=self.request.user.company_id)
+
+
+class CompanyCreateView(RoleRequiredMixin, CreateView):
+    min_role = 'admin'
+    model = Company
+    form_class = CompanyForm
+    template_name = 'accounts/company_form.html'
+    success_url = reverse_lazy('accounts:company_list')
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, f'Firma {form.instance.name} została utworzona.')
+        return response
+
+
+class CompanyUpdateView(RoleRequiredMixin, UpdateView):
+    min_role = 'admin'
+    model = Company
+    form_class = CompanyForm
+    template_name = 'accounts/company_form.html'
+    success_url = reverse_lazy('accounts:company_list')
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.user.is_superuser:
+            return qs
+        return qs.filter(pk=self.request.user.company_id)
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, f'Firma {form.instance.name} została zaktualizowana.')
+        return response

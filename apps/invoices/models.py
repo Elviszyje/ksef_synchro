@@ -4,6 +4,13 @@ from django.utils import timezone
 
 
 class Invoice(models.Model):
+    company = models.ForeignKey(
+        'accounts.Company',
+        on_delete=models.CASCADE,
+        null=True,
+        verbose_name='Firma',
+        db_index=True,
+    )
     STATUS_NEW = 'nowa'
     STATUS_DISPUTED = 'sporna'
     STATUS_ACCEPTED = 'zaakceptowana'
@@ -28,7 +35,7 @@ class Invoice(models.Model):
 
     # Identyfikatory KSeF
     ksef_reference_number = models.CharField(
-        max_length=64, unique=True, db_index=True,
+        max_length=64, db_index=True,
         verbose_name='Numer referencyjny KSeF',
     )
     invoice_number = models.CharField(
@@ -118,6 +125,7 @@ class Invoice(models.Model):
         verbose_name = 'Faktura kosztowa'
         verbose_name_plural = 'Faktury kosztowe'
         ordering = ['-issue_date', '-synced_at']
+        unique_together = [('ksef_reference_number', 'company')]
         indexes = [
             models.Index(fields=['status', 'issue_date']),
             models.Index(fields=['seller_nip', 'status']),
