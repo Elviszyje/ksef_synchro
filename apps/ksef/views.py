@@ -71,10 +71,12 @@ class KSeFManualSyncView(RoleRequiredMixin, View):
         if not config:
             messages.error(request, 'Brak konfiguracji KSeF. Skonfiguruj połączenie najpierw.')
             return redirect('ksef:config')
-        sync_ksef_invoices.delay(force=True)
+        date_from = request.POST.get('date_from', '').strip() or None
+        sync_ksef_invoices.delay(force=True, date_from_override=date_from)
         log_event(request.user, AuditLog.ACTION_KSEF_SYNC,
-                  detail={'triggered_by': 'manual'}, request=request)
-        messages.info(request, 'Synchronizacja z KSeF uruchomiona w tle.')
+                  detail={'triggered_by': 'manual', 'date_from': date_from}, request=request)
+        msg = f'Synchronizacja uruchomiona od {date_from}.' if date_from else 'Synchronizacja z KSeF uruchomiona w tle.'
+        messages.info(request, msg)
         return redirect('ksef:logs')
 
 

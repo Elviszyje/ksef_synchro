@@ -1,10 +1,12 @@
 {% extends "base.html" %}
 {% block page_title %}Logi synchronizacji KSeF{% endblock %}
 {% block topbar_actions %}
-<form method="post" action="{% url 'ksef:manual_sync' %}" class="d-inline">
+<form method="post" action="{% url 'ksef:manual_sync' %}" class="d-flex align-items-center gap-2">
   {% csrf_token %}
-  <button type="submit" class="btn btn-outline-primary btn-sm">
-    <i class="bi bi-arrow-repeat me-1"></i>Synchronizuj teraz
+  <input type="date" name="date_from" class="form-control form-control-sm"
+         style="width:auto;" title="Synchronizuj od daty (puste = od ostatniej synchronizacji)">
+  <button type="submit" class="btn btn-outline-primary btn-sm text-nowrap">
+    <i class="bi bi-arrow-repeat me-1"></i>Synchronizuj
   </button>
 </form>
 <a href="{% url 'ksef:config' %}" class="btn btn-outline-secondary btn-sm">

@@ -8,10 +8,11 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=300, queue='ksef_sync')
-def sync_ksef_invoices(self, force=False):
+def sync_ksef_invoices(self, force=False, date_from_override: str | None = None):
     """
     Główne zadanie synchronizacji faktur z KSeF.
     force=True pomija guardy sync_enabled, okna czasowego i interwału (ręczne wywołanie).
+    date_from_override: ISO date string (YYYY-MM-DD) — wymusza zakres od tej daty.
     """
     from apps.ksef.models import KSeFConfig, KSeFSyncLog
     from apps.ksef.client import KSeFClient, KSeFAPIError, KSeFAuthError, KSeFRateLimitError
@@ -51,9 +52,12 @@ def sync_ksef_invoices(self, force=False):
             raise KSeFAuthError('Brak tokena KSeF w konfiguracji')
 
         date_to = datetime.now(tz=timezone.utc)
-        date_from = config.last_sync_at.replace(tzinfo=timezone.utc) if config.last_sync_at else (
-            date_to - timedelta(days=30)
-        )
+        if date_from_override:
+            date_from = datetime.fromisoformat(date_from_override).replace(tzinfo=timezone.utc)
+        elif config.last_sync_at:
+            date_from = config.last_sync_at.replace(tzinfo=timezone.utc)
+        else:
+            date_from = date_to - timedelta(days=30)
 
         fetched = 0
         new_count = 0
