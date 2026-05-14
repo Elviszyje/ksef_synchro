@@ -181,6 +181,17 @@
     <span><strong>Brak konfiguracji KSeF.</strong> <a href="{% url 'ksef:config' %}" class="alert-link">Skonfiguruj połączenie</a>.</span>
   </div>
   {% endif %}
+  {% if license_alert == 'limit_reached' %}
+  <div class="alert alert-danger rounded-0 mb-0 py-2 px-4 d-flex align-items-center gap-2" style="font-size:.875rem;">
+    <i class="bi bi-lock-fill flex-shrink-0"></i>
+    <span><strong>Limit licencji osiągnięty.</strong> Pobrano {{ license_used }}/{{ license_limit }} faktur w ostatnich 30 dniach. Synchronizacja wstrzymana. Skontaktuj się z administratorem w celu zmiany planu.</span>
+  </div>
+  {% elif license_alert == 'approaching_limit' %}
+  <div class="alert alert-warning rounded-0 mb-0 py-2 px-4 d-flex align-items-center gap-2" style="font-size:.875rem;">
+    <i class="bi bi-exclamation-circle flex-shrink-0"></i>
+    <span><strong>Zbliżasz się do limitu licencji.</strong> Pobrano {{ license_used }}/{{ license_limit }} faktur w ostatnich 30 dniach.</span>
+  </div>
+  {% endif %}
 
   <div class="page-body">
     {% block sticky_bar %}{% endblock %}

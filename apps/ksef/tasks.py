@@ -51,6 +51,19 @@ def sync_ksef_invoices(self, force=False, date_from_override: str | None = None,
         celery_task_id=self.request.id or '',
         company_id=company_id,
     )
+
+    # Sprawdź limit licencji przed startem
+    from apps.accounts.models import CompanyLicense
+    lic = CompanyLicense.objects.filter(company_id=company_id).first() if company_id else None
+    if lic and not lic.can_sync_invoice():
+        KSeFSyncLog.objects.filter(pk=log.pk).update(
+            status=KSeFSyncLog.STATUS_ERROR,
+            error_message=f'Limit licencji ({lic.invoice_limit()} faktur / 30 dni) osiągnięty.',
+            finished_at=dj_timezone.now(),
+        )
+        logger.warning('KSeF sync: limit licencji dla firmy %s', company_id)
+        return
+
     parser = FA2Parser()
 
     try:
@@ -116,6 +129,10 @@ def sync_ksef_invoices(self, force=False, date_from_override: str | None = None,
                     if created:
                         new_count += 1
                         new_refs.append(ksef_ref)
+                        if lic and not lic.can_sync_invoice():
+                            logger.info('KSeF sync: limit licencji osiągnięty po %d nowych fakturach', new_count)
+                            cancelled = True
+                            break
                     else:
                         _update_invoice_from_api(obj, defaults)
 
@@ -141,13 +158,17 @@ def sync_ksef_invoices(self, force=False, date_from_override: str | None = None,
                 client.terminate_session(session_token)
 
         if cancelled:
-            # Zapisz tylko gdy UI jeszcze nie ustawiło CANCELLED
+            limit_msg = (
+                f'Osiągnięto limit licencji ({lic.invoice_limit()} faktur / 30 dni). '
+                if lic and lic.invoice_limit() and not lic.can_sync_invoice()
+                else ''
+            )
             KSeFSyncLog.objects.filter(pk=log.pk, status=KSeFSyncLog.STATUS_RUNNING).update(
                 invoices_fetched=fetched,
                 invoices_new=new_count,
                 status=KSeFSyncLog.STATUS_CANCELLED,
                 current_stage='',
-                error_message=f'Anulowano po pobraniu {fetched} faktur ({new_count} nowych)',
+                error_message=f'{limit_msg}Anulowano po pobraniu {fetched} faktur ({new_count} nowych)',
                 finished_at=dj_timezone.now(),
             )
             if fetched > 0:

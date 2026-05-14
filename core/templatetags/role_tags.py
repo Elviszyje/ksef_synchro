@@ -63,3 +63,8 @@ def querystring(context, **kwargs):
         else:
             params[key] = value
     return params.urlencode()
+
+
+@register.filter
+def license_badge_color(plan: str) -> str:
+    return {'free': 'secondary', 'standard': 'primary', 'ultra': 'warning'}.get(plan, 'secondary')

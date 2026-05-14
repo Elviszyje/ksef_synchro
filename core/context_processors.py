@@ -32,3 +32,21 @@ def ksef_token_alert(request):
         return {'ksef_alert': 'expiring', 'ksef_alert_days': days}
 
     return {}
+
+
+def license_alert(request):
+    if not request.user.is_authenticated or not getattr(request.user, 'company_id', None):
+        return {}
+    try:
+        lic = request.user.company.license
+    except Exception:
+        return {}
+    limit = lic.invoice_limit()
+    if limit is None:
+        return {}
+    used = lic.invoices_last_30_days()
+    if used >= limit:
+        return {'license_alert': 'limit_reached', 'license_used': used, 'license_limit': limit}
+    if used >= int(limit * 0.8):
+        return {'license_alert': 'approaching_limit', 'license_used': used, 'license_limit': limit}
+    return {}

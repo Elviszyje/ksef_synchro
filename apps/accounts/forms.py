@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, UserChangeForm
-from .models import CustomUser, Company
+from .models import CustomUser, Company, CompanyLicense
 
 
 class LoginForm(AuthenticationForm):
@@ -67,3 +67,18 @@ class UserUpdateForm(UserChangeForm):
         _apply_user_widgets(self)
         if requesting_user is not None:
             _filter_roles(self, requesting_user)
+
+
+class LicenseForm(forms.ModelForm):
+    class Meta:
+        model = CompanyLicense
+        fields = ('plan', 'valid_from', 'valid_until', 'is_active')
+        widgets = {
+            'valid_from': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'valid_until': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['plan'].widget.attrs['class'] = 'form-select'
+        self.fields['is_active'].widget.attrs['class'] = 'form-check-input'

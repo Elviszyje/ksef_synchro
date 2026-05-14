@@ -1,13 +1,14 @@
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.http import JsonResponse
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, View
 from django.urls import reverse_lazy
 from django.contrib import messages
 from core.permissions import RoleRequiredMixin, company_filter, is_super_admin
 from core.audit import log_event
 from core.models import AuditLog
-from .models import CustomUser, Company
-from .forms import LoginForm, UserCreateForm, UserUpdateForm, CompanyForm
+from .models import CustomUser, Company, CompanyLicense
+from .forms import LoginForm, UserCreateForm, UserUpdateForm, CompanyForm, LicenseForm
 
 
 class CustomLoginView(LoginView):
@@ -50,6 +51,12 @@ class UserCreateView(RoleRequiredMixin, CreateView):
         if form.instance.role == CustomUser.ROLE_SUPER_ADMIN and not is_super_admin(self.request.user):
             form.add_error('role', 'Nie masz uprawnień do nadania tej roli.')
             return self.form_invalid(form)
+        company = form.instance.company
+        if company:
+            lic = getattr(company, 'license', None)
+            if lic and not lic.can_add_user():
+                form.add_error(None, f'Plan {lic.get_plan_display()} pozwala na max {lic.user_limit()} aktywnych użytkowników.')
+                return self.form_invalid(form)
         response = super().form_valid(form)
         log_event(self.request.user, AuditLog.ACTION_USER_CREATE, entity=form.instance,
                   request=self.request,
@@ -150,3 +157,57 @@ class CompanyUpdateView(RoleRequiredMixin, UpdateView):
         response = super().form_valid(form)
         messages.success(self.request, f'Firma {form.instance.name} została zaktualizowana.')
         return response
+
+
+class LicenseUpdateView(RoleRequiredMixin, UpdateView):
+    superuser_only = True
+    model = CompanyLicense
+    form_class = LicenseForm
+    template_name = 'accounts/license_form.html'
+    success_url = reverse_lazy('accounts:company_list')
+
+    def get_object(self, queryset=None):
+        return CompanyLicense.objects.get(company_id=self.kwargs['company_pk'])
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, f'Licencja firmy {form.instance.company.name} została zaktualizowana.')
+        return response
+
+
+class StoreWebhookView(View):
+    """Przyjmuje zakup z App Store / Play Store — zapisuje token. Bez weryfikacji receipt."""
+
+    def post(self, request):
+        import hmac
+        import json
+        from datetime import date
+        from django.conf import settings
+
+        secret = settings.STORE_WEBHOOK_SECRET
+        sig = request.headers.get('X-Webhook-Secret', '')
+        if not secret or not hmac.compare_digest(sig, secret):
+            return JsonResponse({'error': 'Unauthorized'}, status=401)
+
+        try:
+            data = json.loads(request.body)
+        except (ValueError, KeyError):
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        company_id = data.get('company_id')
+        platform = data.get('platform', '')
+        token = data.get('purchase_token', '')
+        plan = data.get('plan', CompanyLicense.PLAN_FREE)
+
+        if plan not in dict(CompanyLicense.PLANS):
+            return JsonResponse({'error': 'Invalid plan'}, status=400)
+
+        lic, _ = CompanyLicense.objects.get_or_create(
+            company_id=company_id,
+            defaults={'plan': CompanyLicense.PLAN_FREE, 'valid_from': date.today()},
+        )
+        lic.store_platform = platform
+        lic.store_purchase_token = token
+        lic.plan = plan
+        lic.save(update_fields=['store_platform', 'store_purchase_token', 'plan', 'updated_at'])
+        return JsonResponse({'status': 'ok'})

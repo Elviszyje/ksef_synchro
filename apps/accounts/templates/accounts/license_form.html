@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block page_title %}Licencja — {{ object.company.name }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-transparent border-bottom py-3">
+        <h6 class="mb-0 fw-semibold">
+          <i class="bi bi-card-checklist me-2"></i>{{ object.company.name }}
+        </h6>
+        <small class="text-muted">NIP: {{ object.company.nip }}</small>
+      </div>
+      <div class="card-body p-4">
+        <form method="post">
+          {% csrf_token %}
+          {% for field in form %}
+          <div class="mb-3">
+            <label class="form-label fw-medium small">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+            {{ field }}
+            {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+            {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors.0 }}</div>{% endif %}
+          </div>
+          {% endfor %}
+          <div class="d-flex gap-2 mt-3">
+            <button type="submit" class="btn btn-primary">Zapisz</button>
+            <a href="{% url 'accounts:company_list' %}" class="btn btn-outline-secondary">Anuluj</a>
+          </div>
+        </form>
+      </div>
+      <div class="card-footer bg-transparent border-top py-3">
+        <small class="text-muted">
+          Limity planu:
+          {% if object.plan == 'ultra' %}
+            <strong>5 użytkowników</strong>, faktury bez limitu
+          {% elif object.plan == 'standard' %}
+            <strong>2 użytkowników</strong>, 100 faktur / 30 dni
+          {% else %}
+            <strong>1 użytkownik</strong>, 5 faktur / 30 dni
+          {% endif %}
+        </small>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

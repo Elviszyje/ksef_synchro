@@ -53,6 +53,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'core.context_processors.ksef_token_alert',
+                'core.context_processors.license_alert',
             ],
         },
     },
@@ -112,4 +113,7 @@ KSEF_TOKEN_ENCRYPTION_KEY = config('KSEF_TOKEN_ENCRYPTION_KEY', default='')
 COMPANY_BANK_ACCOUNT = config('COMPANY_BANK_ACCOUNT', default='')
 COMPANY_NIP = config('COMPANY_NIP', default='')
 COMPANY_NAME = config('COMPANY_NAME', default='')
+COMPANY_ADDRESS = config('COMPANY_ADDRESS', default='')
+
+STORE_WEBHOOK_SECRET = config('STORE_WEBHOOK_SECRET', default='')
 COMPANY_ADDRESS = config('COMPANY_ADDRESS', default='')

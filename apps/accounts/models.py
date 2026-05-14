@@ -1,5 +1,9 @@
+from datetime import date, timedelta
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
 class Company(models.Model):
@@ -17,6 +21,74 @@ class Company(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.nip})"
+
+
+class CompanyLicense(models.Model):
+    PLAN_FREE = 'free'
+    PLAN_STANDARD = 'standard'
+    PLAN_ULTRA = 'ultra'
+    PLANS = [
+        (PLAN_FREE, 'Darmowy'),
+        (PLAN_STANDARD, 'Standard'),
+        (PLAN_ULTRA, 'Ultra'),
+    ]
+    PLAN_LIMITS = {
+        PLAN_FREE:     {'users': 1,   'invoices': 5},
+        PLAN_STANDARD: {'users': 2,   'invoices': 100},
+        PLAN_ULTRA:    {'users': 5,   'invoices': None},
+    }
+
+    company = models.OneToOneField(
+        Company, on_delete=models.CASCADE,
+        related_name='license', verbose_name='Firma',
+    )
+    plan = models.CharField(max_length=20, choices=PLANS, default=PLAN_FREE, verbose_name='Plan')
+    valid_from = models.DateField(verbose_name='Ważna od')
+    valid_until = models.DateField(null=True, blank=True, verbose_name='Ważna do')
+    is_active = models.BooleanField(default=True, verbose_name='Aktywna')
+
+    store_platform = models.CharField(max_length=20, blank=True, verbose_name='Platforma sklepu')
+    store_purchase_token = models.TextField(blank=True, verbose_name='Token zakupu')
+    store_subscription_id = models.CharField(max_length=255, blank=True, verbose_name='ID subskrypcji')
+    store_last_verified_at = models.DateTimeField(null=True, blank=True, verbose_name='Ostatnia weryfikacja')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Licencja'
+        verbose_name_plural = 'Licencje'
+
+    def __str__(self):
+        return f"{self.company} — {self.get_plan_display()}"
+
+    def user_limit(self) -> int:
+        return self.PLAN_LIMITS[self.plan]['users']
+
+    def invoice_limit(self) -> int | None:
+        return self.PLAN_LIMITS[self.plan]['invoices']
+
+    def invoices_last_30_days(self) -> int:
+        from django.utils import timezone as dj_tz
+        from apps.invoices.models import Invoice
+        cutoff = dj_tz.now() - timedelta(days=30)
+        return Invoice.objects.filter(company=self.company, synced_at__gte=cutoff).count()
+
+    def can_sync_invoice(self) -> bool:
+        limit = self.invoice_limit()
+        return limit is None or self.invoices_last_30_days() < limit
+
+    def can_add_user(self) -> bool:
+        return self.company.users.filter(is_active=True).count() < self.user_limit()
+
+
+@receiver(post_save, sender=Company)
+def create_default_license(sender, instance, created, **kwargs):
+    if created:
+        CompanyLicense.objects.get_or_create(
+            company=instance,
+            defaults={'plan': CompanyLicense.PLAN_FREE, 'valid_from': date.today()},
+        )
 
 
 class CustomUser(AbstractUser):

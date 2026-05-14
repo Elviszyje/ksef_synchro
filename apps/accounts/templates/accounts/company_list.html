@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load role_tags %}
 {% block page_title %}Firmy{% endblock %}
 {% block topbar_actions %}
 {% if request.user.is_superuser %}
@@ -13,7 +14,7 @@
     <table class="table table-hover mb-0">
       <thead class="table-light">
         <tr>
-          <th>NIP</th><th>Nazwa</th><th>Konto bankowe</th><th>Status</th><th></th>
+          <th>NIP</th><th>Nazwa</th><th>Konto bankowe</th><th>Plan</th><th>Status</th><th></th>
         </tr>
       </thead>
       <tbody>
@@ -23,6 +24,16 @@
           <td>{{ company.name }}</td>
           <td class="text-muted font-monospace small">{{ company.bank_account|default:"—" }}</td>
           <td>
+            {% with lic=company.license %}
+            {% if lic %}
+            <span class="badge bg-{{ lic.plan|license_badge_color }}">{{ lic.get_plan_display }}</span>
+            {% if not lic.is_active %}<span class="badge bg-danger ms-1">Nieaktywna</span>{% endif %}
+            {% else %}
+            <span class="badge bg-secondary">Brak</span>
+            {% endif %}
+            {% endwith %}
+          </td>
+          <td>
             {% if company.is_active %}
             <span class="badge bg-success-subtle text-success border border-success-subtle">Aktywna</span>
             {% else %}
@@ -30,13 +41,18 @@
             {% endif %}
           </td>
           <td class="text-end">
-            <a href="{% url 'accounts:company_edit' company.pk %}" class="btn btn-sm btn-outline-secondary">
+            {% if request.user.is_superuser %}
+            <a href="{% url 'accounts:license_edit' company.pk %}" class="btn btn-sm btn-outline-primary me-1" title="Licencja">
+              <i class="bi bi-card-checklist"></i>
+            </a>
+            {% endif %}
+            <a href="{% url 'accounts:company_edit' company.pk %}" class="btn btn-sm btn-outline-secondary" title="Edytuj">
               <i class="bi bi-pencil"></i>
             </a>
           </td>
         </tr>
         {% empty %}
-        <tr><td colspan="5" class="text-center text-muted py-4">Brak firm.</td></tr>
+        <tr><td colspan="6" class="text-center text-muted py-4">Brak firm.</td></tr>
         {% endfor %}
       </tbody>
     </table>
