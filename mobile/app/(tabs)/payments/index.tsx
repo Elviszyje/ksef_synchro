@@ -51,8 +51,14 @@ export default function PaymentsScreen() {
       { invoice_ids: selectedIds, format: resolvedFormat, debit_account: selectedAccount.account_number },
       {
         onSuccess: () => setSelectedIds([]),
-        onError: (e: any) =>
-          Alert.alert('Błąd', e?.response?.data?.detail ?? 'Nie udało się wygenerować pliku.'),
+        onError: (e: any) => {
+          const data = e?.response?.data;
+          const msg = data?.detail
+            ?? (data && typeof data === 'object' ? Object.values(data).flat().join('\n') : null)
+            ?? e?.message
+            ?? 'Nie udało się wygenerować pliku.';
+          Alert.alert('Błąd generowania', String(msg));
+        },
       },
     );
   };
@@ -108,7 +114,7 @@ export default function PaymentsScreen() {
         keyExtractor={(item) => String(item.id)}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
         contentContainerStyle={[styles.list, selectedIds.length > 0 && { paddingBottom: 100 }]}
-        ListEmptyComponent={<EmptyState message="Brak zaakceptowanych faktur do przelewu" />}
+        ListEmptyComponent={<EmptyState message="Brak faktur do przelewu. Faktury muszą mieć status 'Zaakceptowana' i zawierać numer konta bankowego dostawcy." />}
         renderItem={({ item }) => (
           <TouchableOpacity
             onPress={() => toggle(item.id)}
