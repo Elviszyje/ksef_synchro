@@ -241,3 +241,32 @@ class InvoiceMatcher:
     @staticmethod
     def _normalize_invoice_nr(nr: str) -> str:
         return re.sub(r'[\s\-/]', '', nr).upper()
+
+
+# ─── Interfejs kompatybilny z detect_and_parse ────────────────────────────────
+
+def detect(content: str) -> bool:
+    """Zwraca True jeśli plik zawiera znaczniki SWIFT MT940."""
+    return bool(re.search(r':\d{2}[A-Z]?:', content[:500]))
+
+
+def parse_to_statement(content: str):
+    """Parsuje MT940 i zwraca ParsedStatement (kompatybilny z innymi parserami)."""
+    from .base import ParsedStatement, ParsedTransaction
+    raw = MT940Parser().parse(content)
+    stmt = ParsedStatement(
+        account_number=raw.account_number,
+        statement_date=raw.statement_date,
+        bank_key='mt940',
+    )
+    for tx in raw.transactions:
+        stmt.transactions.append(ParsedTransaction(
+            transaction_date=tx.transaction_date,
+            value_date=tx.value_date,
+            amount=tx.amount,
+            currency=tx.currency,
+            is_credit=tx.is_credit,
+            description=tx.description,
+            reference=tx.reference,
+        ))
+    return stmt

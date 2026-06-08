@@ -12,7 +12,7 @@ export default function PaymentsLayout() {
       <Stack.Screen name="index" options={{ title: 'Przelewy' }} />
       <Stack.Screen name="history" options={{ title: 'Historia przelewów' }} />
       <Stack.Screen name="statements/index" options={{ title: 'Wyciągi bankowe' }} />
-      <Stack.Screen name="statements/upload" options={{ title: 'Wgraj wyciąg MT940' }} />
+      <Stack.Screen name="statements/upload" options={{ title: 'Wgraj wyciąg' }} />
       <Stack.Screen name="statements/[id]" options={{ title: 'Przegląd wyciągu' }} />
     </Stack>
   );

@@ -8,8 +8,10 @@ from core.permissions import RoleRequiredMixin, CompanyAccessMixin, company_filt
 from core.audit import log_event
 from core.models import AuditLog
 from apps.invoices.models import Invoice, InvoiceStatusLog
+from apps.accounts.models import CompanyBankAccount
 from .models import BankStatement, BankTransaction, TransactionMatch
-from .parsers.mt940 import MT940Parser, InvoiceMatcher
+from .parsers.mt940 import InvoiceMatcher
+from .parsers.detect import detect_and_parse
 
 
 class BankStatementListView(RoleRequiredMixin, CompanyAccessMixin, ListView):
@@ -46,11 +48,17 @@ class BankStatementUploadView(RoleRequiredMixin, View):
             messages.error(request, 'Nie można odczytać pliku. Sprawdź kodowanie (UTF-8, ISO-8859-1, Windows-1250).')
             return TemplateResponse(request, self.template_name, {})
 
-        parser = MT940Parser()
+        preferred_keys = list(
+            CompanyBankAccount.objects.filter(**company_filter(request.user))
+            .values_list('bank_key', flat=True)
+        )
         try:
-            stmt_data = parser.parse(raw)
+            stmt_data = detect_and_parse(raw, preferred_bank_keys=preferred_keys)
+        except ValueError as e:
+            messages.error(request, str(e))
+            return TemplateResponse(request, self.template_name, {})
         except Exception as e:
-            messages.error(request, f'Błąd parsowania MT940: {e}')
+            messages.error(request, f'Błąd parsowania pliku: {e}')
             return TemplateResponse(request, self.template_name, {})
 
         stmt = BankStatement.objects.create(
@@ -58,6 +66,7 @@ class BankStatementUploadView(RoleRequiredMixin, View):
             file_name=uploaded_file.name,
             account_number=stmt_data.account_number,
             statement_date=stmt_data.statement_date,
+            file_format=stmt_data.bank_key,
             raw_content=raw,
             uploaded_by=request.user,
         )

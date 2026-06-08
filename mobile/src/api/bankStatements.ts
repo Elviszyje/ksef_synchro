@@ -5,7 +5,7 @@ export const getBankStatements = () =>
 
 export const uploadBankStatement = (file: { uri: string; name: string; mimeType: string }) => {
   const formData = new FormData();
-  formData.append('mt940_file', { uri: file.uri, name: file.name, type: file.mimeType } as any);
+  formData.append('statement_file', { uri: file.uri, name: file.name, type: file.mimeType } as any);
   return apiClient
     .post('/bank-statements/', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
     .then((r) => r.data);

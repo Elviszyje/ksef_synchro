@@ -23,7 +23,8 @@ class BankStatement(models.Model):
     account_number = models.CharField(max_length=34, blank=True, verbose_name='Numer rachunku')
     statement_date = models.DateField(null=True, blank=True, verbose_name='Data wyciągu')
     status = models.CharField(max_length=10, choices=STATUSES, default=STATUS_PENDING)
-    raw_content = models.TextField(verbose_name='Surowa treść MT940')
+    file_format = models.CharField(max_length=20, default='mt940', verbose_name='Format pliku')
+    raw_content = models.TextField(verbose_name='Surowa treść pliku')
     uploaded_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL,
         related_name='uploaded_statements',

@@ -34,12 +34,13 @@ export default function UploadStatementScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Wgraj wyciąg bankowy</Text>
       <Text style={styles.subtitle}>
-        Wybierz plik MT940 pobrany ze swojego banku. Obsługiwane kodowania: UTF-8, ISO-8859-1, Windows-1250.
+        Wybierz plik wyciągu bankowego (MT940 lub CSV). Obsługiwane banki: VeloBank, Erste Bank oraz inne formaty MT940.
+        Format zostanie wykryty automatycznie.
       </Text>
 
       <TouchableOpacity onPress={pickFile} style={styles.pickBtn}>
         <Text style={styles.pickBtnText}>
-          {selectedFile ? `📄 ${selectedFile.name}` : 'Wybierz plik MT940'}
+          {selectedFile ? `📄 ${selectedFile.name}` : 'Wybierz wyciąg bankowy (MT940 lub CSV)'}
         </Text>
       </TouchableOpacity>
 

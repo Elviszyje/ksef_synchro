@@ -29,7 +29,7 @@ class BankStatementSerializer(serializers.ModelSerializer):
         model = BankStatement
         fields = [
             'id', 'file_name', 'account_number', 'statement_date',
-            'status', 'uploaded_at', 'transaction_count',
+            'status', 'file_format', 'uploaded_at', 'transaction_count',
         ]
 
     def get_transaction_count(self, obj):

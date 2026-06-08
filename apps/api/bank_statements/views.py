@@ -7,8 +7,10 @@ from core.permissions import company_filter
 from core.audit import log_event
 from core.models import AuditLog
 from apps.api.permissions import IsAccountant
+from apps.accounts.models import CompanyBankAccount
 from apps.bank_statements.models import BankStatement, BankTransaction, TransactionMatch
-from apps.bank_statements.parsers.mt940 import MT940Parser, InvoiceMatcher
+from apps.bank_statements.parsers.mt940 import InvoiceMatcher
+from apps.bank_statements.parsers.detect import detect_and_parse
 from apps.invoices.models import Invoice, InvoiceStatusLog
 
 from .serializers import BankStatementSerializer, BankStatementDetailSerializer
@@ -25,12 +27,12 @@ class BankStatementListCreateView(APIView):
         return Response(serializer.data)
 
     def post(self, request):
-        uploaded_file = request.FILES.get('mt940_file')
+        uploaded_file = request.FILES.get('statement_file') or request.FILES.get('mt940_file')
         if not uploaded_file:
-            return Response({'detail': 'Nie wybrano pliku.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'Nie wybrano pliku (pole: statement_file).'}, status=status.HTTP_400_BAD_REQUEST)
 
         raw = None
-        for enc in ('utf-8', 'iso-8859-1', 'windows-1250'):
+        for enc in ('utf-8-sig', 'utf-8', 'iso-8859-1', 'windows-1250'):
             try:
                 raw = uploaded_file.read().decode(enc)
                 break
@@ -43,17 +45,23 @@ class BankStatementListCreateView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        parser = MT940Parser()
+        preferred_keys = list(
+            CompanyBankAccount.objects.filter(**company_filter(request.user))
+            .values_list('bank_key', flat=True)
+        )
         try:
-            stmt_data = parser.parse(raw)
+            stmt_data = detect_and_parse(raw, preferred_bank_keys=preferred_keys)
+        except ValueError as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({'detail': f'Błąd parsowania MT940: {e}'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': f'Błąd parsowania pliku: {e}'}, status=status.HTTP_400_BAD_REQUEST)
 
         stmt = BankStatement.objects.create(
             company=request.user.company if not request.user.is_superuser else None,
             file_name=uploaded_file.name,
             account_number=stmt_data.account_number,
             statement_date=stmt_data.statement_date,
+            file_format=stmt_data.bank_key,
             raw_content=raw,
             uploaded_by=request.user,
         )
