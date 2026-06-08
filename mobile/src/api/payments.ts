@@ -1,4 +1,4 @@
-import { File, Paths, DownloadTask } from 'expo-file-system';
+import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { apiClient } from './client';
 import { useAuthStore } from '../store/auth';
@@ -19,15 +19,14 @@ export const generatePaymentFile = (invoice_ids: number[], format: 'erste' | 'el
 
 export async function downloadAndSharePaymentFile(id: number, fileName: string) {
   const token = useAuthStore.getState().accessToken;
-  const destination = new File(Paths.cache, fileName);
-  const task = new DownloadTask(
+  const fileUri = (FileSystem.cacheDirectory ?? '') + fileName;
+  const result = await FileSystem.downloadAsync(
     `${API_BASE_URL}/payments/${id}/download/`,
-    destination,
+    fileUri,
     { headers: { Authorization: `Bearer ${token}` } },
   );
-  const downloadedFile = await task.downloadAsync();
   const canShare = await Sharing.isAvailableAsync();
-  if (canShare && downloadedFile) {
-    await Sharing.shareAsync(downloadedFile.uri);
+  if (canShare && result?.uri) {
+    await Sharing.shareAsync(result.uri);
   }
 }
