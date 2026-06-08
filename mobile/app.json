@@ -3,6 +3,7 @@
     "name": "KSeF",
     "slug": "ksef-mobile",
     "version": "1.0.0",
+    "sdkVersion": "54.0.0",
     "orientation": "portrait",
     "scheme": "ksef",
     "icon": "./assets/icon.png",
@@ -24,8 +25,7 @@
     },
     "plugins": [
       "expo-router",
-      "expo-secure-store",
-      "expo-sharing"
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true

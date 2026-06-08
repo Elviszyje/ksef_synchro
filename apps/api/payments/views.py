@@ -134,11 +134,43 @@ class PaymentFileDownloadView(APIView):
         return response
 
 
-class CompanyBankAccountsView(generics.ListAPIView):
+class CompanyBankAccountsView(APIView):
     permission_classes = [IsAccountant]
-    serializer_class = CompanyBankAccountSerializer
 
-    def get_queryset(self):
-        return CompanyBankAccount.objects.filter(
-            **({'company': self.request.user.company} if not self.request.user.is_superuser else {})
+    def _company_filter(self, user):
+        return {} if user.is_superuser else {'company': user.company}
+
+    def get(self, request):
+        qs = CompanyBankAccount.objects.filter(
+            **self._company_filter(request.user)
         ).order_by('-is_default', 'label')
+        return Response(CompanyBankAccountSerializer(qs, many=True).data)
+
+    def post(self, request):
+        company = request.user.company
+        if not company:
+            return Response({'detail': 'Brak przypisanej firmy.'}, status=400)
+        serializer = CompanyBankAccountSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(company=company)
+        return Response(serializer.data, status=201)
+
+
+class CompanyBankAccountDetailView(APIView):
+    permission_classes = [IsAccountant]
+
+    def _get_account(self, request, pk):
+        cf = {} if request.user.is_superuser else {'company': request.user.company}
+        return get_object_or_404(CompanyBankAccount, pk=pk, **cf)
+
+    def patch(self, request, pk):
+        account = self._get_account(request, pk)
+        serializer = CompanyBankAccountSerializer(account, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def delete(self, request, pk):
+        account = self._get_account(request, pk)
+        account.delete()
+        return Response(status=204)

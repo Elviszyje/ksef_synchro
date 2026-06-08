@@ -24,3 +24,4 @@ class CompanyBankAccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyBankAccount
         fields = ['id', 'account_number', 'label', 'bank_name', 'bank_key', 'is_default']
+        read_only_fields = ['bank_name', 'bank_key']

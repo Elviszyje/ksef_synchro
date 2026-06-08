@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as SecureStore from 'expo-secure-store';
@@ -13,8 +13,10 @@ function AuthGuard() {
   const { isAuthenticated, setUser, logout } = useAuthStore();
   const router = useRouter();
   const segments = useSegments();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     (async () => {
       const refresh = await SecureStore.getItemAsync('refresh_token');
       if (refresh) {
@@ -30,13 +32,14 @@ function AuthGuard() {
   }, []);
 
   useEffect(() => {
+    if (!mounted) return;
     const inAuthGroup = segments[0] === '(auth)';
     if (!isAuthenticated && !inAuthGroup) {
       router.replace('/(auth)/login');
     } else if (isAuthenticated && inAuthGroup) {
       router.replace('/(tabs)');
     }
-  }, [isAuthenticated, segments]);
+  }, [mounted, isAuthenticated, segments]);
 
   return <Slot />;
 }

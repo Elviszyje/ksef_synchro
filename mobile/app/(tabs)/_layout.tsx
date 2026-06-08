@@ -34,6 +34,10 @@ export default function TabsLayout() {
         name="payments"
         options={{ title: 'Przelewy', tabBarLabel: 'Przelewy', headerShown: false }}
       />
+      <Tabs.Screen
+        name="account"
+        options={{ title: 'Konto', tabBarLabel: 'Konto', headerShown: false }}
+      />
     </Tabs>
   );
 }

@@ -98,10 +98,17 @@ export interface PaymentFile {
 export interface CompanyBankAccount {
   id: number;
   account_number: string;
-  label: string;
+  label?: string;
   bank_name: string;
   bank_key: string;
   is_default: boolean;
+}
+
+export interface Company {
+  nip: string;
+  name: string;
+  address: string;
+  bank_account: string;
 }
 
 export interface Buyer {

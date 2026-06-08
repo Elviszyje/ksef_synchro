@@ -1,6 +1,6 @@
 from django.contrib.auth import authenticate
 from rest_framework import serializers
-from apps.accounts.models import CustomUser
+from apps.accounts.models import CustomUser, Company
 
 
 class LoginSerializer(serializers.Serializer):
@@ -40,3 +40,26 @@ class UserMeSerializer(serializers.ModelSerializer):
     def get_license_valid_until(self, obj):
         lic = getattr(getattr(obj, 'company', None), 'license', None)
         return lic.valid_until if lic else None
+
+
+class UpdateProfileSerializer(serializers.Serializer):
+    first_name = serializers.CharField(max_length=150, required=False, allow_blank=True)
+    last_name = serializers.CharField(max_length=150, required=False, allow_blank=True)
+    email = serializers.EmailField(required=False)
+    password = serializers.CharField(min_length=8, required=False, write_only=True)
+
+    def update(self, instance, validated_data):
+        for field in ('first_name', 'last_name', 'email'):
+            if field in validated_data:
+                setattr(instance, field, validated_data[field])
+        if 'password' in validated_data:
+            instance.set_password(validated_data['password'])
+        instance.save()
+        return instance
+
+
+class CompanySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Company
+        fields = ['nip', 'name', 'address', 'bank_account']
+        read_only_fields = ['nip']
