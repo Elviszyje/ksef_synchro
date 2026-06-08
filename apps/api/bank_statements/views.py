@@ -123,7 +123,8 @@ class RunMatcherView(APIView):
         matcher = InvoiceMatcher()
         matches = matcher.match(
             [type('TX', (), {
-                'amount': t.amount, 'description': t.description,
+                'amount': t.amount,
+                'description': f"{t.description} {t.counterparty}".strip(),
                 'is_credit': not t.is_debit, 'reference': t.reference,
                 'transaction_date': t.transaction_date,
             })() for t in transactions],

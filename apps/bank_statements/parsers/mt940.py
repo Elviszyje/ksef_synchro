@@ -163,7 +163,7 @@ class InvoiceMatcher:
 
     RE_NIP = re.compile(r'(?:NIP\s*:?\s*)?(\d{10})')
     RE_INVOICE_NR = re.compile(
-        r'(?:FV|FVS|FVZ|F-|FAKTURA|INV|INVOICE)\s*[:\s/]?\s*([^\s,;|]{3,35})',
+        r'(?:INVOICE|FAKTURA|FVS|FVZ|FV|INV|F-)\s*(?:NR\.?|NO\.?)?\s*[:\s/]?\s*([^\s,;|]{3,35})',
         re.IGNORECASE,
     )
 
@@ -173,21 +173,17 @@ class InvoiceMatcher:
         {transaction, invoice, match_type, confidence}
         """
         results = []
-        # Zbierz faktury jako słownik kwota → lista
         invoice_list = list(invoices_qs)
         by_amount: dict[Decimal, list] = {}
         for inv in invoice_list:
-            key = inv.amount_gross
+            key = Decimal(str(inv.amount_gross)).quantize(Decimal('0.01'))
             by_amount.setdefault(key, []).append(inv)
 
         for tx in transactions:
-            if not tx.is_credit:
-                # Szukamy uznań (wpływów) — faktury kosztowe to wydatki, więc to obciążenia
-                # Ale z perspektywy wyciągu bankowego: przelew wychodzący = debit (C = credit w MT940 to wpływ na konto)
-                # W kontekście faktur kosztowych szukamy obciążeń konta (D)
-                pass
+            if tx.is_credit:
+                continue  # faktury kosztowe opłacamy przelewem wychodzącym (debit)
 
-            candidates = by_amount.get(tx.amount, [])
+            candidates = by_amount.get(Decimal(str(tx.amount)).quantize(Decimal('0.01')), [])
             if not candidates:
                 continue
 
