@@ -152,6 +152,7 @@ export interface BankTransaction {
   currency: string;
   is_debit: boolean;
   description: string;
+  counterparty: string;
   reference: string;
   is_matched: boolean;
   matches: TransactionMatch[];

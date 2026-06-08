@@ -12,6 +12,7 @@ class ParsedTransaction:
     currency: str
     is_credit: bool
     description: str
+    counterparty: str = ''
     reference: str = ''
 
 

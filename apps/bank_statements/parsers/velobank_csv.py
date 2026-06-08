@@ -109,10 +109,8 @@ def parse(content: str) -> ParsedStatement:
             val_date = _parse_date(val_date_str) if val_date_str else tx_date
             description = row[2].strip()
             counterparty = row[3].strip()
+            account_nr = row[4].strip() if len(row) > 4 else ''
             amount = _parse_amount(row[5])
-            # reference: nadawca/odbiorca (wyświetlany osobno w UI)
-            # description: tylko tytuł przelewu (używany przez InvoiceMatcher)
-            reference = counterparty or (row[4].strip() if len(row) > 4 else '')
             stmt.transactions.append(ParsedTransaction(
                 transaction_date=tx_date,
                 value_date=val_date,
@@ -120,7 +118,8 @@ def parse(content: str) -> ParsedStatement:
                 currency='PLN',
                 is_credit=amount >= 0,
                 description=description,
-                reference=reference,
+                counterparty=counterparty,
+                reference=account_nr[:35],
             ))
         except (ValueError, IndexError):
             continue

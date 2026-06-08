@@ -48,7 +48,10 @@ function TransactionCard({ tx, stmtId, onToggle }: { tx: BankTransaction; stmtId
       <View style={styles.txTop}>
         <View style={styles.txLeft}>
           <Text style={styles.txDate}>{formatDate(tx.transaction_date)}</Text>
-          <Text style={styles.txDesc} numberOfLines={2}>{tx.description || tx.reference || '—'}</Text>
+          <Text style={styles.txDesc} numberOfLines={2}>{tx.description || '—'}</Text>
+          {!!tx.counterparty && (
+            <Text style={styles.txCounterparty} numberOfLines={1}>{tx.counterparty}</Text>
+          )}
         </View>
         <Text style={[styles.txAmount, { color: amountColor }]}>
           {sign}{tx.amount} {tx.currency}
@@ -188,6 +191,7 @@ const styles = StyleSheet.create({
   txLeft: { flex: 1 },
   txDate: { fontSize: 12, color: colors.gray400, marginBottom: 2 },
   txDesc: { fontSize: 13, color: colors.gray700, lineHeight: 18 },
+  txCounterparty: { fontSize: 12, color: colors.gray500, marginTop: 1 },
   txAmount: { fontWeight: '700', fontSize: 15 },
   matchesList: { marginTop: spacing.sm, gap: spacing.xs },
   matchRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.sm, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.gray200, backgroundColor: colors.gray50 },

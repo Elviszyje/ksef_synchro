@@ -18,7 +18,7 @@ class BankTransactionSerializer(serializers.ModelSerializer):
         model = BankTransaction
         fields = [
             'id', 'transaction_date', 'value_date', 'amount', 'currency',
-            'is_debit', 'description', 'reference', 'is_matched', 'matches',
+            'is_debit', 'description', 'counterparty', 'reference', 'is_matched', 'matches',
         ]
 
 

@@ -80,6 +80,7 @@ class BankStatementUploadView(RoleRequiredMixin, View):
                 currency=tx_data.currency,
                 is_debit=not tx_data.is_credit,
                 description=tx_data.description,
+                counterparty=getattr(tx_data, 'counterparty', ''),
                 reference=tx_data.reference,
             )
 

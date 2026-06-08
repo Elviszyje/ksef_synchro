@@ -59,6 +59,7 @@ class BankTransaction(models.Model):
     currency = models.CharField(max_length=3, default='PLN', verbose_name='Waluta')
     is_debit = models.BooleanField(verbose_name='Uznanie (D) / Obciążenie (C)')
     description = models.TextField(blank=True, verbose_name='Opis transakcji')
+    counterparty = models.CharField(max_length=255, blank=True, verbose_name='Nadawca/Odbiorca')
     reference = models.CharField(max_length=35, blank=True, verbose_name='Referencja')
     is_matched = models.BooleanField(default=False, verbose_name='Dopasowana')
 

@@ -40,8 +40,8 @@
           <td class="text-muted small text-truncate" style="max-width:220px;" title="{{ tx.description }}">
             {{ tx.description|truncatechars:60 }}
           </td>
-          <td class="text-muted small text-truncate" style="max-width:200px;" title="{{ tx.reference }}">
-            {{ tx.reference|truncatechars:50 }}
+          <td class="text-muted small text-truncate" style="max-width:200px;" title="{{ tx.counterparty }}">
+            {{ tx.counterparty|truncatechars:50 }}
           </td>
           <td>
             {% for match in tx.matches.all %}
