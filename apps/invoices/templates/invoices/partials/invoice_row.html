@@ -78,7 +78,7 @@
               hx-vals='{"status": "oplacona"}'
               hx-target="#invoice-row-{{ inv.pk }}"
               hx-swap="outerHTML"
-              hx-confirm="Oznaczyć fakturę jako opłaconą?"
+              onclick="return confirm('Oznaczyć fakturę jako opłaconą?')"
               title="Oznacz jako opłaconą">
         <i class="bi bi-check2-circle"></i>
       </button>
