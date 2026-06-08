@@ -22,7 +22,7 @@ export async function downloadAndSharePaymentFile(id: number, fileName: string) 
     new Uint8Array(response.data).reduce((acc, byte) => acc + String.fromCharCode(byte), ''),
   );
   const fileUri = (FileSystem.cacheDirectory ?? '') + fileName;
-  await FileSystem.writeAsStringAsync(fileUri, base64, { encoding: FileSystem.EncodingType.Base64 });
+  await FileSystem.writeAsStringAsync(fileUri, base64, { encoding: 'base64' as any });
   const canShare = await Sharing.isAvailableAsync();
   if (canShare) {
     await Sharing.shareAsync(fileUri);
