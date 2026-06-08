@@ -19,8 +19,8 @@ from .generators.registry import get_generator_for_bank
 
 
 def _get_company_bank_accounts(user):
-    """Zwraca QuerySet rachunków firmy użytkownika (lub pusty dla superusera bez firmy)."""
-    if user.is_superuser or not user.company_id:
+    """Zwraca QuerySet rachunków firmy użytkownika."""
+    if not user.company_id:
         return CompanyBankAccount.objects.none()
     return CompanyBankAccount.objects.filter(company_id=user.company_id)
 
