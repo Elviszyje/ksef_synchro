@@ -62,6 +62,65 @@ class KSeFConfigView(RoleRequiredMixin, View):
         return TemplateResponse(request, self.template_name, self._get_context(form=form))
 
 
+class KSeFConfigCompanyView(RoleRequiredMixin, View):
+    """Konfiguracja KSeF dla konkretnej firmy — tylko dla superadmina."""
+    superuser_only = True
+    template_name = 'ksef/config.html'
+
+    def _get_company(self, company_pk):
+        from apps.accounts.models import Company
+        from django.shortcuts import get_object_or_404
+        return get_object_or_404(Company, pk=company_pk)
+
+    def _get_context(self, company, form=None, notif_form=None):
+        obj = KSeFConfig.objects.filter(company=company).first()
+        notif_obj = NotificationConfig.objects.filter(company=company).first()
+        if form is None:
+            form = KSeFConfigForm(instance=obj, initial={'nip': company.nip} if not obj else {})
+        return {
+            'form': form,
+            'notif_form': notif_form or NotificationConfigForm(instance=notif_obj),
+            'config': obj,
+            'notif_config': notif_obj,
+            'company': company,
+        }
+
+    def get(self, request, company_pk):
+        from django.template.response import TemplateResponse
+        company = self._get_company(company_pk)
+        return TemplateResponse(request, self.template_name, self._get_context(company))
+
+    def post(self, request, company_pk):
+        from django.template.response import TemplateResponse
+        company = self._get_company(company_pk)
+        obj = KSeFConfig.objects.filter(company=company).first()
+        notif_obj = NotificationConfig.objects.filter(company=company).first()
+        action = request.POST.get('_action', 'ksef')
+
+        if action == 'notification':
+            notif_form = NotificationConfigForm(request.POST, instance=notif_obj)
+            if notif_form.is_valid():
+                inst = notif_form.save(commit=False)
+                inst.company = company
+                inst.save()
+                messages.success(request, 'Konfiguracja powiadomień zapisana.')
+                return redirect('ksef:config_company', company_pk=company_pk)
+            return TemplateResponse(request, self.template_name,
+                                    self._get_context(company, notif_form=notif_form))
+
+        form = KSeFConfigForm(request.POST, instance=obj)
+        if form.is_valid():
+            inst = form.save(commit=False)
+            inst.company = company
+            inst.save()
+            log_event(request.user, AuditLog.ACTION_KSEF_CONFIG,
+                      detail={'changed_fields': list(form.changed_data), 'company': company.name},
+                      request=request)
+            messages.success(request, f'Konfiguracja KSeF dla {company.name} zapisana.')
+            return redirect('ksef:config_company', company_pk=company_pk)
+        return TemplateResponse(request, self.template_name, self._get_context(company, form=form))
+
+
 class KSeFManualSyncView(RoleRequiredMixin, View):
     min_role = 'admin'
 
