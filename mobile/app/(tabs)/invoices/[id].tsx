@@ -70,6 +70,17 @@ export default function InvoiceDetailScreen() {
 
       {invoice.allowed_transitions && invoice.allowed_transitions.length > 0 && (
         <View style={styles.actionPad}>
+          {invoice.allowed_transitions.includes('oplacona') && (
+            <TouchableOpacity
+              style={[styles.actionBtn, styles.paidBtn]}
+              disabled={changeStatus.isPending}
+              onPress={() => changeStatus.mutate({ id: invoice.id, status: 'oplacona', note: '' })}
+            >
+              <Text style={styles.actionBtnText}>
+                {changeStatus.isPending ? 'Zapisuję...' : 'Oznacz jako opłaconą'}
+              </Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity style={styles.actionBtn} onPress={() => setSheetVisible(true)}>
             <Text style={styles.actionBtnText}>Zmień status</Text>
           </TouchableOpacity>
@@ -111,7 +122,8 @@ const styles = StyleSheet.create({
   logStatus: { fontSize: 14, color: colors.gray600 },
   logMeta: { fontSize: 12, color: colors.gray400, marginTop: 2 },
   logNote: { fontSize: 12, color: colors.gray500, marginTop: 2, fontStyle: 'italic' },
-  actionPad: { padding: spacing.lg },
+  actionPad: { padding: spacing.lg, gap: spacing.sm },
   actionBtn: { backgroundColor: colors.primary, borderRadius: radius.lg, paddingVertical: spacing.lg, alignItems: 'center' },
+  paidBtn: { backgroundColor: colors.success },
   actionBtnText: { color: colors.white, fontWeight: '700', fontSize: 16 },
 });

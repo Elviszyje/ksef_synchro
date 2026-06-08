@@ -118,6 +118,11 @@
               title="Ustaw status: sporna">
         <i class="bi bi-exclamation-circle me-1"></i>Sporna
       </button>
+      <button id="bulk-paid-btn"
+              class="btn btn-sm btn-outline-light"
+              title="Ustaw status: opłacona">
+        <i class="bi bi-check2-circle me-1"></i>Opłacone
+      </button>
     </div>
     <button id="bulk-cancel-btn" class="btn btn-sm btn-outline-light ms-auto">
       <i class="bi bi-x-lg me-1"></i>Odznacz
@@ -228,6 +233,9 @@
 
   document.getElementById('bulk-accept-btn')?.addEventListener('click', () => bulkApply('zaakceptowana'));
   document.getElementById('bulk-dispute-btn')?.addEventListener('click', () => bulkApply('sporna'));
+  document.getElementById('bulk-paid-btn')?.addEventListener('click', () => {
+    if (confirm('Oznaczyć zaznaczone faktury jako opłacone?')) bulkApply('oplacona');
+  });
 })();
 </script>
 {% endblock %}

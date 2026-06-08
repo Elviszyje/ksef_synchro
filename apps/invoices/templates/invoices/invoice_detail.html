@@ -206,7 +206,16 @@
           {% csrf_token %}
 
           <div class="d-grid gap-2 mb-3">
+            {% if 'oplacona' in allowed_transitions %}
+            <button type="submit" name="status" value="oplacona"
+                    class="btn btn-success btn-sm"
+                    onclick="return confirm('Oznaczyć fakturę jako opłaconą?')">
+              <i class="bi bi-check2-circle me-1"></i>Oznacz jako opłaconą
+            </button>
+            {% endif %}
+
             {% for target in allowed_transitions %}
+              {% if target == 'oplacona' %}{% else %}
               {% with color=status_colors|get_item:target label=status_labels|get_item:target %}
 
               {% if target == 'przekazano_do_oplacenia' %}
@@ -234,12 +243,6 @@
                   <i class="bi bi-check-circle me-1"></i>{{ label }}
                 </button>
 
-              {% elif target == 'oplacona' %}
-                <button type="submit" name="status" value="{{ target }}"
-                        class="btn btn-outline-{{ color }} btn-sm">
-                  <i class="bi bi-cash-coin me-1"></i>{{ label }}
-                </button>
-
               {% else %}
                 <button type="submit" name="status" value="{{ target }}"
                         class="btn btn-outline-{{ color }} btn-sm">
@@ -248,6 +251,7 @@
               {% endif %}
 
               {% endwith %}
+              {% endif %}
             {% endfor %}
           </div>
 

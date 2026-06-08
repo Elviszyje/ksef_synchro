@@ -72,6 +72,17 @@
         <i class="bi bi-exclamation-circle"></i>
       </button>
       {% endif %}
+      {% if inv.status == 'przekazano_do_oplacenia' %}
+      <button class="btn btn-sm btn-success py-0 px-2"
+              hx-post="{% url 'invoices:quick_status' inv.pk %}"
+              hx-vals='{"status": "oplacona"}'
+              hx-target="#invoice-row-{{ inv.pk }}"
+              hx-swap="outerHTML"
+              hx-confirm="Oznaczyć fakturę jako opłaconą?"
+              title="Oznacz jako opłaconą">
+        <i class="bi bi-check2-circle"></i>
+      </button>
+      {% endif %}
       <a href="{% url 'invoices:detail' inv.pk %}" class="btn btn-sm btn-outline-secondary py-0 px-2" title="Szczegóły">
         <i class="bi bi-eye"></i>
       </a>
