@@ -1,7 +1,6 @@
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { apiClient } from './client';
-import { useAuthStore } from '../store/auth';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://10.0.2.2:8080/api/v1';
 
@@ -18,15 +17,14 @@ export const generatePaymentFile = (invoice_ids: number[], format: 'erste' | 'el
   apiClient.post('/payments/generate/', { invoice_ids, format, ...(debit_account ? { debit_account } : {}) }).then((r) => r.data);
 
 export async function downloadAndSharePaymentFile(id: number, fileName: string) {
-  const token = useAuthStore.getState().accessToken;
-  const fileUri = (FileSystem.cacheDirectory ?? '') + fileName;
-  const result = await FileSystem.downloadAsync(
-    `${API_BASE_URL}/payments/${id}/download/`,
-    fileUri,
-    { headers: { Authorization: `Bearer ${token}` } },
+  const response = await apiClient.get(`/payments/${id}/download/`, { responseType: 'arraybuffer' });
+  const base64 = btoa(
+    new Uint8Array(response.data).reduce((acc, byte) => acc + String.fromCharCode(byte), ''),
   );
+  const fileUri = (FileSystem.cacheDirectory ?? '') + fileName;
+  await FileSystem.writeAsStringAsync(fileUri, base64, { encoding: FileSystem.EncodingType.Base64 });
   const canShare = await Sharing.isAvailableAsync();
-  if (canShare && result?.uri) {
-    await Sharing.shareAsync(result.uri);
+  if (canShare) {
+    await Sharing.shareAsync(fileUri);
   }
 }
