@@ -16,15 +16,17 @@ export const useBankAccounts = () =>
 export const useGeneratePaymentFile = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ invoice_ids, format, debit_account }: { invoice_ids: number[]; format: 'erste' | 'elixir' | 'mbank'; debit_account?: string }) => {
-      const pf = await generatePaymentFile(invoice_ids, format, debit_account);
-      await downloadAndSharePaymentFile(pf.id, pf.file_name);
-      return pf;
-    },
-    onSuccess: () => {
+    mutationFn: ({ invoice_ids, format, debit_account }: { invoice_ids: number[]; format: 'erste' | 'elixir' | 'mbank'; debit_account?: string }) =>
+      generatePaymentFile(invoice_ids, format, debit_account),
+    onSuccess: async (pf) => {
       qc.invalidateQueries({ queryKey: ['accepted-for-payment'] });
       qc.invalidateQueries({ queryKey: ['payment-files'] });
       qc.invalidateQueries({ queryKey: ['invoices'] });
+      try {
+        await downloadAndSharePaymentFile(pf.id, pf.file_name);
+      } catch {
+        // share nieudany — plik jest zapisany w historii, można pobrać później
+      }
     },
   });
 };

@@ -50,7 +50,10 @@ export default function PaymentsScreen() {
     generate.mutate(
       { invoice_ids: selectedIds, format: resolvedFormat, debit_account: selectedAccount.account_number },
       {
-        onSuccess: () => setSelectedIds([]),
+        onSuccess: () => {
+          setSelectedIds([]);
+          Alert.alert('Gotowe', 'Plik przelewu wygenerowany. Jeśli okno udostępniania nie otworzyło się, znajdziesz plik w historii przelewów.');
+        },
         onError: (e: any) => {
           const data = e?.response?.data;
           const msg = data?.detail
