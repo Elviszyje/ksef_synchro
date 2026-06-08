@@ -1,6 +1,7 @@
 from django import forms
+from django.forms import inlineformset_factory
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, UserChangeForm
-from .models import CustomUser, Company, CompanyLicense
+from .models import CustomUser, Company, CompanyLicense, CompanyBankAccount
 
 
 class LoginForm(AuthenticationForm):
@@ -17,13 +18,41 @@ class LoginForm(AuthenticationForm):
 class CompanyForm(forms.ModelForm):
     class Meta:
         model = Company
-        fields = ('nip', 'name', 'address', 'bank_account', 'is_active')
+        fields = ('nip', 'name', 'address', 'is_active')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             field.widget.attrs.setdefault('class', 'form-control')
         self.fields['is_active'].widget.attrs['class'] = 'form-check-input'
+
+
+class CompanyBankAccountForm(forms.ModelForm):
+    class Meta:
+        model = CompanyBankAccount
+        fields = ('account_number', 'label', 'is_default')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['account_number'].widget.attrs.update({
+            'class': 'form-control form-control-sm font-monospace',
+            'placeholder': '00 0000 0000 0000 0000 0000 0000',
+            'maxlength': '34',
+        })
+        self.fields['label'].widget.attrs.update({
+            'class': 'form-control form-control-sm',
+            'placeholder': 'np. Rachunek bieżący PLN',
+        })
+        self.fields['is_default'].widget.attrs['class'] = 'form-check-input'
+
+
+CompanyBankAccountFormSet = inlineformset_factory(
+    Company,
+    CompanyBankAccount,
+    form=CompanyBankAccountForm,
+    extra=1,
+    can_delete=True,
+)
 
 
 def _apply_user_widgets(form):
@@ -67,6 +96,76 @@ class UserUpdateForm(UserChangeForm):
         _apply_user_widgets(self)
         if requesting_user is not None:
             _filter_roles(self, requesting_user)
+
+
+class RegisterForm(forms.Form):
+    nip = forms.CharField(
+        max_length=10,
+        label='NIP firmy',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '0000000000'}),
+    )
+    company_name = forms.CharField(
+        max_length=255,
+        label='Nazwa firmy',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Jan Kowalski Usługi IT'}),
+    )
+    first_name = forms.CharField(
+        max_length=150,
+        label='Imię',
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+    )
+    last_name = forms.CharField(
+        max_length=150,
+        label='Nazwisko',
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+    )
+    email = forms.EmailField(
+        label='E-mail',
+        widget=forms.EmailInput(attrs={'class': 'form-control'}),
+    )
+    username = forms.CharField(
+        max_length=150,
+        label='Login',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'jkowalski'}),
+    )
+    password1 = forms.CharField(
+        label='Hasło',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+    )
+    password2 = forms.CharField(
+        label='Powtórz hasło',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+    )
+
+    def clean_nip(self):
+        nip = self.cleaned_data.get('nip', '').strip().replace('-', '').replace(' ', '')
+        if not nip.isdigit() or len(nip) != 10:
+            raise forms.ValidationError('NIP musi składać się z dokładnie 10 cyfr.')
+        if Company.objects.filter(nip=nip).exists():
+            raise forms.ValidationError('Firma z tym NIP jest już zarejestrowana.')
+        return nip
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username', '').strip()
+        if CustomUser.objects.filter(username=username).exists():
+            raise forms.ValidationError('Ta nazwa użytkownika jest już zajęta.')
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email', '').strip().lower()
+        if CustomUser.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError('Ten adres e-mail jest już zarejestrowany.')
+        return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+        p1 = cleaned_data.get('password1')
+        p2 = cleaned_data.get('password2')
+        if p1 and len(p1) < 8:
+            self.add_error('password1', 'Hasło musi mieć co najmniej 8 znaków.')
+        if p1 and p2 and p1 != p2:
+            self.add_error('password2', 'Hasła nie są identyczne.')
+        return cleaned_data
 
 
 class LicenseForm(forms.ModelForm):

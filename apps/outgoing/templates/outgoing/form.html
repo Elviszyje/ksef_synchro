@@ -1,0 +1,399 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block extra_head %}
+<style>
+  .item-row td { vertical-align: middle; }
+  .formset-delete { display: none; }
+  .delete-row-btn { cursor: pointer; }
+  #buyer-results { position: absolute; z-index: 1050; width: 100%; top: 100%; left: 0; max-height: 260px; overflow-y: auto; }
+</style>
+{% endblock %}
+
+{% block content %}
+<form method="post" id="invoice-form">
+  {% csrf_token %}
+  <input type="hidden" name="buyer_id" id="buyer-id-hidden" value="">
+  {{ formset.management_form }}
+
+  <div class="row g-3">
+    <!-- Lewa kolumna: dane faktury -->
+    <div class="col-lg-8">
+
+      <!-- Dane nabywcy -->
+      <div class="card shadow-sm mb-3">
+        <div class="card-header fw-semibold d-flex align-items-center justify-content-between">
+          <span><i class="bi bi-person-lines-fill me-2"></i>Dane nabywcy</span>
+          <a href="{% url 'outgoing:buyer_list' %}" class="btn btn-outline-secondary btn-sm py-0" target="_blank">
+            <i class="bi bi-people me-1"></i>Lista nabywców
+          </a>
+        </div>
+        <div class="card-body">
+
+          {# Wyszukiwarka istniejącego nabywcy #}
+          <div class="mb-3 position-relative" id="buyer-search-wrapper">
+            <label class="form-label small fw-medium">Wyszukaj nabywcę z listy</label>
+            <input type="text" id="buyer-search-input" class="form-control"
+                   placeholder="Wpisz nazwę lub NIP…" autocomplete="off">
+            <div id="buyer-results" class="list-group shadow-sm d-none border rounded"></div>
+          </div>
+          {% if form.instance.buyer %}
+          <div id="buyer-selected-info" class="alert alert-info alert-sm py-1 px-2 small mb-3">
+            <i class="bi bi-person-check me-1"></i>
+            Wybrany nabywca: <strong>{{ form.instance.buyer.name }}</strong> (NIP: {{ form.instance.buyer.nip }})
+            <button type="button" class="btn btn-sm btn-link p-0 ms-2 text-danger" id="clear-buyer-btn">Wyczyść</button>
+          </div>
+          {% else %}
+          <div id="buyer-selected-info" class="alert alert-info alert-sm py-1 px-2 small mb-3 d-none"></div>
+          {% endif %}
+
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">NIP nabywcy <span class="text-danger">*</span></label>
+              <div class="input-group">
+                {{ form.buyer_nip }}
+                <button type="button" class="btn btn-outline-secondary" id="nip-lookup-btn" title="Pobierz dane z GUS / Białej Listy MF">
+                  <i class="bi bi-search"></i>
+                </button>
+              </div>
+              {% if form.buyer_nip.errors %}<div class="invalid-feedback d-block">{{ form.buyer_nip.errors.0 }}</div>{% endif %}
+              <div id="nip-lookup-status" class="form-text"></div>
+            </div>
+            <div class="col-md-8">
+              <label class="form-label">Nazwa nabywcy <span class="text-danger">*</span></label>
+              {{ form.buyer_name }}
+              {% if form.buyer_name.errors %}<div class="invalid-feedback d-block">{{ form.buyer_name.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-12">
+              <label class="form-label">Adres nabywcy <span class="text-danger">*</span></label>
+              {{ form.buyer_address }}
+              {% if form.buyer_address.errors %}<div class="invalid-feedback d-block">{{ form.buyer_address.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+
+          {# Opcja zapisania nabywcy do listy (tylko przy tworzeniu lub gdy brak FK) #}
+          {% if not form.instance.pk or not form.instance.buyer %}
+          <div class="form-check mt-3">
+            <input type="checkbox" name="save_buyer" id="save-buyer-check" class="form-check-input" value="1">
+            <label for="save-buyer-check" class="form-check-label small">Zapisz nabywcę do listy nabywców</label>
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+
+      <!-- Pozycje faktury -->
+      <div class="card shadow-sm mb-3">
+        <div class="card-header d-flex align-items-center">
+          <span class="fw-semibold"><i class="bi bi-list-ul me-2"></i>Pozycje faktury</span>
+          <button type="button" class="btn btn-sm btn-outline-primary ms-auto" id="add-item-btn">
+            <i class="bi bi-plus-lg"></i> Dodaj pozycję
+          </button>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table align-middle mb-0" id="items-table">
+              <thead class="table-light">
+                <tr>
+                  <th style="width:35%">Nazwa</th>
+                  <th style="width:8%">Jed.</th>
+                  <th style="width:10%">Ilość</th>
+                  <th style="width:13%">Cena netto</th>
+                  <th style="width:10%">VAT</th>
+                  <th style="width:12%">Wartość netto</th>
+                  <th style="width:5%"></th>
+                </tr>
+              </thead>
+              <tbody id="items-tbody">
+                {% for item_form in formset %}
+                <tr class="item-row" data-index="{{ forloop.counter0 }}">
+                  {% for hidden in item_form.hidden_fields %}{{ hidden }}{% endfor %}
+                  <td>{{ item_form.name }}</td>
+                  <td>{{ item_form.unit }}</td>
+                  <td>{{ item_form.quantity }}</td>
+                  <td>{{ item_form.unit_price_net }}</td>
+                  <td>{{ item_form.vat_rate }}</td>
+                  <td class="text-end amount-net">—</td>
+                  <td>
+                    <button type="button" class="btn btn-sm btn-outline-danger delete-row-btn"
+                            data-index="{{ forloop.counter0 }}">
+                      <i class="bi bi-trash3"></i>
+                    </button>
+                    <div class="formset-delete">{{ item_form.DELETE }}</div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+              <tfoot class="table-light">
+                <tr>
+                  <td colspan="5" class="text-end fw-semibold">Razem netto:</td>
+                  <td class="text-end fw-semibold" id="total-net">0,00</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td colspan="5" class="text-end fw-semibold">Razem brutto:</td>
+                  <td class="text-end fw-semibold" id="total-gross">0,00</td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          {% if formset.non_form_errors %}
+          <div class="alert alert-danger m-3">{{ formset.non_form_errors.0 }}</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Prawa kolumna: dane formalne -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm mb-3">
+        <div class="card-header fw-semibold">
+          <i class="bi bi-info-circle me-2"></i>Dane faktury
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label">Numer faktury <span class="text-danger">*</span></label>
+            {{ form.invoice_number }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Data wystawienia <span class="text-danger">*</span></label>
+            {{ form.issue_date }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Data dostawy/wykonania</label>
+            {{ form.delivery_date }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Termin płatności <span class="text-danger">*</span></label>
+            {{ form.payment_due_date }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Forma płatności</label>
+            {{ form.payment_form }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Waluta</label>
+            {{ form.currency }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Uwagi</label>
+            {{ form.notes }}
+          </div>
+        </div>
+      </div>
+
+      <div class="d-grid gap-2">
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-lg me-1"></i>Zapisz fakturę
+        </button>
+        <a href="{% url 'outgoing:list' %}" class="btn btn-outline-secondary">Anuluj</a>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const VAT_RATES = { '23': 0.23, '8': 0.08, '5': 0.05, '0': 0, 'zw': 0, 'np': 0 };
+
+function calcRow(row) {
+  const qty = parseFloat(row.querySelector('[name$="-quantity"]')?.value) || 0;
+  const price = parseFloat(row.querySelector('[name$="-unit_price_net"]')?.value) || 0;
+  const rateKey = row.querySelector('[name$="-vat_rate"]')?.value || '23';
+  const net = qty * price;
+  const vat = net * (VAT_RATES[rateKey] ?? 0.23);
+  const gross = net + vat;
+  const amountCell = row.querySelector('.amount-net');
+  if (amountCell) amountCell.textContent = net.toFixed(2).replace('.', ',');
+  return { net, gross };
+}
+
+function recalcAll() {
+  let totalNet = 0, totalGross = 0;
+  document.querySelectorAll('#items-tbody .item-row:not(.d-none)').forEach(row => {
+    const { net, gross } = calcRow(row);
+    totalNet += net;
+    totalGross += gross;
+  });
+  document.getElementById('total-net').textContent = totalNet.toFixed(2).replace('.', ',');
+  document.getElementById('total-gross').textContent = totalGross.toFixed(2).replace('.', ',');
+}
+
+document.getElementById('items-tbody').addEventListener('input', recalcAll);
+document.getElementById('items-tbody').addEventListener('change', recalcAll);
+
+// Usuwanie wiersza
+document.getElementById('items-tbody').addEventListener('click', e => {
+  const btn = e.target.closest('.delete-row-btn');
+  if (!btn) return;
+  const row = btn.closest('.item-row');
+  const deleteCheckbox = row.querySelector('[name$="-DELETE"]');
+  if (deleteCheckbox) {
+    deleteCheckbox.checked = true;
+    row.classList.add('d-none');
+  } else {
+    row.remove();
+  }
+  recalcAll();
+});
+
+function buildItemRow(idx) {
+  const tr = document.createElement('tr');
+  tr.className = 'item-row';
+  tr.dataset.index = idx;
+  const p = 'items';
+  tr.innerHTML = `
+    <td>
+      <input type="hidden" name="${p}-${idx}-id" value="">
+      <input type="hidden" name="${p}-${idx}-lp" value="${idx + 1}">
+    </td>
+    <td><input type="text" name="${p}-${idx}-name" class="form-control form-control-sm" placeholder="Nazwa towaru/usługi"></td>
+    <td><input type="text" name="${p}-${idx}-unit" class="form-control form-control-sm" placeholder="szt." value="szt."></td>
+    <td><input type="number" name="${p}-${idx}-quantity" class="form-control form-control-sm" step="0.001" min="0" value="1"></td>
+    <td><input type="number" name="${p}-${idx}-unit_price_net" class="form-control form-control-sm" step="0.01" min="0"></td>
+    <td>
+      <select name="${p}-${idx}-vat_rate" class="form-select form-select-sm">
+        <option value="23">23%</option>
+        <option value="8">8%</option>
+        <option value="5">5%</option>
+        <option value="0">0%</option>
+        <option value="zw">ZW</option>
+        <option value="np">NP</option>
+      </select>
+    </td>
+    <td class="text-end amount-net">—</td>
+    <td>
+      <button type="button" class="btn btn-sm btn-outline-danger delete-row-btn" data-index="${idx}">
+        <i class="bi bi-trash3"></i>
+      </button>
+    </td>`;
+  return tr;
+}
+
+function addRow() {
+  const totalForms = document.querySelector('[name="items-TOTAL_FORMS"]');
+  const idx = parseInt(totalForms.value);
+  const row = buildItemRow(idx);
+  document.getElementById('items-tbody').appendChild(row);
+  totalForms.value = idx + 1;
+  recalcAll();
+}
+
+document.getElementById('add-item-btn').addEventListener('click', addRow);
+
+// Dodaj pierwszy wiersz jeśli tbody pusty (extra=0)
+if (document.querySelectorAll('#items-tbody .item-row').length === 0) {
+  addRow();
+}
+
+recalcAll();
+
+// ── Autocomplete nabywcy ───────────────────────────────────────────────────
+(function () {
+  const searchInput = document.getElementById('buyer-search-input');
+  const resultsBox = document.getElementById('buyer-results');
+  const selectedInfo = document.getElementById('buyer-selected-info');
+  const buyerIdHidden = document.getElementById('buyer-id-hidden');
+  const nipField = document.getElementById('{{ form.buyer_nip.auto_id }}');
+  const nameField = document.getElementById('{{ form.buyer_name.auto_id }}');
+  const addressField = document.getElementById('{{ form.buyer_address.auto_id }}');
+  const clearBtn = document.getElementById('clear-buyer-btn');
+
+  let debounceTimer = null;
+
+  searchInput?.addEventListener('input', function () {
+    clearTimeout(debounceTimer);
+    const q = this.value.trim();
+    if (q.length < 2) {
+      resultsBox.innerHTML = '';
+      resultsBox.classList.add('d-none');
+      return;
+    }
+    debounceTimer = setTimeout(() => {
+      fetch(`{% url 'outgoing:buyer_search' %}?q=${encodeURIComponent(q)}`)
+        .then(r => r.text())
+        .then(html => {
+          resultsBox.innerHTML = html;
+          resultsBox.classList.remove('d-none');
+          resultsBox.querySelectorAll('.buyer-result').forEach(el => {
+            el.addEventListener('click', () => selectBuyer(el.dataset));
+          });
+        });
+    }, 250);
+  });
+
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('#buyer-search-wrapper')) {
+      resultsBox.classList.add('d-none');
+    }
+  });
+
+  function selectBuyer(data) {
+    buyerIdHidden.value = data.buyerId;
+    if (nipField) nipField.value = data.buyerNip;
+    if (nameField) nameField.value = data.buyerName;
+    if (addressField) addressField.value = data.buyerAddress;
+    searchInput.value = '';
+    resultsBox.innerHTML = '';
+    resultsBox.classList.add('d-none');
+    selectedInfo.innerHTML = `<i class="bi bi-person-check me-1"></i>Wybrany nabywca: <strong>${data.buyerName}</strong> (NIP: ${data.buyerNip}) <button type="button" class="btn btn-sm btn-link p-0 ms-2 text-danger" id="clear-buyer-btn">Wyczyść</button>`;
+    selectedInfo.classList.remove('d-none');
+    document.getElementById('clear-buyer-btn')?.addEventListener('click', clearBuyer);
+  }
+
+  function clearBuyer() {
+    buyerIdHidden.value = '';
+    selectedInfo.classList.add('d-none');
+    selectedInfo.innerHTML = '';
+  }
+
+  clearBtn?.addEventListener('click', clearBuyer);
+})();
+
+// ── NIP lookup (Biała Lista MF) ───────────────────────────────────────────
+(function () {
+  const btn = document.getElementById('nip-lookup-btn');
+  const nipField = document.getElementById('{{ form.buyer_nip.auto_id }}');
+  const nameField = document.getElementById('{{ form.buyer_name.auto_id }}');
+  const addressField = document.getElementById('{{ form.buyer_address.auto_id }}');
+  const status = document.getElementById('nip-lookup-status');
+
+  btn?.addEventListener('click', function () {
+    const nip = nipField?.value?.replace(/[\s\-]/g, '') || '';
+    if (nip.length !== 10) {
+      status.textContent = 'Wpisz poprawny 10-cyfrowy NIP.';
+      status.className = 'form-text text-danger';
+      return;
+    }
+    status.textContent = 'Pobieranie…';
+    status.className = 'form-text text-muted';
+    btn.disabled = true;
+
+    fetch(`{% url 'outgoing:nip_lookup' %}?nip=${nip}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) {
+          status.textContent = data.error;
+          status.className = 'form-text text-danger';
+        } else {
+          if (nameField && !nameField.value) nameField.value = data.name || '';
+          else if (nameField) nameField.value = data.name || nameField.value;
+          if (addressField) addressField.value = data.address || '';
+          status.textContent = `Pobrano z Białej Listy MF. Status VAT: ${data.status_vat || '—'}`;
+          status.className = 'form-text text-success';
+        }
+      })
+      .catch(() => {
+        status.textContent = 'Błąd połączenia.';
+        status.className = 'form-text text-danger';
+      })
+      .finally(() => { btn.disabled = false; });
+  });
+})();
+</script>
+{% endblock %}

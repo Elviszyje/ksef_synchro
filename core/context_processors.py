@@ -50,3 +50,21 @@ def license_alert(request):
     if used >= int(limit * 0.8):
         return {'license_alert': 'approaching_limit', 'license_used': used, 'license_limit': limit}
     return {}
+
+
+def outgoing_license_alert(request):
+    if not request.user.is_authenticated or not getattr(request.user, 'company_id', None):
+        return {}
+    try:
+        lic = request.user.company.license
+    except Exception:
+        return {}
+    limit = lic.outgoing_invoice_limit()
+    if limit is None:
+        return {}
+    used = lic.outgoing_invoices_this_month()
+    if used >= limit:
+        return {'outgoing_license_alert': 'limit_reached', 'outgoing_license_used': used, 'outgoing_license_limit': limit}
+    if used >= int(limit * 0.8):
+        return {'outgoing_license_alert': 'approaching_limit', 'outgoing_license_used': used, 'outgoing_license_limit': limit}
+    return {}

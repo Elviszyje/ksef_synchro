@@ -18,6 +18,10 @@ INSTALLED_APPS = [
     'django_celery_beat',
     'django_htmx',
     'django_filters',
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
+    'corsheaders',
     # local
     'core',
     'apps.accounts',
@@ -25,10 +29,12 @@ INSTALLED_APPS = [
     'apps.ksef',
     'apps.payments',
     'apps.bank_statements',
+    'apps.outgoing',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -54,6 +60,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'core.context_processors.ksef_token_alert',
                 'core.context_processors.license_alert',
+                'core.context_processors.outgoing_license_alert',
             ],
         },
     },
@@ -117,3 +124,32 @@ COMPANY_ADDRESS = config('COMPANY_ADDRESS', default='')
 
 STORE_WEBHOOK_SECRET = config('STORE_WEBHOOK_SECRET', default='')
 COMPANY_ADDRESS = config('COMPANY_ADDRESS', default='')
+
+# REST Framework
+from datetime import timedelta  # noqa: E402
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 50,
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.OrderingFilter',
+    ],
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}

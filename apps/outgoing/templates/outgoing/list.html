@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+{% load role_tags %}
+
+{% block title %}Faktury wychodzące{% endblock %}
+{% block page_title %}Faktury wychodzące{% endblock %}
+
+{% block sticky_bar %}
+<div class="page-body-sticky-top d-flex align-items-center gap-2 pb-3 flex-wrap">
+  {% has_role 'accountant' as can_create %}
+  {% if can_create %}
+  <a href="{% url 'outgoing:create' %}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-lg me-1"></i>Nowa faktura
+  </a>
+  {% endif %}
+  <a href="{% url 'outgoing:buyer_list' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-people me-1"></i>Nabywcy
+  </a>
+
+  {% if tab == 'ksef' %}
+  <form method="get" class="ms-auto d-flex align-items-center gap-2">
+    <input type="hidden" name="tab" value="ksef">
+    <select name="status" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
+      <option value="">Wszystkie statusy</option>
+      {% for value, label in ksef_status_choices %}
+      <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+
+{# ── Tabs ──────────────────────────────────────────────────────────────── #}
+<ul class="nav nav-tabs mb-3">
+  <li class="nav-item">
+    <a class="nav-link {% if tab == 'drafts' %}active{% endif %}" href="?tab=drafts">
+      Szkice <span class="badge {% if tab == 'drafts' %}bg-primary{% else %}bg-secondary{% endif %} ms-1">{{ drafts_count }}</span>
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if tab == 'ksef' %}active{% endif %}" href="?tab=ksef">
+      KSeF <span class="badge {% if tab == 'ksef' %}bg-primary{% else %}bg-secondary{% endif %} ms-1">{{ ksef_count }}</span>
+    </a>
+  </li>
+</ul>
+
+{% if tab == 'drafts' %}
+{# ── ZAKŁADKA: Szkice ──────────────────────────────────────────────────── #}
+<form method="post" id="bulk-form">
+  {% csrf_token %}
+  <div class="card shadow-sm">
+    {% if page_obj.object_list %}
+    <div class="card-header bg-transparent border-bottom py-2 d-flex align-items-center gap-2">
+      <div class="form-check mb-0">
+        <input type="checkbox" class="form-check-input" id="select-all-drafts">
+        <label class="form-check-label small fw-medium" for="select-all-drafts">Zaznacz wszystkie</label>
+      </div>
+      {% has_role 'approver' as can_queue %}
+      {% if can_queue %}
+      <button type="submit" class="btn btn-sm btn-outline-primary ms-2" id="bulk-queue-btn" disabled>
+        <i class="bi bi-send me-1"></i>Wyślij zaznaczone do KSeF
+      </button>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-3" style="width:36px;"></th>
+            <th>Numer faktury</th>
+            <th>Nabywca</th>
+            <th>Data wystawienia</th>
+            <th>Termin płatności</th>
+            <th class="text-end">Kwota brutto</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for inv in page_obj %}
+          <tr>
+            <td class="ps-3">
+              <input type="checkbox" name="invoice_ids" value="{{ inv.pk }}" class="form-check-input draft-checkbox">
+            </td>
+            <td>
+              <a href="{% url 'outgoing:detail' inv.pk %}" class="fw-semibold text-decoration-none">{{ inv.invoice_number }}</a>
+            </td>
+            <td>
+              <div>{{ inv.buyer_name }}</div>
+              <small class="text-muted">NIP: {{ inv.buyer_nip }}</small>
+            </td>
+            <td>{{ inv.issue_date|date:"d.m.Y" }}</td>
+            <td>{{ inv.payment_due_date|date:"d.m.Y" }}</td>
+            <td class="text-end fw-semibold">{{ inv.amount_gross|floatformat:2 }} {{ inv.currency }}</td>
+            <td class="text-end pe-3">
+              {% has_role 'accountant' as can_edit %}
+              {% if can_edit %}
+              <a href="{% url 'outgoing:edit' inv.pk %}" class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" title="Edytuj">
+                <i class="bi bi-pencil"></i>
+              </a>
+              {% endif %}
+              <a href="{% url 'outgoing:detail' inv.pk %}" class="btn btn-sm btn-outline-secondary py-0 px-2">
+                <i class="bi bi-eye"></i>
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="text-center text-muted py-5">
+              <i class="bi bi-file-earmark-plus fs-2 d-block mb-2"></i>
+              Brak szkiców faktur.
+              {% has_role 'accountant' as can_create2 %}
+              {% if can_create2 %}<a href="{% url 'outgoing:create' %}">Utwórz pierwszą fakturę</a>.{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</form>
+
+{% else %}
+{# ── ZAKŁADKA: KSeF ────────────────────────────────────────────────────── #}
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th class="ps-3">Numer faktury</th>
+          <th>Nabywca</th>
+          <th>Data wystawienia</th>
+          <th class="text-end">Kwota brutto</th>
+          <th>Status</th>
+          <th>Numer KSeF</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for inv in page_obj %}
+        <tr>
+          <td class="ps-3">
+            <a href="{% url 'outgoing:detail' inv.pk %}" class="fw-semibold text-decoration-none">{{ inv.invoice_number }}</a>
+          </td>
+          <td>
+            <div>{{ inv.buyer_name }}</div>
+            <small class="text-muted">NIP: {{ inv.buyer_nip }}</small>
+          </td>
+          <td>{{ inv.issue_date|date:"d.m.Y" }}</td>
+          <td class="text-end fw-semibold">{{ inv.amount_gross|floatformat:2 }} {{ inv.currency }}</td>
+          <td>
+            <span class="badge bg-{{ inv.get_status_color }}">{{ inv.get_status_display }}</span>
+          </td>
+          <td>
+            {% if inv.ksef_reference_number %}
+            <small class="text-muted font-monospace">{{ inv.ksef_reference_number|truncatechars:20 }}</small>
+            {% else %}—{% endif %}
+          </td>
+          <td class="pe-3">
+            <a href="{% url 'outgoing:detail' inv.pk %}" class="btn btn-sm btn-outline-secondary py-0 px-2">
+              <i class="bi bi-eye"></i>
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center text-muted py-5">
+            <i class="bi bi-send fs-2 d-block mb-2"></i>
+            Brak faktur wysłanych do KSeF.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% if page_obj.has_other_pages %}
+<div class="d-flex justify-content-center mt-3">
+  <nav>
+    <ul class="pagination pagination-sm mb-0">
+      {% if page_obj.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?tab={{ tab }}&page={{ page_obj.previous_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}">
+          <i class="bi bi-chevron-left"></i>
+        </a>
+      </li>
+      {% endif %}
+      <li class="page-item disabled">
+        <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+      </li>
+      {% if page_obj.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?tab={{ tab }}&page={{ page_obj.next_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}">
+          <i class="bi bi-chevron-right"></i>
+        </a>
+      </li>
+      {% endif %}
+    </ul>
+  </nav>
+</div>
+{% endif %}
+
+{% if tab == 'drafts' %}
+<script>
+(function () {
+  const selectAll = document.getElementById('select-all-drafts');
+  const bulkBtn = document.getElementById('bulk-queue-btn');
+  const checkboxes = () => document.querySelectorAll('.draft-checkbox');
+
+  function updateBtn() {
+    const checked = document.querySelectorAll('.draft-checkbox:checked').length;
+    if (bulkBtn) bulkBtn.disabled = checked === 0;
+  }
+
+  selectAll?.addEventListener('change', function () {
+    checkboxes().forEach(cb => cb.checked = this.checked);
+    updateBtn();
+  });
+
+  document.addEventListener('change', function (e) {
+    if (e.target.classList.contains('draft-checkbox')) updateBtn();
+  });
+})();
+</script>
+{% endif %}
+
+{% endblock %}

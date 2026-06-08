@@ -23,6 +23,41 @@ class Company(models.Model):
         return f"{self.name} ({self.nip})"
 
 
+class CompanyBankAccount(models.Model):
+    company = models.ForeignKey(
+        Company, on_delete=models.CASCADE,
+        related_name='bank_accounts',
+        verbose_name='Firma',
+    )
+    account_number = models.CharField(max_length=34, verbose_name='Numer rachunku (NRB)')
+    label = models.CharField(max_length=100, blank=True, verbose_name='Etykieta')
+    is_default = models.BooleanField(default=False, verbose_name='Domyślny')
+    bank_name = models.CharField(max_length=50, blank=True, verbose_name='Bank')
+    bank_key = models.CharField(max_length=20, blank=True, verbose_name='Klucz banku')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-is_default', 'label']
+        verbose_name = 'Rachunek bankowy'
+        verbose_name_plural = 'Rachunki bankowe'
+
+    def __str__(self):
+        label = self.label or self.account_number
+        return f'{label} ({self.bank_name or "nieznany bank"})'
+
+    def save(self, *args, **kwargs):
+        from apps.payments.bank_detection import detect_bank_key, BANK_LABELS
+        if self.is_default:
+            CompanyBankAccount.objects.filter(
+                company=self.company, is_default=True,
+            ).exclude(pk=self.pk).update(is_default=False)
+        if self.account_number:
+            self.account_number = self.account_number.replace(' ', '').replace('-', '')
+            self.bank_key = detect_bank_key(self.account_number)
+            self.bank_name = BANK_LABELS.get(self.bank_key, '')
+        super().save(*args, **kwargs)
+
+
 class CompanyLicense(models.Model):
     PLAN_FREE = 'free'
     PLAN_STANDARD = 'standard'
@@ -33,9 +68,9 @@ class CompanyLicense(models.Model):
         (PLAN_ULTRA, 'Ultra'),
     ]
     PLAN_LIMITS = {
-        PLAN_FREE:     {'users': 1,   'invoices': 5},
-        PLAN_STANDARD: {'users': 2,   'invoices': 100},
-        PLAN_ULTRA:    {'users': 5,   'invoices': None},
+        PLAN_FREE:     {'users': 1, 'invoices': 5,   'outgoing_invoices': 3},
+        PLAN_STANDARD: {'users': 2, 'invoices': 100, 'outgoing_invoices': 50},
+        PLAN_ULTRA:    {'users': 5, 'invoices': None, 'outgoing_invoices': None},
     }
 
     company = models.OneToOneField(
@@ -80,6 +115,28 @@ class CompanyLicense(models.Model):
 
     def can_add_user(self) -> bool:
         return self.company.users.filter(is_active=True).count() < self.user_limit()
+
+    def outgoing_invoice_limit(self) -> int | None:
+        return self.PLAN_LIMITS[self.plan]['outgoing_invoices']
+
+    def outgoing_invoices_this_month(self) -> int:
+        from django.utils import timezone as dj_tz
+        from apps.outgoing.models import OutgoingInvoice
+        now = dj_tz.now()
+        return OutgoingInvoice.objects.filter(
+            company=self.company,
+            status__in=[
+                OutgoingInvoice.STATUS_QUEUED,
+                OutgoingInvoice.STATUS_SENDING,
+                OutgoingInvoice.STATUS_ACCEPTED,
+            ],
+            created_at__year=now.year,
+            created_at__month=now.month,
+        ).count()
+
+    def can_send_outgoing_invoice(self) -> bool:
+        limit = self.outgoing_invoice_limit()
+        return limit is None or self.outgoing_invoices_this_month() < limit
 
 
 @receiver(post_save, sender=Company)

@@ -10,3 +10,5 @@ INTERNAL_IPS = ['127.0.0.1']
 DATABASES['default']['HOST'] = 'localhost'  # noqa
 
 CELERY_TASK_ALWAYS_EAGER = True
+
+CORS_ALLOW_ALL_ORIGINS = True

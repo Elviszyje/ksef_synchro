@@ -68,3 +68,12 @@ def querystring(context, **kwargs):
 @register.filter
 def license_badge_color(plan: str) -> str:
     return {'free': 'secondary', 'standard': 'primary', 'ultra': 'warning'}.get(plan, 'secondary')
+
+
+@register.filter
+def nrb(value: str) -> str:
+    """Formatuje numer NRB: XX XXXX XXXX XXXX XXXX XXXX XXXX"""
+    digits = str(value or '').replace(' ', '').replace('-', '')
+    if len(digits) != 26 or not digits.isdigit():
+        return value
+    return f'{digits[:2]} {digits[2:6]} {digits[6:10]} {digits[10:14]} {digits[14:18]} {digits[18:22]} {digits[22:26]}'

@@ -17,14 +17,14 @@
       </thead>
       <tbody>
         {% for pf in payment_files %}
-        <tr>
+        <tr style="cursor:pointer;" onclick="window.location='{% url 'payments:detail' pf.pk %}'">
           <td class="fw-medium">{{ pf.file_name }}</td>
           <td><span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">{{ pf.get_format_display }}</span></td>
           <td class="text-center">{{ pf.invoice_count }}</td>
           <td class="text-end font-monospace fw-medium">{{ pf.total_amount|floatformat:2 }} PLN</td>
           <td class="text-muted small">{{ pf.created_by.get_full_name|default:pf.created_by.username|default:"—" }}</td>
           <td class="text-muted small">{{ pf.created_at|date:"d.m.Y H:i" }}</td>
-          <td class="text-end pe-3">
+          <td class="text-end pe-3" onclick="event.stopPropagation()">
             <a href="{% url 'payments:download' pf.pk %}" class="btn btn-sm btn-outline-primary py-0 px-2">
               <i class="bi bi-download me-1"></i>Pobierz
             </a>

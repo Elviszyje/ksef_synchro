@@ -1,12 +1,17 @@
 {% extends "base.html" %}
+{% load role_tags %}
 {% block page_title %}{% if object %}Edytuj firmę{% else %}Nowa firma{% endif %}{% endblock %}
 {% block content %}
 <div class="row justify-content-center">
-  <div class="col-md-6">
-    <div class="card border-0 shadow-sm">
-      <div class="card-body p-4">
-        <form method="post">
-          {% csrf_token %}
+  <div class="col-md-9">
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent border-bottom py-2">
+          <span class="fw-medium small">Dane firmy</span>
+        </div>
+        <div class="card-body p-4">
           {% for field in form %}
           <div class="mb-3">
             <label class="form-label fw-medium small">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
@@ -15,13 +20,257 @@
             {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors.0 }}</div>{% endif %}
           </div>
           {% endfor %}
-          <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary">Zapisz</button>
-            <a href="{% url 'accounts:company_list' %}" class="btn btn-outline-secondary">Anuluj</a>
-          </div>
-        </form>
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger small">{{ form.non_field_errors }}</div>
+          {% endif %}
+        </div>
       </div>
-    </div>
+
+      {% if bank_formset %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent border-bottom py-2 d-flex justify-content-between align-items-center">
+          <span class="fw-medium small">Rachunki bankowe</span>
+          <button type="button" class="btn btn-outline-secondary btn-sm py-0" id="add-bank-account">
+            <i class="bi bi-plus-lg me-1"></i>Dodaj rachunek
+          </button>
+        </div>
+        {{ bank_formset.management_form }}
+        {% if bank_formset.non_form_errors %}
+        <div class="alert alert-danger small mx-3 mt-2">{{ bank_formset.non_form_errors }}</div>
+        {% endif %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0 align-middle" style="font-size:.875rem;">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-3">Numer rachunku (NRB)</th>
+                <th>Etykieta</th>
+                <th style="width:140px;">Bank</th>
+                <th class="text-center" style="width:90px;">Domyślny</th>
+                <th style="width:50px;"></th>
+              </tr>
+            </thead>
+            <tbody id="bank-accounts-tbody">
+              {% for bform in bank_formset %}
+              <tr class="bank-account-row" data-index="{{ forloop.counter0 }}">
+                {# Ukryte pola Django formset #}
+                <td style="display:none">{{ bform.id }}</td>
+                {# Ukryte pole DELETE — manipulowane przez JS #}
+                <td style="display:none">
+                  <input type="hidden" name="{{ bform.DELETE.html_name }}" value="" class="delete-flag">
+                </td>
+                {# Ukryte pole is_default — manipulowane przez radio JS #}
+                <td style="display:none">
+                  <input type="hidden" name="{{ bform.is_default.html_name }}"
+                         value="{% if bform.instance.is_default %}on{% endif %}"
+                         class="is-default-hidden">
+                </td>
+
+                <td class="ps-3">
+                  <input type="text"
+                         name="{{ bform.account_number.html_name }}"
+                         value="{{ bform.instance.account_number|nrb }}"
+                         class="form-control form-control-sm font-monospace account-number-input"
+                         placeholder="00 0000 0000 0000 0000 0000 0000"
+                         maxlength="34">
+                  {% if bform.account_number.errors %}
+                  <div class="invalid-feedback d-block">{{ bform.account_number.errors.0 }}</div>
+                  {% endif %}
+                </td>
+                <td>
+                  <input type="text"
+                         name="{{ bform.label.html_name }}"
+                         value="{{ bform.instance.label }}"
+                         class="form-control form-control-sm"
+                         placeholder="np. Rachunek bieżący PLN">
+                </td>
+                <td>
+                  <span class="bank-badge badge bg-secondary-subtle text-secondary border border-secondary-subtle"
+                        style="{% if not bform.instance.bank_name %}display:none{% endif %}">
+                    {{ bform.instance.bank_name }}
+                  </span>
+                  <span class="bank-unknown text-muted small"
+                        style="{% if bform.instance.bank_name %}display:none{% endif %}">—</span>
+                </td>
+                <td class="text-center">
+                  <input type="radio" name="default_radio" class="form-check-input default-radio"
+                         {% if bform.instance.is_default %}checked{% endif %}>
+                </td>
+                <td class="text-end pe-3">
+                  <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 delete-row-btn"
+                          title="Usuń">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="card-footer bg-transparent border-top-0 pt-1 pb-2">
+          <p class="text-muted small mb-0">
+            <i class="bi bi-info-circle me-1"></i>Bank wykrywany automatycznie z numeru NRB po wpisaniu.
+          </p>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Zapisz</button>
+        <a href="{% url 'accounts:company_list' %}" class="btn btn-outline-secondary">Anuluj</a>
+      </div>
+    </form>
   </div>
 </div>
+
+{% if bank_formset %}
+<script>
+(function () {
+  // Mapa kodów banków do detekcji client-side
+  const BANK_CODES = {
+    '1010': 'NBP',
+    '1020': 'PKO BP',
+    '1030': 'BNP Paribas',
+    '1050': 'ING',
+    '1060': 'BPH',
+    '1090': 'Erste Bank',
+    '1130': 'Citi Handlowy',
+    '1140': 'mBank',
+    '1160': 'Millennium',
+    '1190': 'Deutsche Bank',
+    '1240': 'Pekao',
+    '1320': 'Bank Pocztowy',
+    '1440': 'Erste Bank',
+    '1540': 'BOŚ',
+    '1590': 'Credit Agricole',
+    '1680': 'VeloBank',
+    '1750': 'Raiffeisen',
+    '1870': 'Nest Bank',
+    '2030': 'BNP Paribas',
+    '2130': 'Toyota Bank',
+    '2490': 'Alior Bank',
+    '2530': 'HSBC',
+    '2690': 'Bank Pocztowy',
+  };
+
+  function detectBank(accountNumber) {
+    const digits = accountNumber.replace(/[\s\-]/g, '');
+    if (digits.length !== 26 || !/^\d+$/.test(digits)) return '';
+    const code = digits.substring(2, 6);
+    return BANK_CODES[code] || '';
+  }
+
+  function updateBankBadge(row, bankName) {
+    const badge = row.querySelector('.bank-badge');
+    const unknown = row.querySelector('.bank-unknown');
+    if (bankName) {
+      badge.textContent = bankName;
+      badge.style.display = '';
+      unknown.style.display = 'none';
+    } else {
+      badge.style.display = 'none';
+      unknown.style.display = '';
+    }
+  }
+
+  function bindRow(row) {
+    // Detekcja banku przy wpisywaniu numeru
+    const input = row.querySelector('.account-number-input');
+    input?.addEventListener('input', function () {
+      updateBankBadge(row, detectBank(this.value));
+    });
+
+    // Przycisk Usuń
+    const deleteBtn = row.querySelector('.delete-row-btn');
+    deleteBtn?.addEventListener('click', function () {
+      const deleteFlag = row.querySelector('.delete-flag');
+      if (deleteFlag && row.dataset.index !== undefined) {
+        // Istniejący rekord — oznacz DELETE i ukryj wiersz
+        deleteFlag.value = 'on';
+        row.style.display = 'none';
+        // Odznacz radio jeśli był domyślny
+        const radio = row.querySelector('.default-radio');
+        if (radio?.checked) {
+          radio.checked = false;
+          syncDefaults();
+        }
+      } else {
+        // Nowy rekord — po prostu usuń wiersz
+        row.remove();
+        reindexRows();
+      }
+    });
+  }
+
+  // Synchronizuj pola is_default z aktywnym radio
+  function syncDefaults() {
+    document.querySelectorAll('.bank-account-row').forEach(row => {
+      const radio = row.querySelector('.default-radio');
+      const hidden = row.querySelector('.is-default-hidden');
+      if (radio && hidden) {
+        hidden.value = radio.checked ? 'on' : '';
+      }
+    });
+  }
+
+  // Nasłuchuj zmiany radio — tylko jeden może być zaznaczony
+  document.addEventListener('change', function (e) {
+    if (e.target.classList.contains('default-radio')) {
+      syncDefaults();
+    }
+  });
+
+  // Przelicz indeksy po usunięciu nowych wierszy
+  function reindexRows() {
+    const totalForms = document.querySelector('[name$="-TOTAL_FORMS"]');
+    const rows = document.querySelectorAll('.bank-account-row');
+    totalForms.value = rows.length;
+  }
+
+  // Dodaj nowy wiersz
+  const addBtn = document.getElementById('add-bank-account');
+  const tbody = document.getElementById('bank-accounts-tbody');
+  const totalForms = document.querySelector('[name$="-TOTAL_FORMS"]');
+  const prefix = totalForms?.name.replace('-TOTAL_FORMS', '');
+
+  addBtn?.addEventListener('click', function () {
+    const idx = parseInt(totalForms.value);
+    const tr = document.createElement('tr');
+    tr.className = 'bank-account-row';
+    tr.innerHTML = `
+      <td style="display:none"><input type="hidden" name="${prefix}-${idx}-id" value=""></td>
+      <td style="display:none"><input type="hidden" name="${prefix}-${idx}-DELETE" value="" class="delete-flag"></td>
+      <td style="display:none"><input type="hidden" name="${prefix}-${idx}-is_default" value="" class="is-default-hidden"></td>
+      <td class="ps-3">
+        <input type="text" name="${prefix}-${idx}-account_number" value=""
+               class="form-control form-control-sm font-monospace account-number-input"
+               placeholder="00 0000 0000 0000 0000 0000 0000" maxlength="34">
+      </td>
+      <td>
+        <input type="text" name="${prefix}-${idx}-label" value=""
+               class="form-control form-control-sm" placeholder="np. Rachunek bieżący PLN">
+      </td>
+      <td>
+        <span class="bank-badge badge bg-secondary-subtle text-secondary border border-secondary-subtle" style="display:none"></span>
+        <span class="bank-unknown text-muted small">—</span>
+      </td>
+      <td class="text-center">
+        <input type="radio" name="default_radio" class="form-check-input default-radio">
+      </td>
+      <td class="text-end pe-3">
+        <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 delete-row-btn" title="Usuń">
+          <i class="bi bi-trash"></i>
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+    totalForms.value = idx + 1;
+    bindRow(tr);
+  });
+
+  // Inicjalizuj istniejące wiersze
+  document.querySelectorAll('.bank-account-row').forEach(bindRow);
+  syncDefaults();
+})();
+</script>
+{% endif %}
 {% endblock %}

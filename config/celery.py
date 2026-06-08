@@ -21,4 +21,12 @@ app.conf.beat_schedule = {
         'task': 'apps.ksef.tasks.send_morning_digest',
         'schedule': crontab(minute=0),
     },
+    'send-queued-outgoing-invoices': {
+        'task': 'apps.outgoing.tasks.send_queued_outgoing_invoices',
+        'schedule': crontab(minute='*/5'),
+    },
+    'poll-outgoing-invoice-status': {
+        'task': 'apps.outgoing.tasks.poll_outgoing_invoice_status',
+        'schedule': crontab(minute='*/5'),
+    },
 }

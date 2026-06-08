@@ -15,4 +15,5 @@ urlpatterns = [
     path('companies/<int:pk>/edit/', views.CompanyUpdateView.as_view(), name='company_edit'),
     path('companies/<int:company_pk>/license/', views.LicenseUpdateView.as_view(), name='license_edit'),
     path('licenses/webhook/', views.StoreWebhookView.as_view(), name='store_webhook'),
+    path('register/', views.RegisterView.as_view(), name='register'),
 ]

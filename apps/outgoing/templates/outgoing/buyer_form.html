@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Edytuj nabywcę{% endblock %}
+{% block page_title %}Edytuj nabywcę{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <form method="post">
+      {% csrf_token %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent border-bottom py-2">
+          <span class="fw-medium small">{{ buyer.name }} <span class="text-muted font-monospace">(NIP: {{ buyer.nip }})</span></span>
+        </div>
+        <div class="card-body p-4">
+          {% for field in form %}
+          <div class="mb-3">
+            <label class="form-label fw-medium small">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+            {% if field.name == 'nip' %}
+              <input type="text" class="form-control" value="{{ buyer.nip }}" disabled>
+              <div class="form-text">NIP nie może być zmieniony po zapisaniu nabywcy.</div>
+            {% else %}
+              {{ field }}
+            {% endif %}
+            {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors.0 }}</div>{% endif %}
+          </div>
+          {% endfor %}
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger small">{{ form.non_field_errors }}</div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Zapisz</button>
+        <a href="{% url 'outgoing:buyer_list' %}" class="btn btn-outline-secondary">Anuluj</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

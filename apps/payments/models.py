@@ -4,9 +4,11 @@ from django.db import models
 
 class PaymentFile(models.Model):
     FORMAT_ERSTE = 'erste'
+    FORMAT_MBANK = 'mbank'
     FORMAT_ELIXIR = 'elixir'
     FORMAT_CHOICES = [
         (FORMAT_ERSTE, 'Erste Bank (.txt)'),
+        (FORMAT_MBANK, 'mBank (.txt)'),
         (FORMAT_ELIXIR, 'Elixir-0 (.pli)'),
     ]
 
@@ -18,6 +20,7 @@ class PaymentFile(models.Model):
         db_index=True,
     )
     format = models.CharField(max_length=10, choices=FORMAT_CHOICES, verbose_name='Format pliku')
+    debit_account = models.CharField(max_length=34, blank=True, verbose_name='Rachunek obciążeniowy')
     file_name = models.CharField(max_length=255, verbose_name='Nazwa pliku')
     file_content = models.BinaryField(verbose_name='Zawartość pliku')
     total_amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name='Suma brutto')
@@ -37,10 +40,12 @@ class PaymentFile(models.Model):
         return f'{self.file_name} ({self.invoice_count} fv, {self.total_amount} PLN)'
 
     def get_content_type(self) -> str:
+        if self.format == self.FORMAT_ELIXIR:
+            return 'text/plain; charset=cp1250'
         return 'text/plain; charset=windows-1250'
 
     def get_extension(self) -> str:
-        return 'txt' if self.format == self.FORMAT_ERSTE else 'pli'
+        return 'pli' if self.format == self.FORMAT_ELIXIR else 'txt'
 
 
 class PaymentFileItem(models.Model):
@@ -55,6 +60,7 @@ class PaymentFileItem(models.Model):
         verbose_name='Faktura',
     )
     amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name='Kwota')
+    debit_account = models.CharField(max_length=34, blank=True, verbose_name='Rachunek obciążeniowy')
     line_number = models.PositiveIntegerField(verbose_name='Numer linii w pliku')
 
     class Meta:

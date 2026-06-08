@@ -1,6 +1,10 @@
+from django.contrib.auth import login
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db import transaction
 from django.http import JsonResponse
+from django.shortcuts import redirect
+from django.template.response import TemplateResponse
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, View
 from django.urls import reverse_lazy
 from django.contrib import messages
@@ -8,7 +12,7 @@ from core.permissions import RoleRequiredMixin, company_filter, is_super_admin
 from core.audit import log_event
 from core.models import AuditLog
 from .models import CustomUser, Company, CompanyLicense
-from .forms import LoginForm, UserCreateForm, UserUpdateForm, CompanyForm, LicenseForm
+from .forms import LoginForm, UserCreateForm, UserUpdateForm, CompanyForm, LicenseForm, RegisterForm, CompanyBankAccountFormSet
 
 
 class CustomLoginView(LoginView):
@@ -153,10 +157,33 @@ class CompanyUpdateView(RoleRequiredMixin, UpdateView):
             return qs
         return qs.filter(pk=self.request.user.company_id)
 
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        if self.request.POST:
+            ctx['bank_formset'] = CompanyBankAccountFormSet(self.request.POST, instance=self.object)
+        else:
+            ctx['bank_formset'] = CompanyBankAccountFormSet(instance=self.object)
+        return ctx
+
     def form_valid(self, form):
-        response = super().form_valid(form)
+        ctx = self.get_context_data()
+        bank_formset = ctx['bank_formset']
+        if not bank_formset.is_valid():
+            return self.form_invalid(form)
+        with transaction.atomic():
+            self.object = form.save()
+            bank_formset.instance = self.object
+            accounts = bank_formset.save(commit=False)
+            for obj in bank_formset.deleted_objects:
+                obj.delete()
+            defaults = [a for a in accounts if a.is_default]
+            if len(defaults) > 1:
+                form.add_error(None, 'Można oznaczyć tylko jeden rachunek jako domyślny.')
+                return self.form_invalid(form)
+            for account in accounts:
+                account.save()
         messages.success(self.request, f'Firma {form.instance.name} została zaktualizowana.')
-        return response
+        return redirect(self.success_url)
 
 
 class LicenseUpdateView(RoleRequiredMixin, UpdateView):
@@ -173,6 +200,46 @@ class LicenseUpdateView(RoleRequiredMixin, UpdateView):
         response = super().form_valid(form)
         messages.success(self.request, f'Licencja firmy {form.instance.company.name} została zaktualizowana.')
         return response
+
+
+def landing(request):
+    if request.user.is_authenticated:
+        return redirect('invoices:list')
+    return TemplateResponse(request, 'landing/index.html', {})
+
+
+class RegisterView(View):
+    def get(self, request):
+        if request.user.is_authenticated:
+            return redirect('invoices:list')
+        return TemplateResponse(request, 'accounts/register.html', {'form': RegisterForm()})
+
+    def post(self, request):
+        if request.user.is_authenticated:
+            return redirect('invoices:list')
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            from datetime import date
+            cd = form.cleaned_data
+            with transaction.atomic():
+                company = Company.objects.create(nip=cd['nip'], name=cd['company_name'])
+                CompanyLicense.objects.create(
+                    company=company,
+                    plan=CompanyLicense.PLAN_FREE,
+                    valid_from=date.today(),
+                )
+                user = CustomUser.objects.create_user(
+                    username=cd['username'],
+                    email=cd['email'],
+                    password=cd['password1'],
+                    first_name=cd['first_name'],
+                    last_name=cd['last_name'],
+                    role=CustomUser.ROLE_ADMIN,
+                    company=company,
+                )
+            login(request, user)
+            return redirect('invoices:list')
+        return TemplateResponse(request, 'accounts/register.html', {'form': form})
 
 
 class StoreWebhookView(View):

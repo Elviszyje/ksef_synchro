@@ -22,7 +22,7 @@
         <tr>
           <td class="fw-medium font-monospace">{{ company.nip }}</td>
           <td>{{ company.name }}</td>
-          <td class="text-muted font-monospace small">{{ company.bank_account|default:"—" }}</td>
+          <td class="text-muted font-monospace small">{{ company.bank_account|nrb|default:"—" }}</td>
           <td>
             {% with lic=company.license %}
             {% if lic %}

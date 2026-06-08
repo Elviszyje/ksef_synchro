@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Nabywcy{% endblock %}
+{% block page_title %}Nabywcy{% endblock %}
+
+{% block sticky_bar %}
+<div class="page-body-sticky-top d-flex align-items-center gap-2 pb-3">
+  <form method="get" class="d-flex align-items-center gap-2">
+    <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Szukaj po nazwie lub NIP…" style="width:280px;">
+    <button type="submit" class="btn btn-outline-secondary btn-sm">Szukaj</button>
+    {% if q %}<a href="{% url 'outgoing:buyer_list' %}" class="btn btn-outline-secondary btn-sm">Wyczyść</a>{% endif %}
+  </form>
+  <a href="{% url 'outgoing:list' %}" class="btn btn-outline-secondary btn-sm ms-auto">
+    <i class="bi bi-arrow-left me-1"></i>Faktury
+  </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th class="ps-3">NIP</th>
+          <th>Nazwa</th>
+          <th>Adres</th>
+          <th>E-mail</th>
+          <th>Telefon</th>
+          <th class="text-center">Faktury</th>
+          <th style="width:80px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for buyer in buyers %}
+        <tr>
+          <td class="ps-3 font-monospace small">{{ buyer.nip }}</td>
+          <td class="fw-semibold">{{ buyer.name }}</td>
+          <td class="text-muted small">{{ buyer.address|truncatechars:60 }}</td>
+          <td class="small">{{ buyer.email|default:"—" }}</td>
+          <td class="small">{{ buyer.phone|default:"—" }}</td>
+          <td class="text-center">
+            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
+              {{ buyer.invoices.count }}
+            </span>
+          </td>
+          <td class="text-end pe-3">
+            <a href="{% url 'outgoing:buyer_edit' buyer.pk %}" class="btn btn-sm btn-outline-secondary py-0 px-2" title="Edytuj">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <form method="post" action="{% url 'outgoing:buyer_delete' buyer.pk %}" class="d-inline"
+                  onsubmit="return confirm('Usunąć nabywcę {{ buyer.name|escapejs }}?')">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" title="Usuń">
+                <i class="bi bi-trash"></i>
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center text-muted py-5">
+            <i class="bi bi-people fs-2 d-block mb-2"></i>
+            {% if q %}Brak nabywców pasujących do „{{ q }}".{% else %}Brak nabywców. Będą tworzone automatycznie przy wystawianiu faktur.{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

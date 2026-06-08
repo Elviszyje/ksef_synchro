@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ksfera — Faktury KSeF dla jednoosobowej działalności</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --dark: #1a1a2e;
+      --dark2: #16213e;
+      --accent: #60a5fa;
+      --accent-dark: #3b82f6;
+    }
+    body { font-family: system-ui, -apple-system, sans-serif; }
+
+    /* ── Navbar ─────────────────────────────────────────── */
+    .landing-nav {
+      background: var(--dark);
+      padding: .875rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    .landing-nav .brand {
+      color: #e2e8f0;
+      font-weight: 700;
+      font-size: 1.15rem;
+      text-decoration: none;
+    }
+    .landing-nav .brand span { color: var(--accent); }
+
+    /* ── Hero ────────────────────────────────────────────── */
+    .hero {
+      background: linear-gradient(160deg, var(--dark) 0%, var(--dark2) 100%);
+      padding: 5rem 0 4rem;
+      color: #fff;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 800;
+      line-height: 1.15;
+    }
+    .hero h1 em {
+      font-style: normal;
+      color: var(--accent);
+    }
+    .hero .lead {
+      color: #94a3b8;
+      font-size: 1.1rem;
+      max-width: 560px;
+    }
+    .btn-accent {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      font-weight: 600;
+    }
+    .btn-accent:hover {
+      background: var(--accent-dark);
+      border-color: var(--accent-dark);
+      color: #fff;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      background: rgba(96,165,250,.15);
+      border: 1px solid rgba(96,165,250,.3);
+      color: var(--accent);
+      border-radius: 50px;
+      padding: .3rem .9rem;
+      font-size: .8rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ── Why better ─────────────────────────────────────── */
+    .section-why { padding: 4.5rem 0; background: #fff; }
+    .section-why .feature-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 2rem 1.5rem;
+      height: 100%;
+      transition: box-shadow .2s, border-color .2s;
+    }
+    .section-why .feature-card:hover {
+      box-shadow: 0 8px 24px rgba(0,0,0,.07);
+      border-color: var(--accent);
+    }
+    .section-why .feature-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      background: rgba(96,165,250,.1);
+      color: var(--accent);
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+    .vs-badge {
+      display: inline-block;
+      background: #fef9c3;
+      color: #854d0e;
+      border-radius: 6px;
+      font-size: .72rem;
+      font-weight: 700;
+      padding: .15rem .5rem;
+      margin-left: .4rem;
+      vertical-align: middle;
+    }
+
+    /* ── More features ───────────────────────────────────── */
+    .section-features { padding: 4rem 0; background: #f8f9fa; }
+    .section-features .feat-item {
+      display: flex;
+      align-items: flex-start;
+      gap: .75rem;
+      margin-bottom: 1.25rem;
+    }
+    .section-features .feat-item i {
+      color: var(--accent);
+      font-size: 1.1rem;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+    /* ── Pricing ─────────────────────────────────────────── */
+    .section-pricing { padding: 4.5rem 0; background: #fff; }
+    .pricing-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 2rem 1.75rem;
+      height: 100%;
+      position: relative;
+    }
+    .pricing-card.featured {
+      border: 2px solid var(--accent);
+      box-shadow: 0 4px 20px rgba(96,165,250,.15);
+    }
+    .pricing-card .plan-badge {
+      position: absolute;
+      top: -13px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: #fff;
+      font-size: .72rem;
+      font-weight: 700;
+      padding: .2rem .85rem;
+      border-radius: 50px;
+      white-space: nowrap;
+    }
+    .pricing-card .price {
+      font-size: 2.25rem;
+      font-weight: 800;
+      color: var(--dark);
+      line-height: 1;
+    }
+    .pricing-card .price sup { font-size: 1rem; font-weight: 600; }
+    .pricing-card .price sub { font-size: .85rem; font-weight: 400; color: #64748b; }
+    .pricing-card .price-free { font-size: 2.25rem; font-weight: 800; color: var(--dark); }
+    .pricing-card .feature-list {
+      list-style: none;
+      padding: 0;
+      margin: 1.5rem 0;
+    }
+    .pricing-card .feature-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: .6rem;
+      margin-bottom: .65rem;
+      font-size: .9rem;
+      color: #374151;
+    }
+    .pricing-card .feature-list li i.bi-check-circle-fill { color: #22c55e; flex-shrink: 0; margin-top: 2px; }
+    .pricing-card .feature-list li i.bi-x-circle-fill { color: #d1d5db; flex-shrink: 0; margin-top: 2px; }
+    .free-note {
+      font-size: .78rem;
+      color: #64748b;
+      text-align: center;
+      margin-top: .75rem;
+    }
+
+    /* ── CTA bottom ──────────────────────────────────────── */
+    .section-cta {
+      background: linear-gradient(160deg, var(--dark) 0%, var(--dark2) 100%);
+      padding: 4rem 0;
+      text-align: center;
+      color: #fff;
+    }
+    .section-cta h2 { font-weight: 800; font-size: clamp(1.5rem, 4vw, 2.25rem); }
+    .section-cta p { color: #94a3b8; }
+
+    /* ── Footer ──────────────────────────────────────────── */
+    footer {
+      background: #0f0f1a;
+      color: #475569;
+      text-align: center;
+      padding: 1.25rem 0;
+      font-size: .8rem;
+    }
+    footer a { color: #60a5fa; text-decoration: none; }
+
+    /* ── Utilities ───────────────────────────────────────── */
+    .section-label {
+      font-size: .75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--accent);
+      margin-bottom: .5rem;
+    }
+    .divider { border-top: 1px solid #e5e7eb; margin: 0; }
+  </style>
+</head>
+<body>
+
+<!-- ── Navbar ──────────────────────────────────────────────── -->
+<nav class="landing-nav">
+  <div class="container d-flex align-items-center justify-content-between">
+    <a href="/" class="brand">
+      <i class="bi bi-receipt-cutoff me-2"></i>K<span>sfera</span>
+    </a>
+    <div class="d-flex align-items-center gap-2">
+      <a href="{% url 'accounts:login' %}" class="btn btn-sm btn-outline-secondary text-white border-secondary">Zaloguj się</a>
+      <a href="{% url 'accounts:register' %}" class="btn btn-sm btn-accent">Zacznij za darmo</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Hero ────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <div class="hero-badge">
+          <i class="bi bi-shield-check-fill"></i> Zgodność z KSeF 2.0
+        </div>
+        <h1>Faktury KSeF<br>bez stresu —<br><em>dla Twojej JDG</em></h1>
+        <p class="lead mt-3">
+          Ksfera automatycznie pobiera faktury kosztowe z KSeF, pomaga je opłacić i wysyła Twoje e-faktury.
+          Wszystko w jednym miejscu, bez exceli.
+        </p>
+        <div class="d-flex flex-wrap gap-3 mt-4">
+          <a href="{% url 'accounts:register' %}" class="btn btn-accent btn-lg px-4">
+            <i class="bi bi-rocket-takeoff me-2"></i>Zacznij za darmo
+          </a>
+          <a href="{% url 'accounts:login' %}" class="btn btn-outline-light btn-lg px-4">
+            Zaloguj się
+          </a>
+        </div>
+        <p class="mt-3" style="color:#475569; font-size:.85rem;">
+          <i class="bi bi-check-circle me-1 text-success"></i>Bez karty kredytowej &nbsp;
+          <i class="bi bi-check-circle me-1 text-success"></i>Plan Free na zawsze
+        </p>
+      </div>
+      <div class="col-lg-5 offset-lg-1 d-none d-lg-block">
+        <div style="background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:1.5rem;">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <div style="width:10px;height:10px;border-radius:50%;background:#f87171;"></div>
+            <div style="width:10px;height:10px;border-radius:50%;background:#fbbf24;"></div>
+            <div style="width:10px;height:10px;border-radius:50%;background:#4ade80;"></div>
+          </div>
+          {% for row in "12345"|make_list %}
+          <div class="d-flex align-items-center gap-3 mb-2 p-2" style="background:rgba(255,255,255,.04); border-radius:8px;">
+            <div style="width:28px;height:28px;border-radius:6px;background:rgba(96,165,250,.2);flex-shrink:0;"></div>
+            <div style="flex:1;">
+              <div style="height:8px;background:rgba(255,255,255,.12);border-radius:4px;width:{% cycle '80%' '65%' '75%' '55%' '70%' %};"></div>
+              <div style="height:6px;background:rgba(255,255,255,.06);border-radius:4px;width:40%;margin-top:5px;"></div>
+            </div>
+            <div style="width:50px;height:8px;border-radius:4px;background:rgba(96,165,250,.3);"></div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Dlaczego lepiej niż sam KSeF ────────────────────────── -->
+<section class="section-why">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="section-label">Porównanie</div>
+      <h2 class="fw-bold" style="font-size:clamp(1.5rem,3vw,2rem);">Dlaczego Ksfera, a nie sam portal KSeF?</h2>
+      <p class="text-muted mt-2" style="max-width:540px;margin:0 auto;">Portal KSeF to tylko skrzynka odbiorcza. Ksfera to narzędzie do pracy.</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-arrow-repeat"></i></div>
+          <h5 class="fw-bold">Automatyczny sync <span class="vs-badge">KSeF tego nie ma</span></h5>
+          <p class="text-muted small mb-0">Faktury kosztowe trafiają do Ksfera automatycznie co godzinę — bez ręcznego pobierania z portalu i eksportowania CSV.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-bank2"></i></div>
+          <h5 class="fw-bold">Przelewy jednym kliknięciem <span class="vs-badge">KSeF tego nie ma</span></h5>
+          <p class="text-muted small mb-0">Wygeneruj gotowy plik przelewów dla Erste lub Elixir-0. Wgraj do banku i zapłać kilkanaście faktur naraz — bez przepisywania.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-send-check-fill"></i></div>
+          <h5 class="fw-bold">Wysyłaj e-faktury do KSeF <span class="vs-badge">wbudowane</span></h5>
+          <p class="text-muted small mb-0">Twórz faktury sprzedażowe i wysyłaj je bezpośrednio do KSeF. Masz podgląd statusu przetwarzania i UPO w jednym miejscu.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Więcej możliwości ────────────────────────────────────── -->
+<section class="section-features">
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-5">
+        <div class="section-label">Funkcje</div>
+        <h2 class="fw-bold" style="font-size:clamp(1.4rem,3vw,1.9rem);">Wszystko czego potrzebujesz jako JDG</h2>
+        <p class="text-muted mt-2">Zaprojektowane z myślą o jednoosobowych działalnościach, które nie chcą tracić czasu na księgowość operacyjną.</p>
+      </div>
+      <div class="col-lg-6 offset-lg-1">
+        <div class="feat-item">
+          <i class="bi bi-check-circle-fill"></i>
+          <div>
+            <strong>Dashboard kosztów</strong> — przegląd faktur przychodzących według statusu, dostawcy i kwoty. Jednym rzutem oka wiesz co jest niezapłacone.
+          </div>
+        </div>
+        <div class="feat-item">
+          <i class="bi bi-check-circle-fill"></i>
+          <div>
+            <strong>Wyciągi MT940</strong> — wgrywaj wyciągi bankowe i automatycznie dopasowuj transakcje do faktur. Koniec z ręcznym oznaczaniem "opłacono".
+          </div>
+        </div>
+        <div class="feat-item">
+          <i class="bi bi-check-circle-fill"></i>
+          <div>
+            <strong>Powiadomienia Telegram</strong> — dostaniesz wiadomość gdy pojawi się nowa faktura lub zbliża się termin płatności.
+          </div>
+        </div>
+        <div class="feat-item">
+          <i class="bi bi-check-circle-fill"></i>
+          <div>
+            <strong>Statusy faktur</strong> — zaakceptuj, zakwestionuj lub przekaż do zapłaty. Pełna historia zmian statusu każdej faktury.
+          </div>
+        </div>
+        <div class="feat-item">
+          <i class="bi bi-check-circle-fill"></i>
+          <div>
+            <strong>Export Excel</strong> — wyeksportuj listę faktur do .xlsx z jednym kliknięciem, gotową do przekazania księgowemu.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Cennik ───────────────────────────────────────────────── -->
+<section class="section-pricing" id="cennik">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="section-label">Cennik</div>
+      <h2 class="fw-bold" style="font-size:clamp(1.5rem,3vw,2rem);">Prosty cennik, bez niespodzianek</h2>
+      <p class="text-muted mt-2">Zacznij za darmo. Przejdź na wyższy plan gdy Twoja firma rośnie.</p>
+    </div>
+    <div class="row g-4 justify-content-center">
+
+      <!-- Free -->
+      <div class="col-md-4 col-lg-3">
+        <div class="pricing-card">
+          <div class="text-muted small fw-semibold text-uppercase mb-2">Darmowy</div>
+          <div class="price-free mb-1">0 zł</div>
+          <div class="text-muted small mb-3">na zawsze</div>
+          <hr class="divider">
+          <ul class="feature-list">
+            <li><i class="bi bi-check-circle-fill"></i> 1 użytkownik</li>
+            <li><i class="bi bi-check-circle-fill"></i> 5 faktur przych. / 30 dni</li>
+            <li><i class="bi bi-check-circle-fill"></i> 3 faktury wych. / miesiąc</li>
+            <li><i class="bi bi-check-circle-fill"></i> Sync z KSeF</li>
+            <li><i class="bi bi-check-circle-fill"></i> Dashboard kosztów</li>
+            <li><i class="bi bi-x-circle-fill text-secondary"></i> <span class="text-muted">Wyciągi MT940</span></li>
+            <li><i class="bi bi-x-circle-fill text-secondary"></i> <span class="text-muted">Generowanie przelewów</span></li>
+          </ul>
+          <a href="{% url 'accounts:register' %}" class="btn btn-outline-primary w-100">Zacznij za darmo</a>
+          <p class="free-note mt-2">Idealny na start — bez karty</p>
+        </div>
+      </div>
+
+      <!-- Standard (featured) -->
+      <div class="col-md-4 col-lg-3">
+        <div class="pricing-card featured">
+          <div class="plan-badge">Najpopularniejszy</div>
+          <div class="text-muted small fw-semibold text-uppercase mb-2">Standard</div>
+          <div class="price mb-1"><sup>zł</sup>19<sub>/mies.</sub></div>
+          <div class="text-muted small mb-3">dla aktywnej JDG</div>
+          <hr class="divider">
+          <ul class="feature-list">
+            <li><i class="bi bi-check-circle-fill"></i> 2 użytkowników</li>
+            <li><i class="bi bi-check-circle-fill"></i> 100 faktur przych. / 30 dni</li>
+            <li><i class="bi bi-check-circle-fill"></i> 50 faktur wych. / miesiąc</li>
+            <li><i class="bi bi-check-circle-fill"></i> Sync z KSeF</li>
+            <li><i class="bi bi-check-circle-fill"></i> Dashboard kosztów</li>
+            <li><i class="bi bi-check-circle-fill"></i> Wyciągi MT940</li>
+            <li><i class="bi bi-check-circle-fill"></i> Generowanie przelewów</li>
+          </ul>
+          <a href="{% url 'accounts:register' %}" class="btn btn-accent w-100">Wybierz Standard</a>
+        </div>
+      </div>
+
+      <!-- Ultra -->
+      <div class="col-md-4 col-lg-3">
+        <div class="pricing-card">
+          <div class="text-muted small fw-semibold text-uppercase mb-2">Ultra</div>
+          <div class="price mb-1"><sup>zł</sup>49<sub>/mies.</sub></div>
+          <div class="text-muted small mb-3">bez żadnych limitów</div>
+          <hr class="divider">
+          <ul class="feature-list">
+            <li><i class="bi bi-check-circle-fill"></i> 5 użytkowników</li>
+            <li><i class="bi bi-check-circle-fill"></i> <strong>Nieograniczone</strong> faktury przych.</li>
+            <li><i class="bi bi-check-circle-fill"></i> <strong>Nieograniczone</strong> faktury wych.</li>
+            <li><i class="bi bi-check-circle-fill"></i> Sync z KSeF</li>
+            <li><i class="bi bi-check-circle-fill"></i> Dashboard kosztów</li>
+            <li><i class="bi bi-check-circle-fill"></i> Wyciągi MT940</li>
+            <li><i class="bi bi-check-circle-fill"></i> Generowanie przelewów</li>
+          </ul>
+          <a href="{% url 'accounts:register' %}" class="btn btn-outline-primary w-100">Wybierz Ultra</a>
+        </div>
+      </div>
+
+    </div>
+    <p class="text-center text-muted small mt-4">
+      Wszystkie plany zaczynają się od planu Darmowego. Możesz zmienić plan w dowolnym momencie.
+    </p>
+  </div>
+</section>
+
+<!-- ── CTA końcowe ──────────────────────────────────────────── -->
+<section class="section-cta">
+  <div class="container">
+    <h2>Zacznij dziś — bezpłatnie</h2>
+    <p class="mt-2">Rejestracja zajmuje 60 sekund. Bez karty kredytowej.</p>
+    <a href="{% url 'accounts:register' %}" class="btn btn-accent btn-lg mt-3 px-5">
+      <i class="bi bi-rocket-takeoff me-2"></i>Utwórz darmowe konto
+    </a>
+    <p class="mt-3" style="color:#334155; font-size:.85rem;">
+      Masz już konto? <a href="{% url 'accounts:login' %}" style="color:var(--accent);">Zaloguj się</a>
+    </p>
+  </div>
+</section>
+
+<!-- ── Footer ───────────────────────────────────────────────── -->
+<footer>
+  <div class="container">
+    &copy; {% now "Y" %} Ksfera &mdash; System obsługi faktur KSeF dla jednoosobowych działalności
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

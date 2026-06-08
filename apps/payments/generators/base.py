@@ -15,6 +15,12 @@ class BasePaymentGenerator(ABC):
     ENCODING: str = 'windows-1250'
     EXTENSION: str = 'txt'
 
+    _PL_TRANS = str.maketrans('ąćęłńóśźżĄĆĘŁŃÓŚŹŻ', 'acelnoszzACELNOSZZ')
+
+    @staticmethod
+    def _transliterate(text: str) -> str:
+        return text.translate(BasePaymentGenerator._PL_TRANS)
+
     def __init__(self, debit_account: str, company_name: str, company_address: str):
         self.debit_account = debit_account.replace(' ', '')
         self.company_name = company_name[:35]
@@ -40,6 +46,6 @@ class BasePaymentGenerator(ABC):
     def _clean_text(text: str, max_len: int, allowed_extra: str = '') -> str:
         """Zastępuje niedozwolone znaki spacją i obcina do max_len."""
         import re
-        # Dopuszczone w standardzie Erste: 0-9 A-Z a-z i polskie diakrytyki + wybrane znaki
+        text = BasePaymentGenerator._transliterate(text)
         result = re.sub(r'[^\w\s\-\.,\:\;\+\=\[\]\{\}\!\@\#\$\%\^\&\*\(\)\/\?' + allowed_extra + r']', ' ', text, flags=re.UNICODE)
         return result[:max_len].strip()

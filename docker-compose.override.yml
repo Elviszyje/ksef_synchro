@@ -1,5 +1,3 @@
-version: '3.9'
-
 # Override dla lokalnego developmentu — hot-reload, bez portu bazy (możliwy konflikt)
 services:
   web:

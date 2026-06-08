@@ -366,6 +366,73 @@ class KSeFClient:
         self._raise_for_status(resp)
         return resp.content
 
+    # ------------------------------------------------------------------ #
+    # Wysyłka faktur wychodzących                                          #
+    # ------------------------------------------------------------------ #
+
+    def send_invoice(self, session_token: str, xml_bytes: bytes) -> str:
+        """
+        Wysyła fakturę XML do KSeF.
+        POST /api/v2/invoices/send
+        Zwraca referenceNumber do monitorowania statusu.
+        """
+        resp = self._http.post(
+            self._url('invoices/send'),
+            content=xml_bytes,
+            headers={
+                'Authorization': f'Bearer {session_token}',
+                'Content-Type': 'application/octet-stream',
+            },
+        )
+        self._raise_for_status(resp)
+        data = resp.json()
+        reference_number = data.get('referenceNumber') or data.get('elementReferenceNumber')
+        if not reference_number:
+            raise KSeFAPIError(f'Brak referenceNumber w odpowiedzi na wysyłkę: {data}')
+        logger.info('KSeF faktura wysłana, referenceNumber=%s', reference_number)
+        return reference_number
+
+    def get_send_status(self, session_token: str, reference_number: str) -> dict:
+        """
+        Sprawdza status wysłanej faktury.
+        GET /api/v2/invoices/send/{referenceNumber}/status
+        Zwraca słownik z kluczami: processing_code (100/200/400), ksef_reference_number (str|None).
+        """
+        resp = self._http.get(
+            self._url(f'invoices/send/{reference_number}/status'),
+            headers={'Authorization': f'Bearer {session_token}'},
+        )
+        self._raise_for_status(resp)
+        data = resp.json()
+        status_obj = data.get('processingCode') or data.get('status') or {}
+        code = status_obj.get('code') if isinstance(status_obj, dict) else status_obj
+        ksef_ref = (
+            data.get('ksefReferenceNumber')
+            or data.get('invoiceStatus', {}).get('ksefReferenceNumber')
+        )
+        logger.debug('KSeF send status ref=%s code=%s ksefRef=%s', reference_number, code, ksef_ref)
+        return {
+            'processing_code': code,
+            'ksef_reference_number': ksef_ref,
+            'raw': data,
+        }
+
+    def get_upo(self, session_token: str, ksef_reference_number: str) -> bytes:
+        """
+        Pobiera UPO (Urzędowe Potwierdzenie Odbioru) dla faktury.
+        GET /api/v2/invoices/ksef/{ksefReferenceNumber}/upo
+        Zwraca XML bytes.
+        """
+        resp = self._http.get(
+            self._url(f'invoices/ksef/{ksef_reference_number}/upo'),
+            headers={
+                'Authorization': f'Bearer {session_token}',
+                'Accept': 'application/octet-stream',
+            },
+        )
+        self._raise_for_status(resp)
+        return resp.content
+
     def close(self):
         self._http.close()
 

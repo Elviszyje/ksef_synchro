@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% load role_tags %}
+
+{% block title %}{{ invoice.invoice_number }}{% endblock %}
+{% block page_title %}{{ invoice.invoice_number }}{% endblock %}
+
+{% block topbar_actions %}
+{% has_role 'accountant' as can_edit %}
+{% has_role 'approver' as can_approve %}
+{% if can_edit and invoice.can_be_edited %}
+<a href="{% url 'outgoing:edit' invoice.pk %}" class="btn btn-sm btn-outline-secondary">
+  <i class="bi bi-pencil me-1"></i>Edytuj
+</a>
+{% endif %}
+{% if can_approve and invoice.can_be_queued %}
+<form method="post" action="{% url 'outgoing:queue' invoice.pk %}" class="d-inline">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-sm btn-success"
+          onclick="return confirm('Czy na pewno wysłać fakturę {{ invoice.invoice_number }} do KSeF?')">
+    <i class="bi bi-send me-1"></i>Wyślij do KSeF
+  </button>
+</form>
+{% endif %}
+{% if invoice.generated_xml %}
+<a href="{% url 'outgoing:xml' invoice.pk %}" class="btn btn-sm btn-outline-secondary">
+  <i class="bi bi-file-earmark-code me-1"></i>XML
+</a>
+{% endif %}
+{% if invoice.upo_xml %}
+<a href="{% url 'outgoing:upo' invoice.pk %}" class="btn btn-sm btn-outline-success">
+  <i class="bi bi-file-earmark-check me-1"></i>UPO
+</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <!-- Lewa kolumna: pozycje -->
+  <div class="col-lg-8">
+
+    <!-- Status bar -->
+    <div class="card shadow-sm mb-3 border-0 bg-{{ invoice.get_status_color }}-subtle">
+      <div class="card-body py-2 d-flex align-items-center gap-3">
+        <span class="badge bg-{{ invoice.get_status_color }} fs-6">{{ invoice.get_status_display }}</span>
+        {% if invoice.ksef_reference_number %}
+        <small class="text-muted">KSeF: <span class="font-monospace">{{ invoice.ksef_reference_number }}</span></small>
+        {% endif %}
+        {% if invoice.ksef_submission_reference and invoice.status == 'sending' %}
+        <small class="text-muted">Ref. wysyłki: <span class="font-monospace">{{ invoice.ksef_submission_reference }}</span></small>
+        {% endif %}
+        {% if invoice.error_message %}
+        <span class="text-danger ms-auto small"><i class="bi bi-exclamation-triangle me-1"></i>{{ invoice.error_message }}</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Pozycje faktury -->
+    <div class="card shadow-sm">
+      <div class="card-header fw-semibold">
+        <i class="bi bi-list-ul me-2"></i>Pozycje faktury
+      </div>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Lp.</th>
+              <th>Nazwa</th>
+              <th>Jed.</th>
+              <th class="text-end">Ilość</th>
+              <th class="text-end">Cena netto</th>
+              <th>VAT</th>
+              <th class="text-end">Netto</th>
+              <th class="text-end">VAT</th>
+              <th class="text-end">Brutto</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in invoice.items.all %}
+            <tr>
+              <td>{{ item.lp }}</td>
+              <td>{{ item.name }}</td>
+              <td>{{ item.unit }}</td>
+              <td class="text-end">{{ item.quantity }}</td>
+              <td class="text-end">{{ item.unit_price_net|floatformat:2 }}</td>
+              <td>{{ item.get_vat_rate_display }}</td>
+              <td class="text-end">{{ item.amount_net|floatformat:2 }}</td>
+              <td class="text-end">{{ item.amount_vat|floatformat:2 }}</td>
+              <td class="text-end fw-semibold">{{ item.amount_gross|floatformat:2 }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="9" class="text-center text-muted py-3">Brak pozycji</td></tr>
+            {% endfor %}
+          </tbody>
+          <tfoot class="table-light fw-semibold">
+            <tr>
+              <td colspan="6" class="text-end">Razem:</td>
+              <td class="text-end">{{ invoice.amount_net|floatformat:2 }}</td>
+              <td class="text-end">{{ invoice.amount_vat|floatformat:2 }}</td>
+              <td class="text-end">{{ invoice.amount_gross|floatformat:2 }} {{ invoice.currency }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Prawa kolumna: dane -->
+  <div class="col-lg-4">
+    <div class="card shadow-sm mb-3">
+      <div class="card-header fw-semibold"><i class="bi bi-info-circle me-2"></i>Dane faktury</div>
+      <div class="card-body">
+        <dl class="row mb-0" style="font-size:.875rem;">
+          <dt class="col-5">Numer</dt>
+          <dd class="col-7 fw-semibold">{{ invoice.invoice_number }}</dd>
+          <dt class="col-5">Data wystawienia</dt>
+          <dd class="col-7">{{ invoice.issue_date|date:"d.m.Y" }}</dd>
+          {% if invoice.delivery_date %}
+          <dt class="col-5">Data dostawy</dt>
+          <dd class="col-7">{{ invoice.delivery_date|date:"d.m.Y" }}</dd>
+          {% endif %}
+          <dt class="col-5">Termin płatności</dt>
+          <dd class="col-7">{{ invoice.payment_due_date|date:"d.m.Y" }}</dd>
+          <dt class="col-5">Forma płatności</dt>
+          <dd class="col-7">{{ invoice.get_payment_form_display }}</dd>
+          <dt class="col-5">Waluta</dt>
+          <dd class="col-7">{{ invoice.currency }}</dd>
+          {% if invoice.notes %}
+          <dt class="col-5">Uwagi</dt>
+          <dd class="col-7">{{ invoice.notes }}</dd>
+          {% endif %}
+        </dl>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+      <div class="card-header fw-semibold"><i class="bi bi-person-lines-fill me-2"></i>Nabywca</div>
+      <div class="card-body" style="font-size:.875rem;">
+        <div class="fw-semibold">{{ invoice.buyer_name }}</div>
+        <div class="text-muted">NIP: {{ invoice.buyer_nip }}</div>
+        <div class="mt-1" style="white-space:pre-line;">{{ invoice.buyer_address }}</div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-header fw-semibold"><i class="bi bi-receipt me-2"></i>Podsumowanie</div>
+      <div class="card-body">
+        <dl class="row mb-0" style="font-size:.875rem;">
+          <dt class="col-6">Netto</dt>
+          <dd class="col-6 text-end">{{ invoice.amount_net|floatformat:2 }} {{ invoice.currency }}</dd>
+          <dt class="col-6">VAT</dt>
+          <dd class="col-6 text-end">{{ invoice.amount_vat|floatformat:2 }} {{ invoice.currency }}</dd>
+          <dt class="col-6 fs-6 fw-bold">Brutto</dt>
+          <dd class="col-6 text-end fs-6 fw-bold">{{ invoice.amount_gross|floatformat:2 }} {{ invoice.currency }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
