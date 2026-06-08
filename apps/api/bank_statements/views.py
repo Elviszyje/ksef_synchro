@@ -121,21 +121,26 @@ class RunMatcherView(APIView):
         )
 
         matcher = InvoiceMatcher()
-        matches = matcher.match(
-            [type('TX', (), {
-                'amount': t.amount,
-                'description': f"{t.description} {t.counterparty}".strip(),
-                'is_credit': not t.is_debit, 'reference': t.reference,
-                'transaction_date': t.transaction_date,
-            })() for t in transactions],
-            invoices_qs,
-        )
 
-        tx_by_key = {(t.amount, t.description[:50]): t for t in transactions}
+        TX = type('TX', (), {})
+        pseudo_txs = []
+        for t in transactions:
+            px = TX()
+            px.amount = t.amount
+            px.description = f"{t.description} {t.counterparty}".strip()
+            px.is_credit = not t.is_debit
+            px.reference = t.reference
+            px.transaction_date = t.transaction_date
+            pseudo_txs.append(px)
+
+        tx_by_pseudo_id = {id(px): t for px, t in zip(pseudo_txs, transactions)}
+
+        matches = matcher.match(pseudo_txs, invoices_qs)
+
         created_count = 0
         for match_data in matches:
             pseudo_tx = match_data['transaction']
-            tx_obj = tx_by_key.get((pseudo_tx.amount, pseudo_tx.description[:50]))
+            tx_obj = tx_by_pseudo_id.get(id(pseudo_tx))
             if not tx_obj:
                 continue
             _, created = TransactionMatch.objects.get_or_create(
