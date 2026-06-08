@@ -64,10 +64,6 @@ class PaymentFileCreateView(APIView):
                 status=400,
             )
 
-        default_account = _get_default_account(request.user)
-        if not default_account:
-            return Response({'detail': 'Firma nie ma skonfigurowanego rachunku bankowego.'}, status=400)
-
         requested_account = serializer.validated_data.get('debit_account', '').replace(' ', '').replace('-', '')
         if requested_account:
             try:
@@ -80,6 +76,9 @@ class PaymentFileCreateView(APIView):
             except CompanyBankAccount.DoesNotExist:
                 return Response({'detail': 'Podany rachunek bankowy nie istnieje w tej firmie.'}, status=400)
         else:
+            default_account = _get_default_account(request.user)
+            if not default_account:
+                return Response({'detail': 'Firma nie ma skonfigurowanego rachunku bankowego.'}, status=400)
             debit_account_number = default_account.account_number
             bank_key = default_account.bank_key or detect_bank_key(debit_account_number)
         generator, extension, bank_label = _build_generator(debit_account_number, bank_key, request.user)
