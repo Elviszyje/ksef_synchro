@@ -236,7 +236,17 @@ class InvoiceMatcher:
 
     @staticmethod
     def _normalize_invoice_nr(nr: str) -> str:
-        return re.sub(r'[\s\-/]', '', nr).upper()
+        # Rozdziel na segmenty, usuń wiodące zera z każdego segmentu liczbowego,
+        # żeby "01/05/2026" == "1/05/2026" i "FV/0030/26" == "FV/030/26"
+        segments = re.split(r'[\s\-/]+', nr.strip())
+        normalized = []
+        for seg in segments:
+            seg = seg.upper()
+            # jeśli segment jest czysto liczbowy — usuń wiodące zera
+            if seg.isdigit():
+                seg = str(int(seg)) if seg else seg
+            normalized.append(seg)
+        return ''.join(normalized)
 
 
 # ─── Interfejs kompatybilny z detect_and_parse ────────────────────────────────
