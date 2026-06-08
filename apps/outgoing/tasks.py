@@ -24,7 +24,11 @@ def send_queued_outgoing_invoices(self, company_id: int | None = None):
         qs = qs.filter(company_id=company_id)
 
     with transaction.atomic():
-        invoices = list(qs.select_for_update(skip_locked=True).select_related('company', 'items'))
+        invoices = list(
+            qs.select_for_update(skip_locked=True)
+            .select_related('company')
+            .prefetch_related('items')
+        )
         if not invoices:
             return
 
