@@ -193,16 +193,30 @@ class InvoiceMatcher:
 
         return results
 
+    @staticmethod
+    def _normalize_account(nr: str) -> str:
+        return re.sub(r'[\s]', '', nr)
+
     def _find_best_match(self, tx: MT940Transaction, candidates: list) -> Optional[dict]:
         from apps.bank_statements.models import TransactionMatch
-
-        desc = tx.description.upper()
 
         invoice_nr_match = self.RE_INVOICE_NR.search(tx.description)
         nr = self._normalize_invoice_nr(invoice_nr_match.group(1)) if invoice_nr_match else None
         nip_matches = set(self.RE_NIP.findall(tx.description))
+        tx_account = self._normalize_account(getattr(tx, 'reference', '') or '')
 
-        # 1. Kwota + numer faktury + NIP sprzedawcy (wszystkie trzy)
+        # 1. Kwota + numer rachunku bankowego (najsilniejszy sygnał)
+        if tx_account:
+            for inv in candidates:
+                if self._normalize_account(inv.bank_account_number) == tx_account:
+                    return {
+                        'transaction': tx,
+                        'invoice': inv,
+                        'match_type': TransactionMatch.MATCH_INVOICE_NR,
+                        'confidence': TransactionMatch.CONFIDENCE_HIGH,
+                    }
+
+        # 2. Kwota + numer faktury + NIP sprzedawcy
         if nr and nip_matches:
             for inv in candidates:
                 if (self._normalize_invoice_nr(inv.invoice_number) == nr
@@ -214,7 +228,7 @@ class InvoiceMatcher:
                         'confidence': TransactionMatch.CONFIDENCE_HIGH,
                     }
 
-        # 2. Kwota + NIP sprzedawcy
+        # 3. Kwota + NIP sprzedawcy
         if nip_matches:
             for nip in nip_matches:
                 for inv in candidates:
@@ -226,7 +240,7 @@ class InvoiceMatcher:
                             'confidence': TransactionMatch.CONFIDENCE_HIGH,
                         }
 
-        # 3. Kwota + numer faktury (bez NIP — możliwe ale niepewne)
+        # 4. Kwota + numer faktury (bez NIP — możliwe ale niepewne)
         if nr:
             for inv in candidates:
                 if self._normalize_invoice_nr(inv.invoice_number) == nr:
