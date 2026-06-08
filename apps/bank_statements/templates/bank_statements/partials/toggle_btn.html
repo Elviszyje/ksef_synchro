@@ -1,0 +1,8 @@
+<button
+  hx-post="{% url 'bank_statements:toggle_match' stmt_pk match.pk %}"
+  hx-target="this"
+  hx-swap="outerHTML"
+  class="btn btn-sm {% if match.is_confirmed %}btn-success{% else %}btn-outline-secondary{% endif %} py-0 px-2"
+  title="{% if match.is_confirmed %}Kliknij aby anulować{% else %}Kliknij aby potwierdzić{% endif %}">
+  <i class="bi {% if match.is_confirmed %}bi-check-circle-fill{% else %}bi-circle{% endif %}"></i>
+</button>

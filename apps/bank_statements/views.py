@@ -170,8 +170,8 @@ class ToggleMatchView(RoleRequiredMixin, View):
             from django.template.loader import render_to_string
             from django.http import HttpResponse
             html = render_to_string(
-                'bank_statements/partials/match_row.html',
-                {'match': match, 'request': request},
+                'bank_statements/partials/toggle_btn.html',
+                {'match': match, 'stmt_pk': pk, 'request': request},
             )
             return HttpResponse(html)
         return redirect('bank_statements:review', pk=pk)

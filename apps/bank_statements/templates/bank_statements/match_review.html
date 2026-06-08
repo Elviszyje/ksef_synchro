@@ -65,14 +65,7 @@
           </td>
           <td class="text-center">
             {% for match in tx.matches.all %}
-            <button
-              hx-post="{% url 'bank_statements:toggle_match' statement.pk match.pk %}"
-              hx-target="#match-{{ match.pk }}"
-              hx-swap="innerHTML"
-              class="btn btn-sm {% if match.is_confirmed %}btn-success{% else %}btn-outline-secondary{% endif %} py-0 px-2"
-              title="{% if match.is_confirmed %}Kliknij aby anulować{% else %}Kliknij aby potwierdzić{% endif %}">
-              <i class="bi {% if match.is_confirmed %}bi-check-circle-fill{% else %}bi-circle{% endif %}"></i>
-            </button>
+            {% include "bank_statements/partials/toggle_btn.html" with stmt_pk=statement.pk match=match only %}
             {% endfor %}
           </td>
         </tr>
