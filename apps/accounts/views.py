@@ -2,7 +2,7 @@ from django.contrib.auth import login
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, View
@@ -12,7 +12,7 @@ from core.permissions import RoleRequiredMixin, company_filter, is_super_admin
 from core.audit import log_event
 from core.models import AuditLog
 from .models import CustomUser, Company, CompanyLicense
-from .forms import LoginForm, UserCreateForm, UserUpdateForm, CompanyForm, LicenseForm, RegisterForm, CompanyBankAccountFormSet
+from .forms import LoginForm, UserCreateForm, UserUpdateForm, CompanyForm, LicenseForm, RegisterForm, CompanyBankAccountFormSet, SetPasswordForm
 
 
 class CustomLoginView(LoginView):
@@ -109,6 +109,27 @@ class UserDeleteView(RoleRequiredMixin, DeleteView):
                   request=self.request, detail={'username': username})
         messages.success(self.request, f'Użytkownik {username} został usunięty.')
         return super().form_valid(form)
+
+
+class UserSetPasswordView(RoleRequiredMixin, View):
+    superuser_only = True
+
+    def get(self, request, pk):
+        user = CustomUser.objects.get(pk=pk)
+        form = SetPasswordForm()
+        return TemplateResponse(request, 'accounts/set_password_modal.html', {'form': form, 'target_user': user})
+
+    def post(self, request, pk):
+        user = CustomUser.objects.get(pk=pk)
+        form = SetPasswordForm(request.POST)
+        if form.is_valid():
+            user.set_password(form.cleaned_data['password1'])
+            user.save(update_fields=['password'])
+            log_event(request.user, AuditLog.ACTION_USER_MODIFY, entity=user, request=request,
+                      detail={'username': user.username, 'changed_fields': ['password']})
+            messages.success(request, f'Hasło użytkownika {user.username} zostało zmienione.')
+            return HttpResponse('<script>bootstrap.Modal.getInstance(document.getElementById("passwordModal")).hide();location.reload();</script>')
+        return TemplateResponse(request, 'accounts/set_password_modal.html', {'form': form, 'target_user': user})
 
 
 class CompanyListView(RoleRequiredMixin, ListView):

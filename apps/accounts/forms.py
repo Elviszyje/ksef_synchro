@@ -168,6 +168,26 @@ class RegisterForm(forms.Form):
         return cleaned_data
 
 
+class SetPasswordForm(forms.Form):
+    password1 = forms.CharField(
+        label='Nowe hasło',
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'autofocus': True}),
+    )
+    password2 = forms.CharField(
+        label='Powtórz hasło',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+    )
+
+    def clean(self):
+        cd = super().clean()
+        p1, p2 = cd.get('password1'), cd.get('password2')
+        if p1 and len(p1) < 8:
+            self.add_error('password1', 'Hasło musi mieć co najmniej 8 znaków.')
+        if p1 and p2 and p1 != p2:
+            self.add_error('password2', 'Hasła nie są identyczne.')
+        return cd
+
+
 class LicenseForm(forms.ModelForm):
     class Meta:
         model = CompanyLicense

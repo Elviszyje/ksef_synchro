@@ -33,6 +33,17 @@
             <a href="{% url 'accounts:user_edit' u.pk %}" class="btn btn-sm btn-outline-secondary">
               <i class="bi bi-pencil"></i>
             </a>
+            {% if request.user.is_superuser %}
+            <button type="button" class="btn btn-sm btn-outline-warning"
+                    title="Zmień hasło"
+                    hx-get="{% url 'accounts:user_set_password' u.pk %}"
+                    hx-target="#passwordModalBody"
+                    hx-swap="innerHTML"
+                    data-bs-toggle="modal"
+                    data-bs-target="#passwordModal">
+              <i class="bi bi-key"></i>
+            </button>
+            {% endif %}
             {% if u != request.user %}
             <a href="{% url 'accounts:user_delete' u.pk %}" class="btn btn-sm btn-outline-danger">
               <i class="bi bi-trash"></i>
@@ -47,4 +58,13 @@
     </table>
   </div>
 </div>
+
+{% if request.user.is_superuser %}
+<div class="modal fade" id="passwordModal" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content" id="passwordModalBody">
+    </div>
+  </div>
+</div>
+{% endif %}
 {% endblock %}
