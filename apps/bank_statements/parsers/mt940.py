@@ -198,12 +198,15 @@ class InvoiceMatcher:
 
         desc = tx.description.upper()
 
-        # 1. Kwota + numer faktury
         invoice_nr_match = self.RE_INVOICE_NR.search(tx.description)
-        if invoice_nr_match:
-            nr = self._normalize_invoice_nr(invoice_nr_match.group(1))
+        nr = self._normalize_invoice_nr(invoice_nr_match.group(1)) if invoice_nr_match else None
+        nip_matches = set(self.RE_NIP.findall(tx.description))
+
+        # 1. Kwota + numer faktury + NIP sprzedawcy (wszystkie trzy)
+        if nr and nip_matches:
             for inv in candidates:
-                if self._normalize_invoice_nr(inv.invoice_number) == nr:
+                if (self._normalize_invoice_nr(inv.invoice_number) == nr
+                        and inv.seller_nip in nip_matches):
                     return {
                         'transaction': tx,
                         'invoice': inv,
@@ -211,25 +214,36 @@ class InvoiceMatcher:
                         'confidence': TransactionMatch.CONFIDENCE_HIGH,
                     }
 
-        # 2. Kwota + NIP
-        nip_matches = self.RE_NIP.findall(tx.description)
-        for nip in nip_matches:
+        # 2. Kwota + NIP sprzedawcy
+        if nip_matches:
+            for nip in nip_matches:
+                for inv in candidates:
+                    if inv.seller_nip == nip:
+                        return {
+                            'transaction': tx,
+                            'invoice': inv,
+                            'match_type': TransactionMatch.MATCH_NIP,
+                            'confidence': TransactionMatch.CONFIDENCE_HIGH,
+                        }
+
+        # 3. Kwota + numer faktury (bez NIP — możliwe ale niepewne)
+        if nr:
             for inv in candidates:
-                if inv.seller_nip == nip:
+                if self._normalize_invoice_nr(inv.invoice_number) == nr:
                     return {
                         'transaction': tx,
                         'invoice': inv,
-                        'match_type': TransactionMatch.MATCH_NIP,
-                        'confidence': TransactionMatch.CONFIDENCE_HIGH,
+                        'match_type': TransactionMatch.MATCH_INVOICE_NR,
+                        'confidence': TransactionMatch.CONFIDENCE_MEDIUM,
                     }
 
-        # 3. Unikalna kwota
+        # 4. Unikalna kwota
         if len(candidates) == 1:
             return {
                 'transaction': tx,
                 'invoice': candidates[0],
                 'match_type': TransactionMatch.MATCH_AMOUNT,
-                'confidence': TransactionMatch.CONFIDENCE_MEDIUM,
+                'confidence': TransactionMatch.CONFIDENCE_LOW,
             }
 
         return None
