@@ -25,6 +25,10 @@ export async function downloadAndSharePaymentFile(id: number, fileName: string) 
   await FileSystem.writeAsStringAsync(fileUri, base64, { encoding: 'base64' as any });
   const canShare = await Sharing.isAvailableAsync();
   if (canShare) {
-    await Sharing.shareAsync(fileUri);
+    await Sharing.shareAsync(fileUri, {
+      mimeType: 'application/octet-stream',
+      UTI: 'public.data',
+      dialogTitle: fileName,
+    });
   }
 }

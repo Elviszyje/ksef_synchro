@@ -135,3 +135,38 @@ export interface DashboardMonth {
   total_net: string;
   count: number;
 }
+
+export interface TransactionMatch {
+  id: number;
+  invoice: Invoice;
+  match_type: string;
+  confidence: string;
+  is_confirmed: boolean;
+}
+
+export interface BankTransaction {
+  id: number;
+  transaction_date: string;
+  value_date: string;
+  amount: string;
+  currency: string;
+  is_debit: boolean;
+  description: string;
+  reference: string;
+  is_matched: boolean;
+  matches: TransactionMatch[];
+}
+
+export interface BankStatement {
+  id: number;
+  file_name: string;
+  account_number: string;
+  statement_date: string | null;
+  status: 'pending' | 'reviewed' | 'confirmed';
+  uploaded_at: string;
+  transaction_count: number;
+}
+
+export interface BankStatementDetail extends BankStatement {
+  transactions: BankTransaction[];
+}

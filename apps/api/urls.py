@@ -5,4 +5,5 @@ urlpatterns = [
     path('invoices/', include('apps.api.invoices.urls')),
     path('outgoing/', include('apps.api.outgoing.urls')),
     path('payments/', include('apps.api.payments.urls')),
+    path('bank-statements/', include('apps.api.bank_statements.urls')),
 ]

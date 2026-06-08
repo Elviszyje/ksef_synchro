@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, RefreshControl, Alert, ScrollView, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useAcceptedForPayment, useGeneratePaymentFile, useBankAccounts } from '../../../src/hooks/usePayments';
 import { LoadingSpinner } from '../../../src/components/common/LoadingSpinner';
 import { EmptyState } from '../../../src/components/common/EmptyState';
@@ -13,6 +14,7 @@ const BANK_KEY_TO_FORMAT: Record<string, 'erste' | 'mbank' | 'elixir'> = {
 };
 
 export default function PaymentsScreen() {
+  const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [selectedAccountId, setSelectedAccountId] = useState<number | null>(null);
 
@@ -70,6 +72,15 @@ export default function PaymentsScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Skróty do historii i wyciągów */}
+      <View style={styles.quickLinks}>
+        <TouchableOpacity onPress={() => router.push('/(tabs)/payments/history')} style={styles.quickLink}>
+          <Text style={styles.quickLinkText}>Historia przelewów</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push('/(tabs)/payments/statements/index' as any)} style={styles.quickLink}>
+          <Text style={styles.quickLinkText}>Wyciągi bankowe</Text>
+        </TouchableOpacity>
+      </View>
       {/* Selektor konta debetowego */}
       {accounts.length > 0 && (
         <View style={styles.accountSection}>
@@ -158,6 +169,9 @@ export default function PaymentsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.gray50 },
+  quickLinks: { flexDirection: 'row', gap: spacing.sm, padding: spacing.lg, paddingBottom: 0 },
+  quickLink: { flex: 1, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.gray200, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center' },
+  quickLinkText: { color: colors.primary, fontWeight: '600', fontSize: 13 },
   accountSection: { backgroundColor: colors.white, borderBottomWidth: 1, borderBottomColor: colors.gray200, paddingTop: spacing.md, paddingBottom: spacing.sm },
   sectionLabel: { fontSize: 12, color: colors.gray500, fontWeight: '500', paddingHorizontal: spacing.lg, marginBottom: spacing.sm, textTransform: 'uppercase', letterSpacing: 0.5 },
   accountChips: { paddingHorizontal: spacing.lg, gap: spacing.sm },
