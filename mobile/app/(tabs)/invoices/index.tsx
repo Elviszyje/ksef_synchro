@@ -28,7 +28,7 @@ export default function InvoiceListScreen() {
 
   const { data, isLoading, refetch, isRefetching } = useInvoices({
     seller_name: search || undefined,
-    status: statusFilter ? [statusFilter] : undefined,
+    status: statusFilter,
     page,
   });
 
