@@ -75,6 +75,9 @@ class UserCreateView(RoleRequiredMixin, CreateView):
         if form.instance.role == CustomUser.ROLE_SUPER_ADMIN and not is_super_admin(self.request.user):
             form.add_error('role', 'Nie masz uprawnień do nadania tej roli.')
             return self.form_invalid(form)
+        # Non-superuser zawsze tworzy użytkownika we własnej firmie
+        if not self.request.user.is_superuser:
+            form.instance.company = self.request.user.company
         company = form.instance.company
         if company:
             lic = getattr(company, 'license', None)
@@ -119,6 +122,9 @@ class UserUpdateView(RoleRequiredMixin, UpdateView):
         if form.instance.role == CustomUser.ROLE_SUPER_ADMIN and not is_super_admin(self.request.user):
             form.add_error('role', 'Nie masz uprawnień do nadania tej roli.')
             return self.form_invalid(form)
+        # Non-superuser nie może przenieść użytkownika do innej firmy
+        if not self.request.user.is_superuser:
+            form.instance.company = self.request.user.company
         response = super().form_valid(form)
         log_event(self.request.user, AuditLog.ACTION_USER_MODIFY, entity=form.instance,
                   request=self.request,

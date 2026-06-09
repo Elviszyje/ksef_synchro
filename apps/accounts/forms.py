@@ -71,12 +71,11 @@ def _restrict_for_user(form, requesting_user):
             (k, v) for k, v in form.fields['role'].choices
             if k != CustomUser.ROLE_SUPER_ADMIN
         ]
-    # Filtr firm — non-superuser widzi i może wybrać tylko własną firmę
+    # Filtr firm — non-superuser nie może wybierać firmy (ustawiana w widoku)
     if not requesting_user.is_superuser:
-        own = requesting_user.company
-        form.fields['company'].queryset = Company.objects.filter(pk=own.pk) if own else Company.objects.none()
+        form.fields['company'].required = False
         form.fields['company'].widget = forms.HiddenInput()
-        form.fields['company'].initial = own
+        form.fields['company'].queryset = Company.objects.all()
 
 
 class UserCreateForm(UserCreationForm):
