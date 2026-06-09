@@ -143,6 +143,15 @@ class UserUpdateView(RoleRequiredMixin, UpdateView):
         # Non-superuser nie może przenieść użytkownika do innej firmy
         if not self.request.user.is_superuser:
             form.instance.company = self.request.user.company
+        # Blokada aktywacji gdy przekroczony limit licencji
+        was_inactive = not self.get_object().is_active
+        activating = form.instance.is_active and was_inactive
+        if activating:
+            company = form.instance.company
+            lic = getattr(company, 'license', None) if company else None
+            if lic and not lic.can_add_user():
+                form.add_error('is_active', f'Nie można aktywować — plan {lic.get_plan_display()} pozwala na max {lic.user_limit()} aktywnych użytkowników.')
+                return self.form_invalid(form)
         response = super().form_valid(form)
         log_event(self.request.user, AuditLog.ACTION_USER_MODIFY, entity=form.instance,
                   request=self.request,
