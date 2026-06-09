@@ -32,6 +32,19 @@ STATUS_TRANSITIONS = {
     Invoice.STATUS_PAID: [],
 }
 
+STATUS_TRANSITIONS_CORRECTION = {
+    Invoice.STATUS_NEW: [Invoice.STATUS_DISPUTED, Invoice.STATUS_ACCEPTED],
+    Invoice.STATUS_DISPUTED: [Invoice.STATUS_NEW, Invoice.STATUS_ACCEPTED],
+    Invoice.STATUS_ACCEPTED: [Invoice.STATUS_DISPUTED],
+    Invoice.STATUS_PAID: [],
+}
+
+
+def get_allowed_transitions(invoice):
+    if invoice.is_correction():
+        return STATUS_TRANSITIONS_CORRECTION.get(invoice.status, [])
+    return STATUS_TRANSITIONS.get(invoice.status, [])
+
 
 class InvoiceListView(RoleRequiredMixin, View):
     min_role = 'viewer'
@@ -69,7 +82,8 @@ class InvoiceDetailView(RoleRequiredMixin, CompanyAccessMixin, DetailView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['status_logs'] = self.object.status_logs.select_related('changed_by')
-        ctx['allowed_transitions'] = STATUS_TRANSITIONS.get(self.object.status, [])
+        ctx['allowed_transitions'] = get_allowed_transitions(self.object)
+        ctx['is_correction'] = self.object.is_correction()
         ctx['status_labels'] = dict(Invoice.STATUS_CHOICES)
         ctx['status_colors'] = Invoice.STATUS_COLORS
         if self.object.raw_xml:
@@ -80,6 +94,33 @@ class InvoiceDetailView(RoleRequiredMixin, CompanyAccessMixin, DetailView):
         return ctx
 
 
+def _apply_status_change(invoice, new_status, user, note=''):
+    """Zapisuje zmianę statusu + log. Dla korekty zaakceptowanej — auto oplacona."""
+    from core.permissions import has_min_role
+    old_status = invoice.status
+    invoice.status = new_status
+    invoice.updated_by = user
+    invoice.save(update_fields=['status', 'updated_by', 'updated_at'])
+    InvoiceStatusLog.objects.create(
+        invoice=invoice, old_status=old_status, new_status=new_status,
+        changed_by=user, note=note,
+    )
+    log_event(user, AuditLog.ACTION_INVOICE_STATUS, entity=invoice,
+              detail={'from': old_status, 'to': new_status, 'note': note})
+
+    # Korekta zaakceptowana → od razu oplacona
+    if invoice.is_correction() and new_status == Invoice.STATUS_ACCEPTED:
+        invoice.status = Invoice.STATUS_PAID
+        invoice.save(update_fields=['status', 'updated_by', 'updated_at'])
+        InvoiceStatusLog.objects.create(
+            invoice=invoice, old_status=Invoice.STATUS_ACCEPTED,
+            new_status=Invoice.STATUS_PAID, changed_by=user,
+            note='Automatyczne rozliczenie korekty.',
+        )
+        log_event(user, AuditLog.ACTION_INVOICE_STATUS, entity=invoice,
+                  detail={'from': Invoice.STATUS_ACCEPTED, 'to': Invoice.STATUS_PAID, 'auto': True})
+
+
 class InvoiceStatusChangeView(RoleRequiredMixin, View):
     min_role = 'accountant'
 
@@ -88,35 +129,19 @@ class InvoiceStatusChangeView(RoleRequiredMixin, View):
         new_status = request.POST.get('status')
         note = request.POST.get('note', '').strip()
 
-        allowed = STATUS_TRANSITIONS.get(invoice.status, [])
+        allowed = get_allowed_transitions(invoice)
         if new_status not in allowed:
             messages.error(request, f'Niedozwolona zmiana statusu: {invoice.status} → {new_status}')
             return redirect('invoices:detail', pk=pk)
 
-        # Zmiana przekazano_do_oplacenia wymaga roli approver
         if new_status == Invoice.STATUS_SENT_FOR_PAYMENT:
             from core.permissions import has_min_role
             if not has_min_role(request.user, 'approver'):
                 messages.error(request, 'Brak uprawnień do przekazania faktury do opłacenia.')
                 return redirect('invoices:detail', pk=pk)
 
-        old_status = invoice.status
-        invoice.status = new_status
-        invoice.updated_by = request.user
-        invoice.save(update_fields=['status', 'updated_by', 'updated_at'])
-
-        InvoiceStatusLog.objects.create(
-            invoice=invoice,
-            old_status=old_status,
-            new_status=new_status,
-            changed_by=request.user,
-            note=note,
-        )
-
-        log_event(request.user, AuditLog.ACTION_INVOICE_STATUS, entity=invoice, request=request,
-                  detail={'from': old_status, 'to': new_status, 'note': note})
-
-        status_label = dict(Invoice.STATUS_CHOICES).get(new_status, new_status)
+        _apply_status_change(invoice, new_status, request.user, note)
+        status_label = dict(Invoice.STATUS_CHOICES).get(invoice.status, invoice.status)
         messages.success(request, f'Status zmieniony na: {status_label}')
         return redirect('invoices:detail', pk=pk)
 
@@ -129,26 +154,13 @@ class InvoiceQuickStatusView(RoleRequiredMixin, View):
         invoice = get_object_or_404(Invoice, pk=pk, **company_filter(request.user))
         new_status = request.POST.get('status')
 
-        allowed = STATUS_TRANSITIONS.get(invoice.status, [])
+        allowed = get_allowed_transitions(invoice)
         if new_status in allowed:
             if new_status == Invoice.STATUS_SENT_FOR_PAYMENT:
                 from core.permissions import has_min_role
                 if not has_min_role(request.user, 'approver'):
                     return TemplateResponse(request, 'invoices/partials/invoice_row.html', {'inv': invoice})
-
-            old_status = invoice.status
-            invoice.status = new_status
-            invoice.updated_by = request.user
-            invoice.save(update_fields=['status', 'updated_by', 'updated_at'])
-            InvoiceStatusLog.objects.create(
-                invoice=invoice,
-                old_status=old_status,
-                new_status=new_status,
-                changed_by=request.user,
-                note='Zmiana z listy faktur.',
-            )
-            log_event(request.user, AuditLog.ACTION_INVOICE_STATUS, entity=invoice, request=request,
-                      detail={'from': old_status, 'to': new_status})
+            _apply_status_change(invoice, new_status, request.user, 'Zmiana z listy faktur.')
 
         return TemplateResponse(request, 'invoices/partials/invoice_row.html', {'inv': invoice})
 
@@ -172,27 +184,14 @@ class InvoiceBulkStatusView(RoleRequiredMixin, View):
         changed = 0
 
         for invoice in invoices:
-            allowed = STATUS_TRANSITIONS.get(invoice.status, [])
+            allowed = get_allowed_transitions(invoice)
             if new_status not in allowed:
                 continue
             if new_status == Invoice.STATUS_SENT_FOR_PAYMENT:
                 from core.permissions import has_min_role
                 if not has_min_role(request.user, 'approver'):
                     continue
-
-            old_status = invoice.status
-            invoice.status = new_status
-            invoice.updated_by = request.user
-            invoice.save(update_fields=['status', 'updated_by', 'updated_at'])
-            InvoiceStatusLog.objects.create(
-                invoice=invoice,
-                old_status=old_status,
-                new_status=new_status,
-                changed_by=request.user,
-                note='Zmiana zbiorcza z listy faktur.',
-            )
-            log_event(request.user, AuditLog.ACTION_INVOICE_STATUS, entity=invoice, request=request,
-                      detail={'from': old_status, 'to': new_status, 'bulk': True})
+            _apply_status_change(invoice, new_status, request.user, 'Zmiana zbiorcza z listy faktur.')
             changed += 1
 
         status_label = dict(Invoice.STATUS_CHOICES).get(new_status, new_status)

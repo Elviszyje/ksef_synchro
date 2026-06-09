@@ -206,12 +206,17 @@
           {% csrf_token %}
 
           <div class="d-grid gap-2 mb-3">
-            {% if 'oplacona' in allowed_transitions %}
+            {% if 'oplacona' in allowed_transitions and not is_correction %}
             <button type="submit" name="status" value="oplacona"
                     class="btn btn-success btn-sm"
                     onclick="return confirm('Oznaczyć fakturę jako opłaconą?')">
               <i class="bi bi-check2-circle me-1"></i>Oznacz jako opłaconą
             </button>
+            {% endif %}
+            {% if is_correction and invoice.status == 'zaakceptowana' %}
+            <div class="alert alert-success py-2 small mb-0">
+              <i class="bi bi-check2-circle me-1"></i>Korekta zostanie automatycznie rozliczona po zaakceptowaniu.
+            </div>
             {% endif %}
 
             {% for target in allowed_transitions %}

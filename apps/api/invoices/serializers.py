@@ -43,8 +43,8 @@ class InvoiceDetailSerializer(InvoiceListSerializer):
         ]
 
     def get_allowed_transitions(self, obj):
-        from apps.invoices.views import STATUS_TRANSITIONS
-        return STATUS_TRANSITIONS.get(obj.status, [])
+        from apps.invoices.views import get_allowed_transitions
+        return get_allowed_transitions(obj)
 
 
 class InvoiceStatusChangeSerializer(serializers.Serializer):

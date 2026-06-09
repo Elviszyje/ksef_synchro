@@ -11,8 +11,8 @@ from rest_framework.response import Response
 from core.permissions import company_filter, has_min_role
 from core.audit import log_event
 from core.models import AuditLog
-from apps.invoices.models import Invoice, InvoiceStatusLog
-from apps.invoices.views import STATUS_TRANSITIONS
+from apps.invoices.models import Invoice
+from apps.invoices.views import get_allowed_transitions, _apply_status_change
 from apps.api.permissions import IsViewer, IsAccountant, BelongsToCompany
 from .serializers import (
     InvoiceListSerializer, InvoiceDetailSerializer,
@@ -62,7 +62,7 @@ class InvoiceStatusChangeView(APIView):
         new_status = serializer.validated_data['status']
         note = serializer.validated_data['note']
 
-        allowed = STATUS_TRANSITIONS.get(invoice.status, [])
+        allowed = get_allowed_transitions(invoice)
         if new_status not in allowed:
             return Response(
                 {'detail': f'Niedozwolona zmiana statusu: {invoice.status} → {new_status}'},
@@ -72,17 +72,7 @@ class InvoiceStatusChangeView(APIView):
         if new_status == Invoice.STATUS_SENT_FOR_PAYMENT and not has_min_role(request.user, 'approver'):
             return Response({'detail': 'Brak uprawnień do przekazania faktury do opłacenia.'}, status=403)
 
-        old_status = invoice.status
-        invoice.status = new_status
-        invoice.updated_by = request.user
-        invoice.save(update_fields=['status', 'updated_by', 'updated_at'])
-        InvoiceStatusLog.objects.create(
-            invoice=invoice, old_status=old_status, new_status=new_status,
-            changed_by=request.user, note=note,
-        )
-        log_event(request.user, AuditLog.ACTION_INVOICE_STATUS, entity=invoice, request=request,
-                  detail={'from': old_status, 'to': new_status, 'note': note})
-
+        _apply_status_change(invoice, new_status, request.user, note)
         return Response(InvoiceDetailSerializer(invoice).data)
 
 
@@ -98,21 +88,12 @@ class InvoiceBulkStatusView(APIView):
         invoices = Invoice.objects.filter(pk__in=ids, **company_filter(request.user))
         changed = 0
         for invoice in invoices:
-            allowed = STATUS_TRANSITIONS.get(invoice.status, [])
+            allowed = get_allowed_transitions(invoice)
             if new_status not in allowed:
                 continue
             if new_status == Invoice.STATUS_SENT_FOR_PAYMENT and not has_min_role(request.user, 'approver'):
                 continue
-            old_status = invoice.status
-            invoice.status = new_status
-            invoice.updated_by = request.user
-            invoice.save(update_fields=['status', 'updated_by', 'updated_at'])
-            InvoiceStatusLog.objects.create(
-                invoice=invoice, old_status=old_status, new_status=new_status,
-                changed_by=request.user, note='Zmiana zbiorcza z aplikacji mobilnej.',
-            )
-            log_event(request.user, AuditLog.ACTION_INVOICE_STATUS, entity=invoice, request=request,
-                      detail={'from': old_status, 'to': new_status, 'bulk': True})
+            _apply_status_change(invoice, new_status, request.user, 'Zmiana zbiorcza z aplikacji mobilnej.')
             changed += 1
 
         return Response({'changed': changed})

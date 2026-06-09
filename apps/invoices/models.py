@@ -146,6 +146,9 @@ class Invoice(models.Model):
             return False
         return self.payment_due_date < timezone.localdate()
 
+    def is_correction(self) -> bool:
+        return self.invoice_type == 'KOR' or self.amount_gross < 0
+
     def can_be_selected_for_payment(self) -> bool:
         return self.status == self.STATUS_ACCEPTED and bool(self.bank_account_number)
 
