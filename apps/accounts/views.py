@@ -20,6 +20,22 @@ class CustomLoginView(LoginView):
     form_class = LoginForm
     redirect_authenticated_user = True
 
+    def form_invalid(self, form):
+        # Sprawdź czy użytkownik istnieje ale jest nieaktywny
+        username = form.data.get('username', '').strip()
+        inactive_user = None
+        if username:
+            try:
+                inactive_user = CustomUser.objects.get(username=username, is_active=False)
+            except CustomUser.DoesNotExist:
+                pass
+        if inactive_user:
+            return TemplateResponse(self.request, self.template_name, {
+                'form': form,
+                'inactive_user': inactive_user,
+            })
+        return super().form_invalid(form)
+
 
 class CustomLogoutView(LogoutView):
     next_page = 'accounts:login'
@@ -82,13 +98,15 @@ class UserCreateView(RoleRequiredMixin, CreateView):
         if company:
             lic = getattr(company, 'license', None)
             if lic and not lic.can_add_user():
-                form.add_error(None, f'Plan {lic.get_plan_display()} pozwala na max {lic.user_limit()} aktywnych użytkowników.')
-                return self.form_invalid(form)
+                form.instance.is_active = False
         response = super().form_valid(form)
         log_event(self.request.user, AuditLog.ACTION_USER_CREATE, entity=form.instance,
                   request=self.request,
                   detail={'username': form.instance.username, 'role': form.instance.role})
-        messages.success(self.request, f'Użytkownik {form.instance.username} został utworzony.')
+        if not form.instance.is_active:
+            messages.warning(self.request, f'Użytkownik {form.instance.username} został utworzony, ale jest nieaktywny — przekroczono limit planu ({getattr(getattr(company, "license", None), "get_plan_display", lambda: "")()}).')
+        else:
+            messages.success(self.request, f'Użytkownik {form.instance.username} został utworzony.')
         return response
 
 
@@ -272,7 +290,12 @@ class LicenseUpdateView(RoleRequiredMixin, UpdateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
-        messages.success(self.request, f'Licencja firmy {form.instance.company.name} została zaktualizowana.')
+        lic = form.instance
+        deactivated = lic.enforce_user_limit()
+        if deactivated:
+            names = ', '.join(u.username for u in deactivated)
+            messages.warning(self.request, f'Limit użytkowników planu {lic.get_plan_display()} ({lic.user_limit()}) przekroczony — dezaktywowano: {names}.')
+        messages.success(self.request, f'Licencja firmy {lic.company.name} została zaktualizowana.')
         return response
 
 

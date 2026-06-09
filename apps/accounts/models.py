@@ -116,6 +116,24 @@ class CompanyLicense(models.Model):
     def can_add_user(self) -> bool:
         return self.company.users.filter(is_active=True).count() < self.user_limit()
 
+    def enforce_user_limit(self):
+        """Dezaktywuje nadmiarowych użytkowników (poza adminem) gdy limit planu jest przekroczony."""
+        limit = self.user_limit()
+        active_count = self.company.users.filter(is_active=True).count()
+        excess = active_count - limit
+        if excess <= 0:
+            return []
+        # Dezaktywuj najstarszych non-admin użytkowników
+        to_deactivate = list(
+            self.company.users
+            .filter(is_active=True, is_superuser=False)
+            .exclude(role='admin')
+            .order_by('date_joined')[:excess]
+        )
+        ids = [u.pk for u in to_deactivate]
+        self.company.users.filter(pk__in=ids).update(is_active=False)
+        return to_deactivate
+
     def outgoing_invoice_limit(self) -> int | None:
         return self.PLAN_LIMITS[self.plan]['outgoing_invoices']
 
