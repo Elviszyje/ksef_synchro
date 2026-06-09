@@ -42,6 +42,9 @@
           </td>
           <td class="text-end">
             {% if request.user.is_superuser %}
+            <a href="{% url 'accounts:company_users' company.pk %}" class="btn btn-sm btn-outline-secondary me-1" title="Użytkownicy firmy">
+              <i class="bi bi-people"></i>
+            </a>
             <a href="{% url 'ksef:config_company' company.pk %}" class="btn btn-sm btn-outline-info me-1" title="Konfiguracja KSeF">
               <i class="bi bi-plug"></i>
             </a>

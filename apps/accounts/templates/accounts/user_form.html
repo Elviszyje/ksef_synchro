@@ -17,7 +17,11 @@
           {% endfor %}
           <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary">Zapisz</button>
+            {% if back_company %}
+            <a href="{% url 'accounts:company_users' back_company.pk %}" class="btn btn-outline-secondary">Anuluj</a>
+            {% else %}
             <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-secondary">Anuluj</a>
+            {% endif %}
           </div>
         </form>
       </div>

@@ -3,10 +3,10 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
 from django.http import JsonResponse, HttpResponse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.template.response import TemplateResponse
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, View
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.contrib import messages
 from core.permissions import RoleRequiredMixin, company_filter, is_super_admin
 from core.audit import log_event
@@ -46,10 +46,30 @@ class UserCreateView(RoleRequiredMixin, CreateView):
     template_name = 'accounts/user_form.html'
     success_url = reverse_lazy('accounts:user_list')
 
+    def _company_pk(self):
+        return self.kwargs.get('company_pk')
+
+    def get_success_url(self):
+        if self._company_pk():
+            return reverse('accounts:company_users', kwargs={'company_pk': self._company_pk()})
+        return reverse_lazy('accounts:user_list')
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['requesting_user'] = self.request.user
         return kwargs
+
+    def get_initial(self):
+        initial = super().get_initial()
+        if self._company_pk():
+            initial['company'] = self._company_pk()
+        return initial
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        if self._company_pk():
+            ctx['back_company'] = get_object_or_404(Company, pk=self._company_pk())
+        return ctx
 
     def form_valid(self, form):
         if form.instance.role == CustomUser.ROLE_SUPER_ADMIN and not is_super_admin(self.request.user):
@@ -76,10 +96,24 @@ class UserUpdateView(RoleRequiredMixin, UpdateView):
     template_name = 'accounts/user_form.html'
     success_url = reverse_lazy('accounts:user_list')
 
+    def _company_pk(self):
+        return self.kwargs.get('company_pk')
+
+    def get_success_url(self):
+        if self._company_pk():
+            return reverse('accounts:company_users', kwargs={'company_pk': self._company_pk()})
+        return reverse_lazy('accounts:user_list')
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['requesting_user'] = self.request.user
         return kwargs
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        if self._company_pk():
+            ctx['back_company'] = get_object_or_404(Company, pk=self._company_pk())
+        return ctx
 
     def form_valid(self, form):
         if form.instance.role == CustomUser.ROLE_SUPER_ADMIN and not is_super_admin(self.request.user):
@@ -205,6 +239,19 @@ class CompanyUpdateView(RoleRequiredMixin, UpdateView):
                 account.save()
         messages.success(self.request, f'Firma {form.instance.name} została zaktualizowana.')
         return redirect(self.success_url)
+
+
+class CompanyUsersView(RoleRequiredMixin, View):
+    superuser_only = True
+    template_name = 'accounts/company_users.html'
+
+    def get(self, request, company_pk):
+        company = get_object_or_404(Company, pk=company_pk)
+        users = CustomUser.objects.filter(company=company).order_by('username')
+        return TemplateResponse(request, self.template_name, {
+            'company': company,
+            'users': users,
+        })
 
 
 class LicenseUpdateView(RoleRequiredMixin, UpdateView):
