@@ -29,26 +29,43 @@
 {% endif %}
 
 <div class="card border-0 shadow-sm">
+  <div class="card-header bg-white border-bottom py-2 d-flex align-items-center gap-2">
+    <div class="btn-group btn-group-sm" role="group" aria-label="Filtr kierunku">
+      <button type="button" class="btn btn-outline-secondary active" id="filter-all">Wszystkie</button>
+      <button type="button" class="btn btn-outline-success" id="filter-credit">
+        <i class="bi bi-arrow-down-circle me-1"></i>Przychodzące (+)
+      </button>
+      <button type="button" class="btn btn-outline-danger" id="filter-debit">
+        <i class="bi bi-arrow-up-circle me-1"></i>Wychodzące (−)
+      </button>
+    </div>
+    <span class="text-muted small ms-auto" id="tx-count"></span>
+  </div>
   <div class="table-responsive">
-    <table class="table table-hover mb-0 align-middle" style="font-size:.875rem;">
+    <table class="table table-hover mb-0 align-middle" style="font-size:.875rem;" id="tx-table">
       <thead class="table-light">
         <tr>
-          <th>Data</th><th>Kwota</th><th>Opis transakcji</th><th>Nadawca/Odbiorca</th>
-          <th>Dopasowana faktura</th><th>Pewność</th><th class="text-center">Potwierdź</th>
+          <th style="white-space:nowrap;">Data</th>
+          <th style="white-space:nowrap;">Kwota</th>
+          <th>Opis transakcji</th>
+          <th>Nadawca/Odbiorca</th>
+          <th style="white-space:nowrap;">Dopasowana faktura</th>
+          <th style="white-space:nowrap;">Pewność</th>
+          <th class="text-center" style="white-space:nowrap;">Potwierdź</th>
         </tr>
       </thead>
       <tbody>
         {% for tx in transactions %}
-        <tr class="{% if tx.is_matched %}table-success-subtle{% endif %}">
-          <td class="small font-monospace">{{ tx.transaction_date|date:"d.m.Y" }}</td>
-          <td class="font-monospace fw-medium {% if not tx.is_debit %}text-success{% else %}text-danger{% endif %}">
-            {% if not tx.is_debit %}+{% else %}-{% endif %}{{ tx.amount|floatformat:2 }} {{ tx.currency }}
+        <tr class="{% if tx.is_matched %}table-success-subtle{% endif %}" data-direction="{% if tx.is_debit %}debit{% else %}credit{% endif %}">
+          <td class="small font-monospace" style="white-space:nowrap;">{{ tx.transaction_date|date:"d.m.Y" }}</td>
+          <td class="font-monospace fw-medium {% if not tx.is_debit %}text-success{% else %}text-danger{% endif %}" style="white-space:nowrap;">
+            {% if not tx.is_debit %}+{% else %}−{% endif %}{{ tx.amount|floatformat:2 }} {{ tx.currency }}
           </td>
-          <td class="text-muted small text-truncate" style="max-width:220px;" title="{{ tx.description }}">
-            {{ tx.description|truncatechars:60 }}
+          <td class="text-muted small" style="min-width:260px; word-break:break-word;">
+            {{ tx.description }}
           </td>
-          <td class="text-muted small text-truncate" style="max-width:200px;" title="{{ tx.counterparty }}">
-            {{ tx.counterparty|truncatechars:50 }}
+          <td class="text-muted small" style="min-width:220px; word-break:break-word;">
+            {{ tx.counterparty }}
           </td>
           <td>
             {% for match in tx.matches.all %}
@@ -83,4 +100,33 @@
     </table>
   </div>
 </div>
+
+<script>
+(function () {
+  const rows = document.querySelectorAll('#tx-table tbody tr[data-direction]');
+  const countEl = document.getElementById('tx-count');
+  const btnAll = document.getElementById('filter-all');
+  const btnCredit = document.getElementById('filter-credit');
+  const btnDebit = document.getElementById('filter-debit');
+
+  function updateCount() {
+    const visible = document.querySelectorAll('#tx-table tbody tr[data-direction]:not([hidden])').length;
+    countEl.textContent = `${visible} transakcji`;
+  }
+
+  function applyFilter(direction) {
+    rows.forEach(row => {
+      row.hidden = direction !== 'all' && row.dataset.direction !== direction;
+    });
+    [btnAll, btnCredit, btnDebit].forEach(b => b.classList.remove('active'));
+    updateCount();
+  }
+
+  btnAll.addEventListener('click', () => { applyFilter('all'); btnAll.classList.add('active'); });
+  btnCredit.addEventListener('click', () => { applyFilter('credit'); btnCredit.classList.add('active'); });
+  btnDebit.addEventListener('click', () => { applyFilter('debit'); btnDebit.classList.add('active'); });
+
+  updateCount();
+})();
+</script>
 {% endblock %}
