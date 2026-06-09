@@ -15,11 +15,18 @@
 {% endif %}
 {% endblock %}
 {% block content %}
+{% if statement.status == 'confirmed' %}
+<div class="alert alert-success py-2 small mb-3">
+  <i class="bi bi-check-circle-fill me-1"></i>
+  Wyciąg zatwierdzony{% if statement.confirmed_by %} przez {{ statement.confirmed_by.get_full_name|default:statement.confirmed_by.username }}{% endif %}{% if statement.confirmed_at %} — {{ statement.confirmed_at|date:"d.m.Y H:i" }}{% endif %}. Dopasowania są tylko do podglądu.
+</div>
+{% else %}
 <div class="alert alert-info py-2 small mb-3">
   <i class="bi bi-info-circle me-1"></i>
   Kliknij <strong>Potwierdź</strong> przy każdym poprawnym dopasowaniu, następnie kliknij "Zatwierdź i oznacz jako opłacone".
   Tylko <strong>potwierdzone</strong> dopasowania zmienią status faktur.
 </div>
+{% endif %}
 
 <div class="card border-0 shadow-sm">
   <div class="table-responsive">
@@ -65,7 +72,7 @@
           </td>
           <td class="text-center">
             {% for match in tx.matches.all %}
-            {% include "bank_statements/partials/toggle_btn.html" with stmt_pk=statement.pk match=match only %}
+            {% include "bank_statements/partials/toggle_btn.html" with stmt_pk=statement.pk match=match confirmed=statement.status only %}
             {% endfor %}
           </td>
         </tr>

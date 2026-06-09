@@ -215,3 +215,16 @@ class BankStatementConfirmView(RoleRequiredMixin, View):
                   detail={'filename': stmt.file_name, 'invoices_paid': count})
         messages.success(request, f'{count} faktur oznaczono jako opłacone.')
         return redirect('bank_statements:list')
+
+
+class BankStatementDeleteView(RoleRequiredMixin, View):
+    min_role = 'accountant'
+
+    def post(self, request, pk):
+        stmt = get_object_or_404(BankStatement, pk=pk, **company_filter(request.user))
+        file_name = stmt.file_name
+        stmt.delete()
+        log_event(request.user, AuditLog.ACTION_BANK_CONFIRM, entity=None, request=request,
+                  detail={'action': 'delete', 'filename': file_name})
+        messages.success(request, f'Wyciąg "{file_name}" został usunięty.')
+        return redirect('bank_statements:list')

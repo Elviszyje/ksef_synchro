@@ -33,11 +33,24 @@
           <td class="text-muted small">{{ stmt.uploaded_by.get_full_name|default:stmt.uploaded_by.username|default:"—" }}</td>
           <td class="text-muted small">{{ stmt.uploaded_at|date:"d.m.Y H:i" }}</td>
           <td class="text-end pe-3">
-            {% if stmt.status != 'confirmed' %}
-            <a href="{% url 'bank_statements:review' stmt.pk %}" class="btn btn-sm btn-outline-primary py-0 px-2">
-              <i class="bi bi-eye me-1"></i>Przejrzyj
-            </a>
-            {% endif %}
+            <div class="d-flex gap-1 justify-content-end">
+              {% if stmt.status == 'confirmed' %}
+              <a href="{% url 'bank_statements:review' stmt.pk %}" class="btn btn-sm btn-outline-secondary py-0 px-2" title="Podgląd">
+                <i class="bi bi-eye"></i>
+              </a>
+              {% else %}
+              <a href="{% url 'bank_statements:review' stmt.pk %}" class="btn btn-sm btn-outline-primary py-0 px-2" title="Przejrzyj">
+                <i class="bi bi-eye me-1"></i>Przejrzyj
+              </a>
+              {% endif %}
+              <form method="post" action="{% url 'bank_statements:delete' stmt.pk %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" title="Usuń wyciąg"
+                        onclick="return confirm('Usunąć wyciąg {{ stmt.file_name }}? Tej operacji nie można cofnąć.')">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            </div>
           </td>
         </tr>
         {% empty %}
