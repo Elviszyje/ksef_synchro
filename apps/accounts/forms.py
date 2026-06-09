@@ -63,13 +63,20 @@ def _apply_user_widgets(form):
     form.fields['is_active'].widget.attrs['class'] = 'form-check-input'
 
 
-def _filter_roles(form, requesting_user):
+def _restrict_for_user(form, requesting_user):
     from core.permissions import is_super_admin
+    # Filtr ról — non-superadmin nie może nadać roli super_admin
     if not is_super_admin(requesting_user):
         form.fields['role'].choices = [
             (k, v) for k, v in form.fields['role'].choices
             if k != CustomUser.ROLE_SUPER_ADMIN
         ]
+    # Filtr firm — non-superuser widzi i może wybrać tylko własną firmę
+    if not requesting_user.is_superuser:
+        own = requesting_user.company
+        form.fields['company'].queryset = Company.objects.filter(pk=own.pk) if own else Company.objects.none()
+        form.fields['company'].widget = forms.HiddenInput()
+        form.fields['company'].initial = own
 
 
 class UserCreateForm(UserCreationForm):
@@ -81,7 +88,7 @@ class UserCreateForm(UserCreationForm):
         super().__init__(*args, **kwargs)
         _apply_user_widgets(self)
         if requesting_user is not None:
-            _filter_roles(self, requesting_user)
+            _restrict_for_user(self, requesting_user)
 
 
 class UserUpdateForm(UserChangeForm):
@@ -95,7 +102,7 @@ class UserUpdateForm(UserChangeForm):
         super().__init__(*args, **kwargs)
         _apply_user_widgets(self)
         if requesting_user is not None:
-            _filter_roles(self, requesting_user)
+            _restrict_for_user(self, requesting_user)
 
 
 class RegisterForm(forms.Form):
