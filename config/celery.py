@@ -10,7 +10,7 @@ app.autodiscover_tasks()
 
 app.conf.beat_schedule = {
     'sync-ksef-invoices': {
-        'task': 'apps.ksef.tasks.sync_ksef_invoices',
+        'task': 'apps.ksef.tasks.dispatch_company_syncs',
         'schedule': crontab(minute=0),
     },
     'refresh-ksef-token': {

@@ -27,6 +27,9 @@ def sync_ksef_invoices(self, force=False, date_from_override: str | None = None,
     if not config:
         logger.warning('KSeF sync: brak konfiguracji')
         return
+    if company_id is None:
+        # Bez tego faktury zapisują się z company=NULL i znikają z widoków firmy
+        company_id = config.company_id
 
     if not force:
         if not config.sync_enabled:
