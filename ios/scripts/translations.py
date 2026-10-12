@@ -379,6 +379,7 @@ T = {
  "Wyciąg jest już zatwierdzony.": ("The statement is already confirmed.", "El extracto ya está confirmado.", "Виписку вже затверджено."),
  "Wykres kosztów brutto z ostatnich 12 miesięcy": ("Chart of gross costs over the last 12 months", "Gráfico de costes brutos de los últimos 12 meses", "Діаграма валових витрат за останні 12 місяців"),
  "Średnio / mies.": ("Average / month", "Media / mes", "Середньо / міс."),
+ "Napiwki będą dostępne w wersji opublikowanej w App Store.": ("Tips will be available in the version published on the App Store.", "Las propinas estarán disponibles en la versión publicada en el App Store.", "Чайові будуть доступні у версії, опублікованій в App Store."),
  "Wersja": ("Version", "Versión", "Версія"),
  "Witaj w KS-eFektywnie": ("Welcome to KS-eFektywnie", "Bienvenido a KS-eFektywnie", "Вітаємо в KS-eFektywnie"),
  "Wklej token KSeF": ("Paste KSeF token", "Pega el token de KSeF", "Вставте токен KSeF"),

@@ -2623,6 +2623,28 @@
         }
       }
     },
+    "Napiwki będą dostępne w wersji opublikowanej w App Store.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tips will be available in the version published on the App Store."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las propinas estarán disponibles en la versión publicada en el App Store."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Чайові будуть доступні у версії, опублікованій в App Store."
+          }
+        }
+      }
+    },
     "Nazwa": {
       "localizations": {
         "en": {

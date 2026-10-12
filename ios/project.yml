@@ -24,6 +24,10 @@ targets:
       - path: KSeFektywnie
     entitlements:
       path: KSeFektywnie/KSeFektywnie.entitlements
+      properties:
+        com.apple.developer.icloud-container-identifiers: [iCloud.pl.ksefektywnie.app]
+        com.apple.developer.icloud-services: [CloudDocuments]
+        com.apple.developer.ubiquity-container-identifiers: [iCloud.pl.ksefektywnie.app]
     info:
       path: KSeFektywnie/Info.plist
       properties:
@@ -56,6 +60,7 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: X9AX9Q83H4
 schemes:
   KSeFektywnie:
     build:

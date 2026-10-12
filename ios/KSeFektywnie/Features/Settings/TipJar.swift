@@ -16,6 +16,8 @@ enum TipJar {
 
 struct TipJarView: View {
     @State private var thanks = false
+    /// nil — ładowanie; pusta lista — produkty nieskonfigurowane w App Store Connect (np. wczesny TestFlight).
+    @State private var available: [String]?
 
     var body: some View {
         ScrollView {
@@ -25,8 +27,12 @@ struct TipJarView: View {
                 Text("Aplikacja działa w całości na Twoim telefonie, bez kont i reklam. Jeśli oszczędza Ci czas, możesz postawić autorowi kawę.")
                     .foregroundStyle(.secondary).multilineTextAlignment(.center)
 
+                if available?.isEmpty == true {
+                    Text("Napiwki będą dostępne w wersji opublikowanej w App Store.")
+                        .font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                }
                 VStack(spacing: 12) {
-                    ForEach(TipJar.productIDs, id: \.self) { id in
+                    ForEach(available ?? [], id: \.self) { id in
                         ProductView(id: id) {
                             Image(systemName: icon(for: id)).font(.title2).foregroundStyle(.tint)
                         }
@@ -39,6 +45,10 @@ struct TipJarView: View {
             .padding()
         }
         .navigationTitle("Tip for developer")
+        .task {
+            let products = (try? await Product.products(for: TipJar.productIDs)) ?? []
+            available = TipJar.productIDs.filter { id in products.contains { $0.id == id } }
+        }
         .onInAppPurchaseCompletion { _, result in
             if case .success(.success(let verification)) = result, case .verified(let transaction) = verification {
                 await transaction.finish()
