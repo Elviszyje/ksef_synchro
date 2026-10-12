@@ -8,10 +8,11 @@ from rest_framework.response import Response
 from rest_framework.request import Request
 
 from core.permissions import company_filter
-from apps.outgoing.models import OutgoingInvoice, Buyer
+from apps.outgoing.models import OutgoingInvoice, Buyer, CatalogItem
 from apps.outgoing.nip_lookup import fetch_nip_data
 from apps.api.permissions import IsViewer, IsAccountant, IsApprover
 from .serializers import (
+    CatalogItemSerializer,
     OutgoingInvoiceListSerializer, OutgoingInvoiceDetailSerializer,
     OutgoingInvoiceWriteSerializer, BuyerSerializer,
 )
@@ -81,6 +82,8 @@ class OutgoingInvoiceQueueView(APIView):
             return Response({'detail': 'Brak numeru konta bankowego firmy.'}, status=400)
         if not inv.items.exists():
             return Response({'detail': 'Faktura nie ma żadnych pozycji.'}, status=400)
+        if inv.missing_exemption_basis():
+            return Response({'detail': OutgoingInvoice.MISSING_EXEMPTION_MESSAGE}, status=400)
         inv.status = OutgoingInvoice.STATUS_QUEUED
         inv.error_message = ''
         inv.save(update_fields=['status', 'error_message', 'updated_at'])
@@ -104,6 +107,10 @@ class OutgoingInvoiceBulkQueueView(APIView):
         for inv in qs:
             if not inv.items.exists():
                 errors.append({'id': inv.pk, 'invoice_number': inv.invoice_number, 'error': 'brak pozycji'})
+                continue
+            if inv.missing_exemption_basis():
+                errors.append({'id': inv.pk, 'invoice_number': inv.invoice_number,
+                               'error': 'brak podstawy zwolnienia z VAT'})
                 continue
             inv.status = OutgoingInvoice.STATUS_QUEUED
             inv.error_message = ''
@@ -143,3 +150,16 @@ class NipLookupView(APIView):
         if data is None:
             return Response({'error': 'Nie znaleziono firmy o podanym NIP lub błąd połączenia.'}, status=404)
         return Response(data)
+
+
+class CatalogItemListView(generics.ListAPIView):
+    """GET ?q= — katalog zapisanych pozycji faktur (najczęściej używane najpierw)."""
+    permission_classes = [IsAccountant]
+    serializer_class = CatalogItemSerializer
+
+    def get_queryset(self):
+        qs = CatalogItem.objects.filter(**company_filter(self.request.user))
+        q = self.request.query_params.get('q', '').strip()
+        if q:
+            qs = qs.filter(name__icontains=q)
+        return qs[:200]

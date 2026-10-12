@@ -3,7 +3,7 @@ from .views import (
     OutgoingInvoiceListView, OutgoingInvoiceCreateView,
     OutgoingInvoiceDetailView, OutgoingInvoiceUpdateView,
     OutgoingInvoiceQueueView, OutgoingInvoiceBulkQueueView,
-    BuyerListView, BuyerSearchView, NipLookupView,
+    BuyerListView, BuyerSearchView, NipLookupView, CatalogItemListView,
 )
 
 urlpatterns = [
@@ -12,6 +12,7 @@ urlpatterns = [
     path('bulk-queue/', OutgoingInvoiceBulkQueueView.as_view(), name='api-outgoing-bulk-queue'),
     path('buyers/', BuyerListView.as_view(), name='api-outgoing-buyers'),
     path('buyers/search/', BuyerSearchView.as_view(), name='api-outgoing-buyers-search'),
+    path('catalog/', CatalogItemListView.as_view(), name='api-outgoing-catalog'),
     path('nip-lookup/', NipLookupView.as_view(), name='api-outgoing-nip-lookup'),
     path('<int:pk>/', OutgoingInvoiceDetailView.as_view(), name='api-outgoing-detail'),
     path('<int:pk>/edit/', OutgoingInvoiceUpdateView.as_view(), name='api-outgoing-update'),

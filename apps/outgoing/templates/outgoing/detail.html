@@ -124,6 +124,10 @@
           <dd class="col-7">{{ invoice.get_payment_form_display }}</dd>
           <dt class="col-5">Waluta</dt>
           <dd class="col-7">{{ invoice.currency }}</dd>
+          {% if invoice.vat_exemption_basis %}
+          <dt class="col-5">Podstawa zwolnienia</dt>
+          <dd class="col-7">{{ invoice.vat_exemption_basis }}<div class="small text-muted">{{ invoice.get_vat_exemption_type_display }}</div></dd>
+          {% endif %}
           {% if invoice.notes %}
           <dt class="col-5">Uwagi</dt>
           <dd class="col-7">{{ invoice.notes }}</dd>

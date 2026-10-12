@@ -35,6 +35,13 @@ docker compose up -d
 docker compose exec web python manage.py createsuperuser
 ```
 
+## Testy
+```bash
+docker compose exec web python manage.py test apps   # bez bazy (SimpleTestCase)
+```
+- Generator FA(3) jest walidowany schematem z `apps/ksef/schemas/fa3/` (oficjalny XSD MF).
+- `manage.py export_ios_fixtures` generuje golden files dla aplikacji iOS (`ios/`).
+
 ## KSeF API
 - Test: `https://api-test.ksef.mf.gov.pl`
 - Prod: `https://api.ksef.mf.gov.pl`

@@ -10,7 +10,7 @@ from apps.api.permissions import IsAccountant
 from apps.accounts.models import CompanyBankAccount
 from apps.bank_statements.models import BankStatement, BankTransaction, TransactionMatch
 from apps.bank_statements.parsers.mt940 import InvoiceMatcher
-from apps.bank_statements.parsers.detect import detect_and_parse
+from apps.bank_statements.parsers.detect import decode_statement, detect_and_parse
 from apps.invoices.models import Invoice, InvoiceStatusLog
 
 from .serializers import BankStatementSerializer, BankStatementDetailSerializer
@@ -31,17 +31,10 @@ class BankStatementListCreateView(APIView):
         if not uploaded_file:
             return Response({'detail': 'Nie wybrano pliku (pole: statement_file).'}, status=status.HTTP_400_BAD_REQUEST)
 
-        raw = None
-        for enc in ('utf-8-sig', 'utf-8', 'iso-8859-1', 'windows-1250'):
-            try:
-                raw = uploaded_file.read().decode(enc)
-                break
-            except UnicodeDecodeError:
-                uploaded_file.seek(0)
-
+        raw = decode_statement(uploaded_file.read())
         if not raw:
             return Response(
-                {'detail': 'Nie można odczytać pliku. Sprawdź kodowanie (UTF-8, ISO-8859-1, Windows-1250).'},
+                {'detail': 'Nie można odczytać pliku. Sprawdź kodowanie (UTF-8, Windows-1250, ISO-8859-1).'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

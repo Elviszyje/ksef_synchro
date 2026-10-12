@@ -1,11 +1,17 @@
 from rest_framework import serializers
-from apps.outgoing.models import OutgoingInvoice, InvoiceItem, Buyer
+from apps.outgoing.models import OutgoingInvoice, InvoiceItem, Buyer, CatalogItem
 
 
 class BuyerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Buyer
         fields = ['id', 'nip', 'name', 'address', 'email', 'phone', 'notes']
+
+
+class CatalogItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CatalogItem
+        fields = ['id', 'name', 'unit', 'unit_price_net', 'vat_rate', 'use_count', 'last_used_at']
 
 
 class InvoiceItemSerializer(serializers.ModelSerializer):
@@ -47,6 +53,7 @@ class OutgoingInvoiceDetailSerializer(OutgoingInvoiceListSerializer):
             'notes', 'ksef_reference_number', 'error_message',
             'amount_net', 'amount_vat', 'items',
             'can_be_edited', 'can_be_queued', 'updated_at',
+            'vat_exemption_type', 'vat_exemption_basis',
         ]
 
     def get_amount_net(self, obj):
@@ -71,7 +78,18 @@ class OutgoingInvoiceWriteSerializer(serializers.ModelSerializer):
             'invoice_number', 'issue_date', 'delivery_date', 'payment_due_date',
             'payment_form', 'currency',
             'buyer_nip', 'buyer_name', 'buyer_address', 'notes', 'items',
+            'vat_exemption_type', 'vat_exemption_basis',
         ]
+
+    def validate(self, attrs):
+        items = attrs.get('items')
+        if items is None and self.instance is not None:
+            items = [{'vat_rate': i.vat_rate} for i in self.instance.items.all()]
+        basis = attrs.get('vat_exemption_basis', getattr(self.instance, 'vat_exemption_basis', '')) or ''
+        if any(i.get('vat_rate') == 'zw' for i in items or []) and not basis.strip():
+            raise serializers.ValidationError(
+                {'vat_exemption_basis': 'Pozycje ze stawką ZW wymagają podania podstawy prawnej zwolnienia z VAT.'})
+        return attrs
 
     def create(self, validated_data):
         items_data = validated_data.pop('items')
@@ -79,6 +97,7 @@ class OutgoingInvoiceWriteSerializer(serializers.ModelSerializer):
         for i, item_data in enumerate(items_data, start=1):
             item_data.setdefault('lp', i)
             InvoiceItem.objects.create(invoice=invoice, **item_data)
+        CatalogItem.remember(invoice.company, invoice.items.all())
         return invoice
 
     def update(self, instance, validated_data):
@@ -91,4 +110,5 @@ class OutgoingInvoiceWriteSerializer(serializers.ModelSerializer):
             for i, item_data in enumerate(items_data, start=1):
                 item_data.setdefault('lp', i)
                 InvoiceItem.objects.create(invoice=instance, **item_data)
+            CatalogItem.remember(instance.company, instance.items.all())
         return instance

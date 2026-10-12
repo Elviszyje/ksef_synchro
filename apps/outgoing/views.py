@@ -9,8 +9,8 @@ from django.template.response import TemplateResponse
 from django.views.generic import View
 
 from core.permissions import RoleRequiredMixin, company_filter, has_min_role
-from .forms import OutgoingInvoiceForm, InvoiceItemFormSet, BuyerForm
-from .models import OutgoingInvoice, InvoiceItem, Buyer
+from .forms import OutgoingInvoiceForm, InvoiceItemFormSet, BuyerForm, CatalogItemForm
+from .models import OutgoingInvoice, InvoiceItem, Buyer, CatalogItem
 from .nip_lookup import fetch_nip_data
 
 logger = logging.getLogger(__name__)
@@ -110,6 +110,53 @@ class OutgoingInvoiceListView(RoleRequiredMixin, View):
         return redirect(f"{request.build_absolute_uri(request.path)}?tab=ksef")
 
 
+# Najczęstsze podstawy zwolnienia — podpowiedzi w formularzu (użytkownik wybiera świadomie).
+COMMON_EXEMPTION_BASES = [
+    'art. 113 ust. 1 ustawy o VAT',
+    'art. 43 ust. 1 pkt 18 ustawy o VAT',
+    'art. 43 ust. 1 pkt 29 lit. a ustawy o VAT',
+    'art. 43 ust. 1 pkt 37 ustawy o VAT',
+    'art. 43 ust. 1 pkt 38 ustawy o VAT',
+]
+
+
+def _form_context(request, company=None, **extra) -> dict:
+    """Wspólny kontekst formularza faktury: katalog pozycji i podpowiedzi podstaw zwolnienia."""
+    company = company or request.user.company
+    catalog = list(
+        CatalogItem.objects.filter(company=company).order_by('-use_count', 'name')
+        .values('name', 'unit', 'unit_price_net', 'vat_rate')[:500]
+    ) if company else []
+    for item in catalog:
+        item['unit_price_net'] = str(item['unit_price_net'])
+    used_bases = list(
+        OutgoingInvoice.objects.filter(company=company).exclude(vat_exemption_basis='')
+        .values_list('vat_exemption_basis', flat=True).distinct()[:20]
+    ) if company else []
+    return {
+        'catalog_items': catalog,
+        'exemption_suggestions': list(dict.fromkeys(used_bases + COMMON_EXEMPTION_BASES)),
+        **extra,
+    }
+
+
+def _save_items(request, invoice, formset, renumber_new=False):
+    """Zapisuje pozycje z formsetu, renumeruje lp i zapamiętuje pozycje w katalogu."""
+    formset.instance = invoice
+    items = formset.save(commit=False)
+    for i, item in enumerate(items, start=1):
+        if renumber_new and not item.lp:
+            item.lp = i
+        item.save()
+    for deleted in formset.deleted_objects:
+        deleted.delete()
+    for idx, item in enumerate(invoice.items.order_by('lp'), start=1):
+        if item.lp != idx:
+            item.lp = idx
+            item.save(update_fields=['lp'])
+    CatalogItem.remember(invoice.company, invoice.items.all())
+
+
 class OutgoingInvoiceCreateView(RoleRequiredMixin, View):
     min_role = 'accountant'
     template_name = 'outgoing/form.html'
@@ -125,11 +172,9 @@ class OutgoingInvoiceCreateView(RoleRequiredMixin, View):
             'issue_date': timezone.now().date(),
         })
         formset = InvoiceItemFormSet()
-        return TemplateResponse(request, self.template_name, {
-            'form': form,
-            'formset': formset,
-            'title': 'Nowa faktura wychodząca',
-        })
+        return TemplateResponse(request, self.template_name, _form_context(
+            request, form=form, formset=formset, title='Nowa faktura wychodząca',
+        ))
 
     def post(self, request):
         if not request.user.company:
@@ -139,7 +184,7 @@ class OutgoingInvoiceCreateView(RoleRequiredMixin, View):
         form = OutgoingInvoiceForm(request.POST)
         formset = InvoiceItemFormSet(request.POST)
 
-        if form.is_valid() and formset.is_valid():
+        if form.is_valid() and formset.is_valid() and form.validate_exemption(formset):
             from django.db import IntegrityError
             invoice = form.save(commit=False)
             invoice.company = request.user.company
@@ -163,29 +208,14 @@ class OutgoingInvoiceCreateView(RoleRequiredMixin, View):
                 invoice.invoice_number = OutgoingInvoice.generate_number(request.user.company)
                 invoice.save()
 
-            formset.instance = invoice
-            items = formset.save(commit=False)
-            for i, item in enumerate(items, start=1):
-                if not item.lp:
-                    item.lp = i
-                item.save()
-            for deleted in formset.deleted_objects:
-                deleted.delete()
-
-            # Renumeruj lp sekwencyjnie po zapisie
-            for idx, item in enumerate(invoice.items.order_by('lp'), start=1):
-                if item.lp != idx:
-                    item.lp = idx
-                    item.save(update_fields=['lp'])
+            _save_items(request, invoice, formset, renumber_new=True)
 
             messages.success(request, f'Faktura {invoice.invoice_number} została utworzona.')
             return redirect('outgoing:detail', pk=invoice.pk)
 
-        return TemplateResponse(request, self.template_name, {
-            'form': form,
-            'formset': formset,
-            'title': 'Nowa faktura wychodząca',
-        })
+        return TemplateResponse(request, self.template_name, _form_context(
+            request, form=form, formset=formset, title='Nowa faktura wychodząca',
+        ))
 
 
 class OutgoingInvoiceEditView(RoleRequiredMixin, View):
@@ -209,12 +239,10 @@ class OutgoingInvoiceEditView(RoleRequiredMixin, View):
             return redir
         form = OutgoingInvoiceForm(instance=inv)
         formset = InvoiceItemFormSet(instance=inv)
-        return TemplateResponse(request, self.template_name, {
-            'form': form,
-            'formset': formset,
-            'invoice': inv,
-            'title': f'Edycja faktury {inv.invoice_number}',
-        })
+        return TemplateResponse(request, self.template_name, _form_context(
+            request, company=inv.company, form=form, formset=formset, invoice=inv,
+            title=f'Edycja faktury {inv.invoice_number}',
+        ))
 
     def post(self, request, pk):
         inv, redir = self._get_invoice(request, pk)
@@ -223,7 +251,7 @@ class OutgoingInvoiceEditView(RoleRequiredMixin, View):
         form = OutgoingInvoiceForm(request.POST, instance=inv)
         formset = InvoiceItemFormSet(request.POST, instance=inv)
 
-        if form.is_valid() and formset.is_valid():
+        if form.is_valid() and formset.is_valid() and form.validate_exemption(formset):
             updated_inv = form.save(commit=False)
 
             # Obsługa FK nabywcy
@@ -237,27 +265,15 @@ class OutgoingInvoiceEditView(RoleRequiredMixin, View):
                 updated_inv.buyer = _save_buyer_from_invoice(request, updated_inv)
 
             updated_inv.save()
-            items = formset.save(commit=False)
-            for item in items:
-                item.save()
-            for deleted in formset.deleted_objects:
-                deleted.delete()
-
-            # Renumeruj lp
-            for idx, item in enumerate(inv.items.order_by('lp'), start=1):
-                if item.lp != idx:
-                    item.lp = idx
-                    item.save(update_fields=['lp'])
+            _save_items(request, updated_inv, formset)
 
             messages.success(request, f'Faktura {inv.invoice_number} została zaktualizowana.')
             return redirect('outgoing:detail', pk=inv.pk)
 
-        return TemplateResponse(request, self.template_name, {
-            'form': form,
-            'formset': formset,
-            'invoice': inv,
-            'title': f'Edycja faktury {inv.invoice_number}',
-        })
+        return TemplateResponse(request, self.template_name, _form_context(
+            request, company=inv.company, form=form, formset=formset, invoice=inv,
+            title=f'Edycja faktury {inv.invoice_number}',
+        ))
 
 
 class OutgoingInvoiceDetailView(RoleRequiredMixin, View):
@@ -312,6 +328,9 @@ class OutgoingInvoiceQueueView(RoleRequiredMixin, View):
 
         if not inv.items.exists():
             messages.error(request, 'Faktura nie ma żadnych pozycji.')
+            return redirect('outgoing:detail', pk=pk)
+        if inv.missing_exemption_basis():
+            messages.error(request, OutgoingInvoice.MISSING_EXEMPTION_MESSAGE)
             return redirect('outgoing:detail', pk=pk)
 
         inv.status = OutgoingInvoice.STATUS_QUEUED
@@ -436,3 +455,55 @@ class NipLookupView(RoleRequiredMixin, View):
         if data is None:
             return JsonResponse({'error': 'Nie znaleziono firmy o podanym NIP lub błąd połączenia.'}, status=404)
         return JsonResponse(data)
+
+
+# ── Katalog pozycji ──────────────────────────────────────────────────────────
+
+class CatalogItemListView(RoleRequiredMixin, View):
+    min_role = 'accountant'
+    template_name = 'outgoing/catalog_list.html'
+
+    def get(self, request):
+        items = CatalogItem.objects.filter(**company_filter(request.user))
+        q = request.GET.get('q', '').strip()
+        if q:
+            items = items.filter(name__icontains=q)
+        return TemplateResponse(request, self.template_name, {'items': items, 'q': q})
+
+
+class CatalogItemUpdateView(RoleRequiredMixin, View):
+    min_role = 'accountant'
+    template_name = 'outgoing/catalog_form.html'
+
+    def _get_item(self, request, pk):
+        return get_object_or_404(CatalogItem, pk=pk, **company_filter(request.user))
+
+    def get(self, request, pk):
+        item = self._get_item(request, pk)
+        return TemplateResponse(request, self.template_name, {'form': CatalogItemForm(instance=item), 'item': item})
+
+    def post(self, request, pk):
+        item = self._get_item(request, pk)
+        form = CatalogItemForm(request.POST, instance=item)
+        if form.is_valid():
+            from django.db import IntegrityError
+            try:
+                form.save()
+            except IntegrityError:
+                form.add_error('name', 'W katalogu jest już pozycja o tej nazwie i jednostce.')
+                return TemplateResponse(request, self.template_name, {'form': form, 'item': item})
+            messages.success(request, f'Pozycja „{item.name}” została zaktualizowana.')
+            return redirect('outgoing:catalog_list')
+        return TemplateResponse(request, self.template_name, {'form': form, 'item': item})
+
+
+class CatalogItemDeleteView(RoleRequiredMixin, View):
+    """Usunięcie z katalogu nie zmienia wystawionych faktur — pozycje faktur są kopiami."""
+    min_role = 'accountant'
+
+    def post(self, request, pk):
+        item = get_object_or_404(CatalogItem, pk=pk, **company_filter(request.user))
+        name = item.name
+        item.delete()
+        messages.success(request, f'Pozycja „{name}” została usunięta z katalogu.')
+        return redirect('outgoing:catalog_list')

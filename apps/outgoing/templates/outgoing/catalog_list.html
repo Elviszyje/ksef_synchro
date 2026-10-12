@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Katalog pozycji{% endblock %}
+{% block page_title %}Katalog pozycji{% endblock %}
+
+{% block sticky_bar %}
+<div class="page-body-sticky-top d-flex align-items-center gap-2 pb-3">
+  <form method="get" class="d-flex align-items-center gap-2">
+    <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Szukaj po nazwie…" style="width:280px;">
+    <button type="submit" class="btn btn-outline-secondary btn-sm">Szukaj</button>
+    {% if q %}<a href="{% url 'outgoing:catalog_list' %}" class="btn btn-outline-secondary btn-sm">Wyczyść</a>{% endif %}
+  </form>
+  <a href="{% url 'outgoing:create' %}" class="btn btn-outline-secondary btn-sm ms-auto">
+    <i class="bi bi-file-earmark-plus me-1"></i>Nowa faktura
+  </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th class="ps-3">Nazwa</th>
+          <th>Jedn.</th>
+          <th class="text-end">Cena netto</th>
+          <th class="text-center">VAT</th>
+          <th class="text-center">Użyć</th>
+          <th>Ostatnio</th>
+          <th style="width:80px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td class="ps-3 fw-semibold">{{ item.name }}</td>
+          <td class="small">{{ item.unit }}</td>
+          <td class="text-end font-monospace">{{ item.unit_price_net }}</td>
+          <td class="text-center"><span class="badge bg-secondary-subtle text-secondary border">{{ item.get_vat_rate_display }}</span></td>
+          <td class="text-center">{{ item.use_count }}</td>
+          <td class="small text-muted">{{ item.last_used_at|date:"d.m.Y"|default:"—" }}</td>
+          <td class="text-end pe-3">
+            <a href="{% url 'outgoing:catalog_edit' item.pk %}" class="btn btn-sm btn-outline-secondary py-0 px-2" title="Edytuj">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <form method="post" action="{% url 'outgoing:catalog_delete' item.pk %}" class="d-inline"
+                  onsubmit="return confirm('Usunąć „{{ item.name|escapejs }}” z katalogu? Wystawione faktury się nie zmienią.')">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" title="Usuń">
+                <i class="bi bi-trash"></i>
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center text-muted py-5">
+            <i class="bi bi-box-seam fs-2 d-block mb-2"></i>
+            {% if q %}Brak pozycji pasujących do „{{ q }}".{% else %}Katalog jest pusty. Pozycje trafiają tu automatycznie po zapisaniu faktury.{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

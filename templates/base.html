@@ -139,6 +139,9 @@
       <a href="{% url 'outgoing:buyer_list' %}" class="nav-link {% if 'buyers' in request.path %}active{% endif %}">
         <i class="bi bi-people"></i> Nabywcy
       </a>
+      <a href="{% url 'outgoing:catalog_list' %}" class="nav-link {% if 'catalog' in request.path %}active{% endif %}">
+        <i class="bi bi-box-seam"></i> Katalog pozycji
+      </a>
       {% endif %}
     </div>
 
@@ -337,6 +340,9 @@
         </a>
         <a href="{% url 'outgoing:buyer_list' %}" class="nav-link" data-bs-dismiss="offcanvas">
           <i class="bi bi-people"></i> Nabywcy
+        </a>
+        <a href="{% url 'outgoing:catalog_list' %}" class="nav-link" data-bs-dismiss="offcanvas">
+          <i class="bi bi-box-seam"></i> Katalog pozycji
         </a>
         {% endif %}
       </div>

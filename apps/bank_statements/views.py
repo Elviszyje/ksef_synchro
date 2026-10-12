@@ -11,7 +11,7 @@ from apps.invoices.models import Invoice, InvoiceStatusLog
 from apps.accounts.models import CompanyBankAccount
 from .models import BankStatement, BankTransaction, TransactionMatch
 from .parsers.mt940 import InvoiceMatcher
-from .parsers.detect import detect_and_parse
+from .parsers.detect import decode_statement, detect_and_parse
 
 
 class BankStatementListView(RoleRequiredMixin, CompanyAccessMixin, ListView):
@@ -35,17 +35,9 @@ class BankStatementUploadView(RoleRequiredMixin, View):
             messages.error(request, 'Nie wybrano pliku.')
             return TemplateResponse(request, self.template_name, {})
 
-        # Odczytaj — MT940 zwykle w ISO-8859-1 lub UTF-8
-        raw = None
-        for enc in ('utf-8', 'iso-8859-1', 'windows-1250'):
-            try:
-                raw = uploaded_file.read().decode(enc)
-                break
-            except UnicodeDecodeError:
-                uploaded_file.seek(0)
-
+        raw = decode_statement(uploaded_file.read())
         if not raw:
-            messages.error(request, 'Nie można odczytać pliku. Sprawdź kodowanie (UTF-8, ISO-8859-1, Windows-1250).')
+            messages.error(request, 'Nie można odczytać pliku. Sprawdź kodowanie (UTF-8, Windows-1250, ISO-8859-1).')
             return TemplateResponse(request, self.template_name, {})
 
         preferred_keys = list(

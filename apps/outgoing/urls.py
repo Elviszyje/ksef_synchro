@@ -17,6 +17,11 @@ urlpatterns = [
     path('buyers/<int:pk>/edit/', views.BuyerUpdateView.as_view(), name='buyer_edit'),
     path('buyers/<int:pk>/delete/', views.BuyerDeleteView.as_view(), name='buyer_delete'),
 
+    # Katalog pozycji
+    path('catalog/', views.CatalogItemListView.as_view(), name='catalog_list'),
+    path('catalog/<int:pk>/edit/', views.CatalogItemUpdateView.as_view(), name='catalog_edit'),
+    path('catalog/<int:pk>/delete/', views.CatalogItemDeleteView.as_view(), name='catalog_delete'),
+
     # API / HTMX endpointy
     path('api/buyers/search/', views.BuyerSearchView.as_view(), name='buyer_search'),
     path('api/nip-lookup/', views.NipLookupView.as_view(), name='nip_lookup'),

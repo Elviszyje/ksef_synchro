@@ -101,6 +101,25 @@ class OutgoingInvoice(models.Model):
 
     notes = models.TextField(blank=True, verbose_name='Uwagi')
 
+    # Podstawa zwolnienia z VAT — wymagana w FA(3), gdy którakolwiek pozycja ma stawkę ZW.
+    EXEMPTION_ACT = 'ustawa'          # P_19A: przepis ustawy albo aktu wydanego na jej podstawie
+    EXEMPTION_DIRECTIVE = 'dyrektywa'  # P_19B: przepis dyrektywy 2006/112/WE
+    EXEMPTION_OTHER = 'inna'          # P_19C: inna podstawa prawna
+    EXEMPTION_TYPE_CHOICES = [
+        (EXEMPTION_ACT, 'Przepis ustawy o VAT lub aktu wykonawczego'),
+        (EXEMPTION_DIRECTIVE, 'Przepis dyrektywy 2006/112/WE'),
+        (EXEMPTION_OTHER, 'Inna podstawa prawna'),
+    ]
+    vat_exemption_type = models.CharField(
+        max_length=10, choices=EXEMPTION_TYPE_CHOICES, default=EXEMPTION_ACT,
+        verbose_name='Rodzaj podstawy zwolnienia',
+    )
+    vat_exemption_basis = models.CharField(
+        max_length=256, blank=True,
+        verbose_name='Podstawa zwolnienia z VAT',
+        help_text='Np. art. 43 ust. 1 pkt 29 lit. a ustawy o VAT. Wymagana przy stawce ZW.',
+    )
+
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -158,6 +177,15 @@ class OutgoingInvoice(models.Model):
     @property
     def amount_gross(self) -> Decimal:
         return sum((item.amount_gross for item in self.items.all()), Decimal('0.00'))
+
+    def has_exempt_items(self) -> bool:
+        return self.items.filter(vat_rate='zw').exists()
+
+    def missing_exemption_basis(self) -> bool:
+        """Pozycje ZW bez podstawy zwolnienia — KSeF odrzuci taką fakturę."""
+        return not self.vat_exemption_basis.strip() and self.has_exempt_items()
+
+    MISSING_EXEMPTION_MESSAGE = 'Faktura ma pozycje ze stawką ZW — uzupełnij podstawę zwolnienia z VAT.'
 
     def can_be_edited(self) -> bool:
         return self.status == self.STATUS_DRAFT
@@ -240,3 +268,64 @@ class InvoiceItem(models.Model):
     def save(self, *args, **kwargs):
         self.calculate_amounts()
         super().save(*args, **kwargs)
+
+
+class CatalogItem(models.Model):
+    """
+    Zapamiętana pozycja faktury (towar/usługa). Tworzona i aktualizowana
+    automatycznie przy zapisie faktury, żeby kolejną fakturę można było
+    uzupełnić jednym wyborem zamiast przepisywać nazwę, cenę i stawkę.
+    """
+    company = models.ForeignKey(
+        'accounts.Company',
+        on_delete=models.CASCADE,
+        related_name='catalog_items',
+        verbose_name='Firma',
+        db_index=True,
+    )
+    name = models.CharField(max_length=255, verbose_name='Nazwa towaru/usługi')
+    unit = models.CharField(max_length=30, default='szt.', verbose_name='Jednostka')
+    unit_price_net = models.DecimalField(max_digits=15, decimal_places=2, verbose_name='Cena jedn. netto')
+    vat_rate = models.CharField(
+        max_length=5, choices=InvoiceItem.VAT_RATE_CHOICES, default='23', verbose_name='Stawka VAT',
+    )
+    use_count = models.PositiveIntegerField(default=0, verbose_name='Liczba użyć')
+    last_used_at = models.DateTimeField(null=True, blank=True, verbose_name='Ostatnio użyta')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Pozycja katalogu'
+        verbose_name_plural = 'Katalog pozycji'
+        ordering = ['-use_count', 'name']
+        unique_together = [('company', 'name', 'unit')]
+
+    def __str__(self):
+        return f'{self.name} ({self.unit_price_net} / {self.unit})'
+
+    @classmethod
+    def remember(cls, company, items) -> None:
+        """
+        Zapisuje pozycje faktury w katalogu. Istniejąca pozycja (ta sama nazwa
+        i jednostka) dostaje ostatnią cenę i stawkę oraz licznik użyć + 1.
+        """
+        from django.utils import timezone
+        if company is None:
+            return
+        now = timezone.now()
+        for item in items:
+            name = (item.name or '').strip()
+            if not name:
+                continue
+            unit = (item.unit or '').strip() or 'szt.'
+            obj, created = cls.objects.get_or_create(
+                company=company, name=name, unit=unit,
+                defaults={'unit_price_net': item.unit_price_net, 'vat_rate': item.vat_rate,
+                          'use_count': 1, 'last_used_at': now},
+            )
+            if not created:
+                obj.unit_price_net = item.unit_price_net
+                obj.vat_rate = item.vat_rate
+                obj.use_count += 1
+                obj.last_used_at = now
+                obj.save(update_fields=['unit_price_net', 'vat_rate', 'use_count', 'last_used_at', 'updated_at'])

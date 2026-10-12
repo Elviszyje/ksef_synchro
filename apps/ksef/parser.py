@@ -44,6 +44,13 @@ def _decimal(el, path: str, ns: dict) -> Decimal:
         return Decimal('0')
 
 
+# Pola sum netto w FA(2) i FA(3) (te same nazwy w obu schematach).
+_NET_FIELDS = [
+    'P_13_1', 'P_13_2', 'P_13_3', 'P_13_4', 'P_13_5',
+    'P_13_6_1', 'P_13_6_2', 'P_13_6_3',
+    'P_13_7', 'P_13_8', 'P_13_9', 'P_13_10', 'P_13_11',
+]
+
 _PAYMENT_FORMS = {
     '1': 'gotówka',
     '2': 'karta',
@@ -224,14 +231,16 @@ class FA2Parser:
 
     def _extract_amounts(self, root, NS) -> tuple[Decimal, Decimal, Decimal]:
         # P_15 = łączna kwota należności (brutto)
-        # P_13_X = suma netto dla stawki X (1=23%, 2=8%, 3=5%, 4=0%, 5=zw, 6=oo, 7=np)
-        # P_14_X = suma VAT dla stawki X (nie istnieje dla zw/oo/np)
+        # P_13_x = sumy netto: 1=23/22%, 2=8/7%, 3=5%, 4=ryczałt taxi, 5=OSS,
+        #          6_1/6_2/6_3=0% (kraj/WDT/eksport), 7=zw, 8/9=np, 10=odwrotne obciążenie, 11=marża
+        # P_14_x = VAT dla stawek 1–5
         gross = _decimal(root, './/fa:Fa/fa:P_15', NS)
 
         net = Decimal('0')
         vat = Decimal('0')
-        for i in range(1, 8):
-            net += _decimal(root, f'.//fa:Fa/fa:P_13_{i}', NS)
+        for field in _NET_FIELDS:
+            net += _decimal(root, f'.//fa:Fa/fa:{field}', NS)
+        for i in range(1, 6):
             vat += _decimal(root, f'.//fa:Fa/fa:P_14_{i}', NS)
 
         if net == 0:

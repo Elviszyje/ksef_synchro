@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Edytuj pozycję katalogu{% endblock %}
+{% block page_title %}Edytuj pozycję katalogu{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <form method="post">
+      {% csrf_token %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent border-bottom py-2">
+          <span class="fw-medium small">Użyta {{ item.use_count }} raz(y). Zmiany dotyczą tylko przyszłych faktur.</span>
+        </div>
+        <div class="card-body p-4">
+          {% for field in form %}
+          <div class="mb-3">
+            <label class="form-label fw-medium small">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+            {{ field }}
+            {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors.0 }}</div>{% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Zapisz</button>
+        <a href="{% url 'outgoing:catalog_list' %}" class="btn btn-outline-secondary">Anuluj</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

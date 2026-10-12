@@ -89,7 +89,10 @@
       <div class="card shadow-sm mb-3">
         <div class="card-header d-flex align-items-center">
           <span class="fw-semibold"><i class="bi bi-list-ul me-2"></i>Pozycje faktury</span>
-          <button type="button" class="btn btn-sm btn-outline-primary ms-auto" id="add-item-btn">
+          <a href="{% url 'outgoing:catalog_list' %}" class="btn btn-outline-secondary btn-sm py-0 ms-auto me-2" target="_blank">
+            <i class="bi bi-box-seam me-1"></i>Katalog pozycji
+          </a>
+          <button type="button" class="btn btn-sm btn-outline-primary" id="add-item-btn">
             <i class="bi bi-plus-lg"></i> Dodaj pozycję
           </button>
         </div>
@@ -144,6 +147,16 @@
           {% if formset.non_form_errors %}
           <div class="alert alert-danger m-3">{{ formset.non_form_errors.0 }}</div>
           {% endif %}
+          {% if catalog_items %}
+          <div class="form-text px-3 pb-2">
+            <i class="bi bi-lightbulb me-1"></i>Zacznij wpisywać nazwę, aby wybrać pozycję z katalogu — jednostka, cena i stawka uzupełnią się same.
+            Nowe pozycje trafiają do katalogu automatycznie po zapisaniu faktury.
+          </div>
+          {% endif %}
+          <datalist id="catalog-names">
+            {% for c in catalog_items %}<option value="{{ c.name }}">{{ c.unit }} · {{ c.unit_price_net }} zł netto · VAT {{ c.vat_rate }}</option>{% endfor %}
+          </datalist>
+          {{ catalog_items|json_script:"catalog-data" }}
         </div>
       </div>
     </div>
@@ -186,6 +199,30 @@
         </div>
       </div>
 
+      {% with basis_errors=form.vat_exemption_basis.errors %}
+      <div class="card shadow-sm mb-3 {% if not basis_errors and not form.instance.vat_exemption_basis %}d-none{% endif %}" id="exemption-card">
+        <div class="card-header fw-semibold">
+          <i class="bi bi-shield-check me-2"></i>Zwolnienie z VAT
+        </div>
+        <div class="card-body">
+          <p class="small text-muted mb-3">Faktura zawiera pozycje ze stawką ZW. KSeF wymaga wskazania podstawy prawnej zwolnienia.</p>
+          <div class="mb-3">
+            <label class="form-label">Rodzaj podstawy</label>
+            {{ form.vat_exemption_type }}
+          </div>
+          <div>
+            <label class="form-label">Podstawa zwolnienia <span class="text-danger">*</span></label>
+            {{ form.vat_exemption_basis }}
+            {% if basis_errors %}<div class="invalid-feedback d-block">{{ basis_errors.0 }}</div>{% endif %}
+            <div class="form-text">Wpisz przepis albo wybierz z podpowiedzi. Wcześniej użyte podstawy są zapamiętywane.</div>
+            <datalist id="exemption-basis-suggestions">
+              {% for b in exemption_suggestions %}<option value="{{ b }}">{% endfor %}
+            </datalist>
+          </div>
+        </div>
+      </div>
+      {% endwith %}
+
       <div class="d-grid gap-2">
         <button type="submit" class="btn btn-primary">
           <i class="bi bi-check-lg me-1"></i>Zapisz fakturę
@@ -224,8 +261,37 @@ function recalcAll() {
   document.getElementById('total-gross').textContent = totalGross.toFixed(2).replace('.', ',');
 }
 
-document.getElementById('items-tbody').addEventListener('input', recalcAll);
-document.getElementById('items-tbody').addEventListener('change', recalcAll);
+// ── Katalog pozycji: wybór nazwy z listy uzupełnia jednostkę, cenę i stawkę ──
+const CATALOG = new Map(
+  JSON.parse(document.getElementById('catalog-data').textContent).map(c => [c.name.toLowerCase(), c])
+);
+
+function applyCatalog(nameInput) {
+  const entry = CATALOG.get(nameInput.value.trim().toLowerCase());
+  if (!entry) return;
+  const row = nameInput.closest('.item-row');
+  row.querySelector('[name$="-unit"]').value = entry.unit;
+  row.querySelector('[name$="-unit_price_net"]').value = entry.unit_price_net;
+  row.querySelector('[name$="-vat_rate"]').value = entry.vat_rate;
+  const qty = row.querySelector('[name$="-quantity"]');
+  if (!qty.value) qty.value = '1';
+}
+
+// ── Karta zwolnienia z VAT widoczna, gdy któraś pozycja ma stawkę ZW ──
+function toggleExemption() {
+  const hasExempt = [...document.querySelectorAll('#items-tbody .item-row:not(.d-none) [name$="-vat_rate"]')]
+    .some(sel => sel.value === 'zw');
+  document.getElementById('exemption-card').classList.toggle('d-none', !hasExempt);
+}
+
+function onItemsChanged(e) {
+  if (e.target.matches('[name$="-name"]')) applyCatalog(e.target);
+  recalcAll();
+  toggleExemption();
+}
+
+document.getElementById('items-tbody').addEventListener('input', onItemsChanged);
+document.getElementById('items-tbody').addEventListener('change', onItemsChanged);
 
 // Usuwanie wiersza
 document.getElementById('items-tbody').addEventListener('click', e => {
@@ -240,6 +306,7 @@ document.getElementById('items-tbody').addEventListener('click', e => {
     row.remove();
   }
   recalcAll();
+  toggleExemption();
 });
 
 function buildItemRow(idx) {
@@ -251,8 +318,9 @@ function buildItemRow(idx) {
     <td>
       <input type="hidden" name="${p}-${idx}-id" value="">
       <input type="hidden" name="${p}-${idx}-lp" value="${idx + 1}">
+      <input type="text" name="${p}-${idx}-name" class="form-control form-control-sm" placeholder="Nazwa towaru/usługi"
+             list="catalog-names" autocomplete="off">
     </td>
-    <td><input type="text" name="${p}-${idx}-name" class="form-control form-control-sm" placeholder="Nazwa towaru/usługi"></td>
     <td><input type="text" name="${p}-${idx}-unit" class="form-control form-control-sm" placeholder="szt." value="szt."></td>
     <td><input type="number" name="${p}-${idx}-quantity" class="form-control form-control-sm" step="0.001" min="0" value="1"></td>
     <td><input type="number" name="${p}-${idx}-unit_price_net" class="form-control form-control-sm" step="0.01" min="0"></td>
@@ -292,6 +360,7 @@ if (document.querySelectorAll('#items-tbody .item-row').length === 0) {
 }
 
 recalcAll();
+toggleExemption();
 
 // ── Autocomplete nabywcy ───────────────────────────────────────────────────
 (function () {

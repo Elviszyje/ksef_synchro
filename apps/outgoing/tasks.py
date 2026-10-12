@@ -17,7 +17,7 @@ def send_queued_outgoing_invoices(self, company_id: int | None = None):
     from apps.accounts.models import CompanyLicense
     from apps.ksef.models import KSeFConfig
     from apps.ksef.client import KSeFClient, KSeFAuthError, KSeFAPIError, KSeFRateLimitError
-    from apps.ksef.generator import FA2Generator, FA2GeneratorError
+    from apps.ksef.generator import FA3Generator, FA3GeneratorError
 
     qs = OutgoingInvoice.objects.filter(status=OutgoingInvoice.STATUS_QUEUED)
     if company_id is not None:
@@ -32,7 +32,7 @@ def send_queued_outgoing_invoices(self, company_id: int | None = None):
         if not invoices:
             return
 
-    generator = FA2Generator()
+    generator = FA3Generator()
 
     # Grupuj per firma (każda firma ma osobny token KSeF)
     by_company: dict[int, list] = {}
@@ -84,7 +84,7 @@ def send_queued_outgoing_invoices(self, company_id: int | None = None):
                         ])
                         logger.info('Faktura %s wysłana do KSeF, ref=%s', inv.invoice_number, submission_ref)
 
-                    except FA2GeneratorError as exc:
+                    except FA3GeneratorError as exc:
                         logger.error('Błąd generowania XML dla %s: %s', inv.invoice_number, exc)
                         inv.status = OutgoingInvoice.STATUS_REJECTED
                         inv.error_message = f'Błąd generowania XML: {exc}'

@@ -70,12 +70,19 @@ class ElixirGenerator(BasePaymentGenerator):
         invoice_nr = self._clean_text(inv.invoice_number, 35)
         free_text = self._clean_text(f'Faktura {inv.invoice_number}', 33)
 
-        split_title = (
-            f'/VAT/{format_amount(vat_amount)}'
+        # Kwota VAT zachowuje przecinek dziesiętny (/VAT/23,09/ — format_danych.pdf s. 15–17).
+        # _q() usuwa przecinki, więc stosujemy go tylko do części po kwocie VAT;
+        # pole jest w cudzysłowach, więc przecinek nie rozbija CSV.
+        vat_part = f'/VAT/{format_amount(vat_amount)}'
+        rest = (
             f'/IDC/{inv.seller_nip}'
             f'/INV/{invoice_nr}'
             f'/TXT/{free_text}'
         )
+        split_title = (vat_part + rest)[:140]
+        title_vat, title_rest = split_title[:len(vat_part)], split_title[len(vat_part):]
+        title_rest = title_rest.replace('"', '').replace(',', '')
+        quoted_title = f'"{title_vat}{title_rest}"'
 
         sender_name = self._clean_text(f'{self.company_name} {self.company_address}', 140)
         receiver_name = self._clean_text(f'{inv.seller_name} {inv.seller_address}', 140)
@@ -90,7 +97,7 @@ class ElixirGenerator(BasePaymentGenerator):
             _q(sender_name),
             _q(receiver_name),
             '', '',
-            _q(split_title[:140]),
+            quoted_title,
             '', '', '', '',
             f'"{inv.seller_nip}"',
         ]

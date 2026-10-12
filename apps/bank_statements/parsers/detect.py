@@ -10,6 +10,22 @@ Kolejność prób:
 from .base import ParsedStatement
 from . import velobank_csv, erste_csv
 
+# Kolejność kodowań przy odczycie wyciągu. ISO-8859-1 dekoduje każdy ciąg bajtów,
+# więc musi być ostatnie — inaczej pliki Windows-1250 tracą polskie znaki
+# ("Opłata" → "Op³ata"). utf-8-sig obsługuje też zwykłe UTF-8 i usuwa BOM.
+STATEMENT_ENCODINGS = ('utf-8-sig', 'windows-1250', 'iso-8859-1')
+
+
+def decode_statement(data: bytes) -> str | None:
+    """Dekoduje plik wyciągu; None, gdy żadne kodowanie nie pasuje."""
+    for encoding in STATEMENT_ENCODINGS:
+        try:
+            return data.decode(encoding)
+        except UnicodeDecodeError:
+            continue
+    return None
+
+
 # Rejestr parserów CSV: bank_key → moduł parsera
 _CSV_PARSERS: dict[str, object] = {
     'velobank': velobank_csv,
