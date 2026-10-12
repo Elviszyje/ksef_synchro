@@ -1,0 +1,30 @@
+[
+  {
+    "input": "FV/0030/09/2026",
+    "output": "FV3092026"
+  },
+  {
+    "input": "fv-30-9-2026",
+    "output": "FV3092026"
+  },
+  {
+    "input": "01/10/2026",
+    "output": "1102026"
+  },
+  {
+    "input": "A 001 b",
+    "output": "A1B"
+  },
+  {
+    "input": "0000",
+    "output": "0"
+  },
+  {
+    "input": "X/0/Y",
+    "output": "X0Y"
+  },
+  {
+    "input": "ab12cd",
+    "output": "AB12CD"
+  }
+]

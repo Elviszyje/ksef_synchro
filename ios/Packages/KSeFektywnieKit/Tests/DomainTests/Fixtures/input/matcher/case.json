@@ -1,0 +1,22 @@
+{
+  "invoices": [
+    {"id": 10, "invoice_number": "FV/0030/09/2026", "seller_nip": "5260250274", "amount_gross": "1446.00", "bank_account_number": "61109010140000071219812874"},
+    {"id": 11, "invoice_number": "01/10/2026", "seller_nip": "7740001454", "amount_gross": "24600.00", "bank_account_number": "11114010100000123456789012"},
+    {"id": 12, "invoice_number": "A-1", "seller_nip": "1111111111", "amount_gross": "999.99", "bank_account_number": "22222222222222222222222222"},
+    {"id": 13, "invoice_number": "B-2", "seller_nip": "3333333333", "amount_gross": "310.00", "bank_account_number": "33333333333333333333333333"},
+    {"id": 14, "invoice_number": "5512/A/2026", "seller_nip": "4444444444", "amount_gross": "310.00", "bank_account_number": "44444444444444444444444444"},
+    {"id": 15, "invoice_number": "FVS/77/2026", "seller_nip": "5213000111", "amount_gross": "4123.35", "bank_account_number": "12102010260000040201234567"},
+    {"id": 16, "invoice_number": "DUP/1", "seller_nip": "6666666666", "amount_gross": "50.00", "bank_account_number": "66666666666666666666666666"},
+    {"id": 17, "invoice_number": "DUP/2", "seller_nip": "7777777777", "amount_gross": "50.00", "bank_account_number": "77777777777777777777777777"}
+  ],
+  "transactions": [
+    {"amount": "1446.00", "is_credit": false, "description": "Faktura FV/30/09/2026 NIP 5260250274", "reference": "NONREF"},
+    {"amount": "24600.00", "is_credit": false, "description": "/VAT/4600,00/IDC/7740001454/INV/01/10/2026", "reference": "2610120001"},
+    {"amount": "999.99", "is_credit": false, "description": "Oplata bez numeru", "reference": ""},
+    {"amount": "310.00", "is_credit": false, "description": "Platnosc INV no. 5512/A/2026 dla dostawcy", "reference": ""},
+    {"amount": "4123.35", "is_credit": false, "description": "przelew", "reference": "12102010260000040201234567"},
+    {"amount": "50.00", "is_credit": false, "description": "nic", "reference": ""},
+    {"amount": "5000.00", "is_credit": true, "description": "Wplata FV/2026/0001", "reference": ""},
+    {"amount": "1446.00", "is_credit": false, "description": "faktura nr: fv-0030-09-2026", "reference": ""}
+  ]
+}

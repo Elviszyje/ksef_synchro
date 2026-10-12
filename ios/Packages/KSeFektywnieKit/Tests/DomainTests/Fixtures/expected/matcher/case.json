@@ -1,0 +1,38 @@
+[
+  {
+    "confidence": "high",
+    "invoice_id": 10,
+    "match_type": "invoice_nr",
+    "transaction_index": 0
+  },
+  {
+    "confidence": "high",
+    "invoice_id": 11,
+    "match_type": "invoice_nr",
+    "transaction_index": 1
+  },
+  {
+    "confidence": "low",
+    "invoice_id": 12,
+    "match_type": "amount",
+    "transaction_index": 2
+  },
+  {
+    "confidence": "medium",
+    "invoice_id": 14,
+    "match_type": "invoice_nr",
+    "transaction_index": 3
+  },
+  {
+    "confidence": "high",
+    "invoice_id": 15,
+    "match_type": "invoice_nr",
+    "transaction_index": 4
+  },
+  {
+    "confidence": "medium",
+    "invoice_id": 10,
+    "match_type": "invoice_nr",
+    "transaction_index": 7
+  }
+]

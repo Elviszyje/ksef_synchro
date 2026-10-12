@@ -1,0 +1,65 @@
+[
+  {
+    "account": "61109010140000071219812874",
+    "bank_key": "erste",
+    "extension": "txt",
+    "file_suffix": "Erste_Bank",
+    "label": "Erste Bank"
+  },
+  {
+    "account": "61 1090 1014 0000 0712 1981 2874",
+    "bank_key": "erste",
+    "extension": "txt",
+    "file_suffix": "Erste_Bank",
+    "label": "Erste Bank"
+  },
+  {
+    "account": "12-1020-1026-0000-0402-0123-4567",
+    "bank_key": "pko_bp",
+    "extension": "pli",
+    "file_suffix": "PKO_BP",
+    "label": "PKO BP"
+  },
+  {
+    "account": "98114020040000320276543210",
+    "bank_key": "mbank",
+    "extension": "txt",
+    "file_suffix": "mBank",
+    "label": "mBank"
+  },
+  {
+    "account": "16168010000000000000001234",
+    "bank_key": "velobank",
+    "extension": "pli",
+    "file_suffix": "VeloBank",
+    "label": "VeloBank"
+  },
+  {
+    "account": "11114010100000123456789012",
+    "bank_key": "mbank",
+    "extension": "txt",
+    "file_suffix": "mBank",
+    "label": "mBank"
+  },
+  {
+    "account": "PL61109010140000071219812874",
+    "bank_key": "other",
+    "extension": "pli",
+    "file_suffix": "Przelew",
+    "label": ""
+  },
+  {
+    "account": "123",
+    "bank_key": "other",
+    "extension": "pli",
+    "file_suffix": "Przelew",
+    "label": ""
+  },
+  {
+    "account": "",
+    "bank_key": "other",
+    "extension": "pli",
+    "file_suffix": "Przelew",
+    "label": ""
+  }
+]

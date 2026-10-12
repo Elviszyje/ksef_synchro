@@ -1,0 +1,72 @@
+{
+  "account_number": "PL61109010140000071219812874",
+  "bank_key": "mt940",
+  "detect": {
+    "erste": false,
+    "mt940": true,
+    "velobank": false
+  },
+  "statement_date": "2026-10-10",
+  "transactions": [
+    {
+      "amount": "1446.00",
+      "counterparty": "",
+      "currency": "PLN",
+      "description": "Przelew wychodzacy 020~00 Faktura FV/30/09/2026 NIP 5260250274 Hurtownia Lodzka",
+      "is_credit": false,
+      "reference": "NONREF",
+      "transaction_date": "2026-10-12",
+      "value_date": "2026-10-12"
+    },
+    {
+      "amount": "24600.00",
+      "counterparty": "",
+      "currency": "PLN",
+      "description": "/VAT/4600,00/IDC/7740001454/INV/01/10/2026/TXT/Faktura 1/10/2026",
+      "is_credit": false,
+      "reference": "2610120001",
+      "transaction_date": "2026-10-12",
+      "value_date": "2026-10-12"
+    },
+    {
+      "amount": "5000.00",
+      "counterparty": "",
+      "currency": "PLN",
+      "description": "Wplata od klienta FV/2026/0001",
+      "is_credit": true,
+      "reference": "NONREF",
+      "transaction_date": "2026-10-12",
+      "value_date": "2026-10-12"
+    },
+    {
+      "amount": "999.99",
+      "counterparty": "",
+      "currency": "PLN",
+      "description": "Oplata za cos bez numeru",
+      "is_credit": false,
+      "reference": "REF3",
+      "transaction_date": "2026-10-13",
+      "value_date": "2026-10-13"
+    },
+    {
+      "amount": "15.50",
+      "counterparty": "",
+      "currency": "PLN",
+      "description": "Storno",
+      "is_credit": false,
+      "reference": "REF4",
+      "transaction_date": "2026-10-13",
+      "value_date": "2026-10-13"
+    },
+    {
+      "amount": "310.00",
+      "counterparty": "",
+      "currency": "PLN",
+      "description": "Platnosc INV no. 5512/A/2026 dla dostawcy",
+      "is_credit": false,
+      "reference": "",
+      "transaction_date": "2026-10-13",
+      "value_date": "2026-10-13"
+    }
+  ]
+}

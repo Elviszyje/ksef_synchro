@@ -1,0 +1,54 @@
+name: KSeFektywnie
+options:
+  bundleIdPrefix: pl.ksefektywnie
+  developmentLanguage: pl
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+packages:
+  KSeFektywnieKit:
+    path: Packages/KSeFektywnieKit
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+    SWIFT_APPROACHABLE_CONCURRENCY: YES
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+    SWIFT_EMIT_LOC_STRINGS: YES
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+targets:
+  KSeFektywnie:
+    type: application
+    platform: iOS
+    sources:
+      - path: KSeFektywnie
+    dependencies:
+      - package: KSeFektywnieKit
+        products: [Domain, KSeFClient, Persistence, AppServices]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: pl.ksefektywnie.app
+        PRODUCT_NAME: KSeFektywnie
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        TARGETED_DEVICE_FAMILY: "1"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: KS-eFektywnie
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.finance
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
+        INFOPLIST_KEY_NSFaceIDUsageDescription: "Face ID chroni dostęp do Twoich faktur i danych bankowych."
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        CODE_SIGN_STYLE: Automatic
+schemes:
+  KSeFektywnie:
+    build:
+      targets:
+        KSeFektywnie: all
+    run:
+      config: Debug
+      storeKitConfiguration: KSeFektywnie/Resources/Tips.storekit
+    test:
+      config: Debug

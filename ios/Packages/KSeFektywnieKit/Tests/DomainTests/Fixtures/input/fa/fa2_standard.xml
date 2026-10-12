@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Faktura xmlns="http://crd.gov.pl/wzor/2023/06/29/12648/" xmlns:etd="http://crd.gov.pl/xml/schematy/dziedzinowe/mf/2022/01/05/eD/DefinicjeTypy/">
+  <Naglowek>
+    <KodFormularza kodSystemowy="FA (2)" wersjaSchemy="1-0E">FA</KodFormularza>
+    <WariantFormularza>2</WariantFormularza>
+    <DataWytworzeniaFa>2026-09-15T10:12:00Z</DataWytworzeniaFa>
+    <SystemInfo>Test</SystemInfo>
+  </Naglowek>
+  <Podmiot1>
+    <DaneIdentyfikacyjne>
+      <NIP>5260250274</NIP>
+      <PelnaNazwa>Hurtownia Łódzka Sp. z o.o.</PelnaNazwa>
+    </DaneIdentyfikacyjne>
+    <Adres>
+      <KodKraju>PL</KodKraju>
+      <AdresL1>ul. Piotrkowska 120/4</AdresL1>
+      <AdresL2>90-006 Łódź</AdresL2>
+    </Adres>
+  </Podmiot1>
+  <Podmiot2>
+    <DaneIdentyfikacyjne>
+      <NIP>1132854320</NIP>
+      <Nazwa>Moja Firma</Nazwa>
+    </DaneIdentyfikacyjne>
+  </Podmiot2>
+  <Fa>
+    <KodWaluty>PLN</KodWaluty>
+    <P_1>2026-09-15</P_1>
+    <P_2>FV/0030/09/2026</P_2>
+    <P_13_1>1000.00</P_13_1>
+    <P_14_1>230.00</P_14_1>
+    <P_13_2>200.00</P_13_2>
+    <P_14_2>16.00</P_14_2>
+    <P_15>1446.00</P_15>
+    <RodzajFaktury>VAT</RodzajFaktury>
+    <FaWiersz>
+      <NrWierszaFa>1</NrWierszaFa>
+      <P_7>Papier biurowy A4</P_7>
+      <P_8A>ryza</P_8A>
+      <P_8B>50</P_8B>
+      <P_9A>20.00</P_9A>
+      <P_11>1000.00</P_11>
+      <P_12>23</P_12>
+    </FaWiersz>
+    <FaWiersz>
+      <NrWierszaFa>2</NrWierszaFa>
+      <P_7>Kawa ziarnista</P_7>
+      <P_8A>kg</P_8A>
+      <P_8B>4</P_8B>
+      <P_9A>50.00</P_9A>
+      <P_11>200.00</P_11>
+      <P_12>8</P_12>
+    </FaWiersz>
+    <FaWiersz>
+      <NrWierszaFa>3</NrWierszaFa>
+      <P_7>Papier biurowy A4</P_7>
+      <P_8A>ryza</P_8A>
+      <P_8B>0</P_8B>
+      <P_9A>0</P_9A>
+      <P_11>0</P_11>
+      <P_12>23</P_12>
+    </FaWiersz>
+    <Platnosc>
+      <TerminPlatnosci>
+        <Termin>2026-09-29</Termin>
+      </TerminPlatnosci>
+      <FormaPlatnosci>6</FormaPlatnosci>
+      <RachunekBankowy>
+        <NrRB>PL 61 1090 1014 0000 0712 1981 2874</NrRB>
+      </RachunekBankowy>
+    </Platnosc>
+  </Fa>
+</Faktura>

@@ -1,0 +1,26 @@
+{
+  "line_items": [],
+  "parsed": {
+    "amount_gross": "0",
+    "amount_net": "0",
+    "amount_vat": "0",
+    "bank_account_number": "",
+    "buyer_nip": "",
+    "currency": "PLN",
+    "description": "",
+    "invoice_number": "",
+    "invoice_type": "",
+    "is_paid": false,
+    "is_split_payment": false,
+    "issue_date": null,
+    "ksef_reference_number": "REF-broken",
+    "payment_date": null,
+    "payment_due_date": null,
+    "payment_form": "",
+    "payment_title": "",
+    "seller_address": "",
+    "seller_name": "",
+    "seller_nip": "",
+    "vat_amount_split": null
+  }
+}

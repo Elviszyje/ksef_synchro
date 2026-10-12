@@ -1,0 +1,109 @@
+{
+  "identifier": "8C4D825B-2E20-4DDF-88EB-F112F2C63F7A",
+  "nonRenewingSubscriptions": [],
+  "products": [
+    {
+      "displayPrice": "4.99",
+      "familyShareable": false,
+      "internalID": "10000000",
+      "localizations": [
+        {
+          "description": "Mały napiwek",
+          "displayName": "Kawa dla autora",
+          "locale": "pl"
+        },
+        {
+          "description": "A small tip",
+          "displayName": "Coffee for the developer",
+          "locale": "en"
+        },
+        {
+          "description": "Una pequeña propina",
+          "displayName": "Un café para el desarrollador",
+          "locale": "es"
+        },
+        {
+          "description": "Невеликі чайові",
+          "displayName": "Кава для розробника",
+          "locale": "uk"
+        }
+      ],
+      "productID": "pl.ksefektywnie.tip.coffee",
+      "referenceName": "Tip coffee",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "14.99",
+      "familyShareable": false,
+      "internalID": "10000001",
+      "localizations": [
+        {
+          "description": "Średni napiwek",
+          "displayName": "Obiad dla autora",
+          "locale": "pl"
+        },
+        {
+          "description": "A medium tip",
+          "displayName": "Lunch for the developer",
+          "locale": "en"
+        },
+        {
+          "description": "Una propina mediana",
+          "displayName": "Una comida para el desarrollador",
+          "locale": "es"
+        },
+        {
+          "description": "Середні чайові",
+          "displayName": "Обід для розробника",
+          "locale": "uk"
+        }
+      ],
+      "productID": "pl.ksefektywnie.tip.lunch",
+      "referenceName": "Tip lunch",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "49.99",
+      "familyShareable": false,
+      "internalID": "10000002",
+      "localizations": [
+        {
+          "description": "Duży napiwek",
+          "displayName": "Wielkie dzięki",
+          "locale": "pl"
+        },
+        {
+          "description": "A big tip",
+          "displayName": "Huge thanks",
+          "locale": "en"
+        },
+        {
+          "description": "Una gran propina",
+          "displayName": "Muchísimas gracias",
+          "locale": "es"
+        },
+        {
+          "description": "Великі чайові",
+          "displayName": "Величезна подяка",
+          "locale": "uk"
+        }
+      ],
+      "productID": "pl.ksefektywnie.tip.big",
+      "referenceName": "Tip big",
+      "type": "Consumable"
+    }
+  ],
+  "settings": {
+    "_applicationInternalID": "0",
+    "_developerTeamID": "",
+    "_failTransactionsEnabled": false,
+    "_locale": "pl_PL",
+    "_storefront": "POL",
+    "_storeKitErrors": []
+  },
+  "subscriptionGroups": [],
+  "version": {
+    "major": 4,
+    "minor": 0
+  }
+}

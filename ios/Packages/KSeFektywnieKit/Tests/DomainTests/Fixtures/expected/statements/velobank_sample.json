@@ -1,0 +1,42 @@
+{
+  "account_number": "16168010000000000000001234",
+  "bank_key": "velobank",
+  "detect": {
+    "erste": false,
+    "mt940": false,
+    "velobank": true
+  },
+  "statement_date": "2026-10-13",
+  "transactions": [
+    {
+      "amount": "4123.35",
+      "counterparty": "Dostawca Energii S.A.",
+      "currency": "PLN",
+      "description": "FAKTURA FVS/77/2026 NIP 5213000111",
+      "is_credit": false,
+      "reference": "'12 1020 1026 0000 0402 0123 4567",
+      "transaction_date": "2026-10-12",
+      "value_date": "2026-10-12"
+    },
+    {
+      "amount": "2000.00",
+      "counterparty": "Klient X",
+      "currency": "PLN",
+      "description": "Przelew przychodzący",
+      "is_credit": true,
+      "reference": "'98 1140 2004 0000 3202 7654 3210",
+      "transaction_date": "2026-10-12",
+      "value_date": "2026-10-12"
+    },
+    {
+      "amount": "2323.00",
+      "counterparty": "Bank",
+      "currency": "PLN",
+      "description": "Opłata",
+      "is_credit": false,
+      "reference": "",
+      "transaction_date": "2026-10-13",
+      "value_date": "2026-10-13"
+    }
+  ]
+}

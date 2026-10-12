@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tns:Faktura xmlns:tns="http://crd.gov.pl/wzor/2025/06/25/13775/">
+  <tns:Podmiot1>
+    <tns:DaneIdentyfikacyjne>
+      <tns:NIP>9512345678</tns:NIP>
+      <tns:Imie>Jan</tns:Imie>
+      <tns:Nazwisko>Kowalski</tns:Nazwisko>
+    </tns:DaneIdentyfikacyjne>
+  </tns:Podmiot1>
+  <tns:Podmiot2>
+    <tns:DaneIdentyfikacyjne>
+      <tns:NIP>1132854320</tns:NIP>
+    </tns:DaneIdentyfikacyjne>
+  </tns:Podmiot2>
+  <tns:Fa>
+    <tns:KodWaluty>EUR</tns:KodWaluty>
+    <tns:P_1>2026-10-05</tns:P_1>
+    <tns:P_2>KOR/7/2026</tns:P_2>
+    <tns:P_15>-123.00</tns:P_15>
+    <tns:RodzajFaktury>KOR</tns:RodzajFaktury>
+    <tns:FaWiersz>
+      <tns:P_7>Zwrot usługi</tns:P_7>
+      <tns:P_11>-100.00</tns:P_11>
+      <tns:P_12>23</tns:P_12>
+    </tns:FaWiersz>
+    <tns:Platnosc>
+      <tns:Zaplacono>1</tns:Zaplacono>
+      <tns:DataZaplaty>2026-10-06</tns:DataZaplaty>
+      <tns:FormaPlatnosci>2</tns:FormaPlatnosci>
+      <tns:RachunekBankowy>
+        <tns:NrRB>DE89370400440532013000</tns:NrRB>
+      </tns:RachunekBankowy>
+    </tns:Platnosc>
+  </tns:Fa>
+</tns:Faktura>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Faktura xmlns="http://crd.gov.pl/wzor/2025/06/25/13775/">
+  <Podmiot1><DaneIdentyfikacyjne><NIP>6260181591</NIP><Nazwa>Hurtownia Mieszana</Nazwa></DaneIdentyfikacyjne></Podmiot1>
+  <Podmiot2><DaneIdentyfikacyjne><NIP>1111111111</NIP><Nazwa>Moja Firma</Nazwa></DaneIdentyfikacyjne><JST>2</JST><GV>2</GV></Podmiot2>
+  <Fa><KodWaluty>PLN</KodWaluty><P_1>2026-10-01</P_1><P_2>FV/MIX/1</P_2>
+    <P_13_1>100.00</P_13_1><P_14_1>23.00</P_14_1>
+    <P_13_2>50.00</P_13_2><P_14_2>4.00</P_14_2>
+    <P_13_6_1>50.00</P_13_6_1>
+    <P_13_7>10.00</P_13_7>
+    <P_13_8>20.00</P_13_8>
+    <P_13_10>30.00</P_13_10>
+    <P_13_11>5.00</P_13_11>
+    <P_15>292.00</P_15>
+  </Fa>
+</Faktura>

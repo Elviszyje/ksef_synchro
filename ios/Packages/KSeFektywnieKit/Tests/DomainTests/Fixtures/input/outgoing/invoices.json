@@ -1,0 +1,32 @@
+{
+  "seller": {"nip": "1111111111", "name": "Firma Demo Sp. z o.o. & Wspólnicy", "address": "ul. Testowa 10\n00-950 Warszawa"},
+  "bank_account": "61109010140000071219812874",
+  "now": "2026-10-12T08:30:00+00:00",
+  "cases": [
+    {
+      "name": "mixed_rates",
+      "invoice": {"invoice_number": "FV/2026/0001", "issue_date": "2026-10-12", "delivery_date": "2026-10-10",
+                  "payment_due_date": "2026-10-26", "payment_form": "przelew", "currency": "PLN",
+                  "buyer_nip": "6260181591", "buyer_name": "Klient <A&B> S.A.", "buyer_address": "ul. Kupiecka 1\n30-001 Kraków",
+                  "vat_exemption_type": "ustawa", "vat_exemption_basis": ""},
+      "items": [
+        {"name": "Usługa programistyczna", "unit": "h", "quantity": "12.5", "unit_price_net": "200.00", "vat_rate": "23"},
+        {"name": "Książka", "unit": "szt.", "quantity": "2", "unit_price_net": "45.50", "vat_rate": "5"},
+        {"name": "Catering", "unit": "szt.", "quantity": "3", "unit_price_net": "19.99", "vat_rate": "8"},
+        {"name": "Usługa 0%", "unit": "szt.", "quantity": "1", "unit_price_net": "100.00", "vat_rate": "0"},
+        {"name": "Usługa poza krajem", "unit": "szt.", "quantity": "1.255", "unit_price_net": "300.00", "vat_rate": "np"}
+      ]
+    },
+    {
+      "name": "exempt_cash",
+      "invoice": {"invoice_number": "FV/2026/0002", "issue_date": "2026-10-12", "delivery_date": null,
+                  "payment_due_date": "2026-10-12", "payment_form": "gotowka", "currency": "PLN",
+                  "buyer_nip": "1830166138", "buyer_name": "Kursant", "buyer_address": "",
+                  "vat_exemption_type": "dyrektywa", "vat_exemption_basis": "art. 132 ust. 1 lit. i dyrektywy 2006/112/WE"},
+      "items": [
+        {"name": "Szkolenie BHP", "unit": "os.", "quantity": "3", "unit_price_net": "350.00", "vat_rate": "zw"},
+        {"name": "Materiały", "unit": "kpl.", "quantity": "0.333", "unit_price_net": "10.01", "vat_rate": "23"}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+# Projekt Xcode jest generowany z project.yml (xcodegen generate)
+*.xcodeproj
+xcuserdata/
+DerivedData/
+.build/
+.swiftpm/
+Packages/KSeFektywnieKit/.build/
+Packages/KSeFektywnieKit/Package.resolved.bak

@@ -1,0 +1,42 @@
+[
+  {
+    "input": "Zażółć gęślą jaźń",
+    "max_len": 80,
+    "output": "Zazolc gesla jazn"
+  },
+  {
+    "input": "Café Müller & Søn ✓ «Quotes»",
+    "max_len": 80,
+    "output": "Café Müller & Søn    Quotes"
+  },
+  {
+    "input": "  tab\tand\nnewline  ",
+    "max_len": 80,
+    "output": "tab\tand\nnewline"
+  },
+  {
+    "input": "a|b;c\"d'e<f>g~h`i",
+    "max_len": 80,
+    "output": "a b;c d e f g h i"
+  },
+  {
+    "input": "Faktura FV/2026/0001",
+    "max_len": 10,
+    "output": "Faktura FV"
+  },
+  {
+    "input": "ŁÓDŹ ŚRÓDMIEŚCIE",
+    "max_len": 5,
+    "output": "LODZ"
+  },
+  {
+    "input": "",
+    "max_len": 10,
+    "output": ""
+  },
+  {
+    "input": "under_score + plus = equals [x] {y} !@#$%^&*()/?",
+    "max_len": 140,
+    "output": "under_score + plus = equals [x] {y} !@#$%^&*()/?"
+  }
+]

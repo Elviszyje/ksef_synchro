@@ -1,0 +1,5 @@
+"Nr rachunku";"Data transakcji";"Data ksiegowania";"Opis transakcji";"Kwota";"Waluta";"Saldo po transakcji"
+"61 1090 1014 0000 0712 1981 2874";"12.10.2026";"12.10.2026";"Przelew do Hurtownia Łódzka; Faktura FV/0030/09/2026";"-1 446,00";"PLN";"98 554,00"
+"61 1090 1014 0000 0712 1981 2874";"12.10.2026";"13.10.2026";"Wpływ od klienta, FV 2026/1";"5 000,00";"PLN";"103 554,00"
+"61 1090 1014 0000 0712 1981 2874";"13.10.2026";"";"Opłata ""miesięczna""";"-12,00";"PLN";"103 542,00"
+"61 1090 1014 0000 0712 1981 2874";"bad";"13.10.2026";"Wiersz bez daty";"-1,00";"PLN";"0"

@@ -1,0 +1,37 @@
+{
+  "correction": {
+    "nowa": [
+      "sporna",
+      "zaakceptowana"
+    ],
+    "oplacona": [],
+    "sporna": [
+      "nowa",
+      "zaakceptowana"
+    ],
+    "zaakceptowana": [
+      "sporna"
+    ]
+  },
+  "standard": {
+    "nowa": [
+      "sporna",
+      "zaakceptowana",
+      "oplacona"
+    ],
+    "oplacona": [],
+    "przekazano_do_oplacenia": [
+      "oplacona"
+    ],
+    "sporna": [
+      "nowa",
+      "zaakceptowana",
+      "oplacona"
+    ],
+    "zaakceptowana": [
+      "sporna",
+      "przekazano_do_oplacenia",
+      "oplacona"
+    ]
+  }
+}

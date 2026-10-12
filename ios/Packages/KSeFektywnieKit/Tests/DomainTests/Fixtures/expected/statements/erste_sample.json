@@ -1,0 +1,42 @@
+{
+  "account_number": "61109010140000071219812874",
+  "bank_key": "erste",
+  "detect": {
+    "erste": true,
+    "mt940": false,
+    "velobank": false
+  },
+  "statement_date": "2026-10-12",
+  "transactions": [
+    {
+      "amount": "1446.00",
+      "counterparty": "",
+      "currency": "PLN",
+      "description": "Przelew do Hurtownia Łódzka; Faktura FV/0030/09/2026",
+      "is_credit": false,
+      "reference": "",
+      "transaction_date": "2026-10-12",
+      "value_date": "2026-10-12"
+    },
+    {
+      "amount": "5000.00",
+      "counterparty": "",
+      "currency": "PLN",
+      "description": "Wpływ od klienta, FV 2026/1",
+      "is_credit": true,
+      "reference": "",
+      "transaction_date": "2026-10-12",
+      "value_date": "2026-10-13"
+    },
+    {
+      "amount": "12.00",
+      "counterparty": "",
+      "currency": "PLN",
+      "description": "Opłata \"miesięczna",
+      "is_credit": false,
+      "reference": "",
+      "transaction_date": "2026-10-13",
+      "value_date": "2026-10-13"
+    }
+  ]
+}

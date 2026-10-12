@@ -1,0 +1,3 @@
+# Golden files plików bankowych: CRLF i CP1250 muszą zostać bajt w bajt
+Packages/KSeFektywnieKit/Tests/DomainTests/Fixtures/expected/payments/* binary
+Packages/KSeFektywnieKit/Tests/DomainTests/Fixtures/input/statements/* -text

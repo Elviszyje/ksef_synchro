@@ -1,0 +1,76 @@
+{
+  "invoice_fields": {
+    "amount_gross": "1446.00",
+    "amount_net": "1200.00",
+    "amount_vat": "246.00",
+    "bank_account_number": "61109010140000071219812874",
+    "buyer_nip": "1132854320",
+    "currency": "PLN",
+    "description": "Papier biurowy A4; Kawa ziarnista",
+    "invoice_number": "FV/0030/09/2026",
+    "invoice_type": "VAT",
+    "is_split_payment": false,
+    "issue_date": "2026-09-15",
+    "payment_date": null,
+    "payment_due_date": "2026-09-29",
+    "payment_form": "przelew",
+    "payment_title": "Faktura FV/0030/09/2026",
+    "seller_address": "ul. Piotrkowska 120/4, 90-006 Łódź",
+    "seller_name": "Hurtownia Łódzka Sp. z o.o.",
+    "seller_nip": "5260250274",
+    "status": "nowa",
+    "vat_amount_split": null
+  },
+  "line_items": [
+    {
+      "name": "Papier biurowy A4",
+      "net_value": "1000.00",
+      "nr": "1",
+      "qty": "50",
+      "unit": "ryza",
+      "unit_price": "20.00",
+      "vat_rate": "23"
+    },
+    {
+      "name": "Kawa ziarnista",
+      "net_value": "200.00",
+      "nr": "2",
+      "qty": "4",
+      "unit": "kg",
+      "unit_price": "50.00",
+      "vat_rate": "8"
+    },
+    {
+      "name": "Papier biurowy A4",
+      "net_value": "0",
+      "nr": "3",
+      "qty": "0",
+      "unit": "ryza",
+      "unit_price": "0",
+      "vat_rate": "23"
+    }
+  ],
+  "parsed": {
+    "amount_gross": "1446.00",
+    "amount_net": "1200.00",
+    "amount_vat": "246.00",
+    "bank_account_number": "61109010140000071219812874",
+    "buyer_nip": "1132854320",
+    "currency": "PLN",
+    "description": "Papier biurowy A4; Kawa ziarnista",
+    "invoice_number": "FV/0030/09/2026",
+    "invoice_type": "VAT",
+    "is_paid": false,
+    "is_split_payment": false,
+    "issue_date": "2026-09-15",
+    "ksef_reference_number": "REF-fa2_standard",
+    "payment_date": null,
+    "payment_due_date": "2026-09-29",
+    "payment_form": "przelew",
+    "payment_title": "Faktura FV/0030/09/2026",
+    "seller_address": "ul. Piotrkowska 120/4, 90-006 Łódź",
+    "seller_name": "Hurtownia Łódzka Sp. z o.o.",
+    "seller_nip": "5260250274",
+    "vat_amount_split": null
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "invoice_fields": {
+    "amount_gross": "24600.00",
+    "amount_net": "20000.00",
+    "amount_vat": "4600.00",
+    "bank_account_number": "11114010100000123456789012",
+    "buyer_nip": "1132854320",
+    "currency": "PLN",
+    "description": "Pręt zbrojeniowy fi 12",
+    "invoice_number": "01/10/2026",
+    "invoice_type": "VAT",
+    "is_split_payment": true,
+    "issue_date": "2026-10-01",
+    "payment_date": null,
+    "payment_due_date": "2026-10-31",
+    "payment_form": "przelew",
+    "payment_title": "Faktura 01/10/2026",
+    "seller_address": "Aleja Bardzo Długiej Nazwy Ulicy Przemysłowej 12345, 00-001 ",
+    "seller_name": "Budmax Stal S.A.",
+    "seller_nip": "7740001454",
+    "status": "nowa",
+    "vat_amount_split": null
+  },
+  "line_items": [
+    {
+      "name": "Pręt zbrojeniowy fi 12",
+      "net_value": "20000",
+      "nr": "1",
+      "qty": "5",
+      "unit": "t",
+      "unit_price": "4000",
+      "vat_rate": "23"
+    }
+  ],
+  "parsed": {
+    "amount_gross": "24600.00",
+    "amount_net": "20000.00",
+    "amount_vat": "4600.00",
+    "bank_account_number": "11114010100000123456789012",
+    "buyer_nip": "1132854320",
+    "currency": "PLN",
+    "description": "Pręt zbrojeniowy fi 12",
+    "invoice_number": "01/10/2026",
+    "invoice_type": "VAT",
+    "is_paid": false,
+    "is_split_payment": true,
+    "issue_date": "2026-10-01",
+    "ksef_reference_number": "REF-fa3_split_payment",
+    "payment_date": null,
+    "payment_due_date": "2026-10-31",
+    "payment_form": "przelew",
+    "payment_title": "Faktura 01/10/2026",
+    "seller_address": "Aleja Bardzo Długiej Nazwy Ulicy Przemysłowej 12345, 00-001 ",
+    "seller_name": "Budmax Stal S.A.",
+    "seller_nip": "7740001454",
+    "vat_amount_split": null
+  }
+}

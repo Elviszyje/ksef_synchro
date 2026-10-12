@@ -1,0 +1,10 @@
+{
+  "company": {"debit_account": "61 1090 1014 0000 0712 1981 2874", "name": "Moja Firma Spółka z ograniczoną odpowiedzialnością", "address": "ul. Żółkiewskiego 15, 00-950 Warszawa"},
+  "execution_date": "2026-10-11",
+  "invoices": [
+    {"id": 1, "invoice_number": "FV/0030/09/2026", "seller_name": "Hurtownia Łódzka Sp. z o.o.", "seller_nip": "5260250274", "seller_address": "ul. Piotrkowska 120/4, 90-006 Łódź", "amount_gross": "1446.00", "amount_vat": "246.00", "vat_amount_split": null, "is_split_payment": false, "bank_account_number": "61109010140000071219812874"},
+    {"id": 2, "invoice_number": "01/10/2026", "seller_name": "Budmax Stal S.A.", "seller_nip": "7740001454", "seller_address": "Aleja Bardzo Długiej Nazwy Ulicy Przemysłowej 12345, 00-001 Warszawa", "amount_gross": "24600.00", "amount_vat": "4600.00", "vat_amount_split": null, "is_split_payment": true, "bank_account_number": "11114010100000123456789012"},
+    {"id": 3, "invoice_number": "INV#55|12 \"special\", ąę", "seller_name": "Café Müller & Søn ✓ «Quotes»", "seller_nip": "", "seller_address": "", "amount_gross": "0.05", "amount_vat": "0.01", "vat_amount_split": "0.01", "is_split_payment": true, "bank_account_number": "12102010260000040201234567"},
+    {"id": 4, "invoice_number": "X/1", "seller_name": "Kropka, Przecinek; Średnik | Pipe", "seller_nip": "5213000111", "seller_address": "Długa 1", "amount_gross": "1234567.89", "amount_vat": "230854.39", "vat_amount_split": "230000.00", "is_split_payment": false, "bank_account_number": "98114020040000320276543210"}
+  ]
+}

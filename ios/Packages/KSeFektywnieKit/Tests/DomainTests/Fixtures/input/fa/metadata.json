@@ -1,0 +1,5 @@
+[
+  {"ksefNumber": "5260250274-20260915-0100A0B1C2D3-4E", "invoiceNumber": "FV/0030/09/2026", "invoiceIssueDate": "2026-09-15", "subjectBy": {"identifier": {"type": "Nip", "value": "5260250274"}, "name": "Hurtownia Łódzka Sp. z o.o."}, "gross": 1446.0, "net": 1200, "vat": "246.00", "currency": "PLN"},
+  {"ksefReferenceNumber": "7740001454-20261001-AAAA", "seller": {"nip": "7740001454", "fullName": "Budmax"}, "buyer": {"subjectIdentifier": {"identifier": "1132854320"}}, "grossAmount": "24600.00", "currencyCode": "EUR"},
+  {"ksefNumber": "X-1", "subjectBy": {}, "gross": 0.1}
+]
