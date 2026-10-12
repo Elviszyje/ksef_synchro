@@ -25,7 +25,7 @@ public enum DemoData {
     @discardableResult
     public static func seed(db: AppDatabase, device: String, today: LocalDate = .today(), now: Date = Date()) throws -> Company {
         let company = Company(nip: companyNIP, name: "Firma Demo Sp. z o.o.", address: "ul. Testowa 10, 00-950 Warszawa",
-                              ksefEnvironment: .test, updatedByDevice: device)
+                              ksefEnvironment: .test, createdAt: now, updatedAt: now, updatedByDevice: device)
         let account = CompanyBankAccount(companyID: company.id, accountNumber: "61109010140000071219812874", label: "Konto firmowe", isDefault: true)
         try db.writer.write { db in
             try company.insert(db)
@@ -62,7 +62,29 @@ public enum DemoData {
         ]
         try InvoiceRepository(db: db, companyID: company.id, device: device).upsertFromKSeF(invoices, now: now)
         try seedSales(company: company, account: account, db: db, device: device, today: today, now: now)
+        try seedStatement(company: company, invoices: invoices, db: db, device: device, today: today, now: now)
         return company
+    }
+
+    /// Wyciąg MT940 z zapłatą faktury przekazanej do opłacenia i jedną transakcją bez dopasowania.
+    static func seedStatement(company: Company, invoices: [Invoice], db: AppDatabase, device: String, today: LocalDate, now: Date) throws {
+        guard let sent = invoices.first(where: { $0.status == .sentForPayment }) else { return }
+        let yymmdd = String(today.compact.dropFirst(2))
+        let amount = PaymentText.formatAmount(sent.amountGross)
+        let mt940 = """
+            :20:DEMO
+            :25:/PL61109010140000071219812874
+            :60F:C\(yymmdd)PLN25000,00
+            :61:\(yymmdd)D\(amount)NTRFNONREF
+            :86:Faktura \(sent.invoiceNumber) NIP \(sent.sellerNIP) \(sent.sellerName)
+            :61:\(yymmdd)D58,40NTRFNONREF
+            :86:Oplata za prowadzenie rachunku
+            :61:\(yymmdd)C12300,00NTRFNONREF
+            :86:Wplata od klienta FV/\(today.year)/0001
+            :62F:C\(yymmdd)PLN37057,60
+            """
+        try StatementRepository(db: db, companyID: company.id, device: device)
+            .importStatement(fileName: "wyciag_demo.sta", data: Data(mt940.utf8), now: now)
     }
 
     /// Szkic faktury sprzedażowej ze stawką ZW i katalog pozycji z kilku wcześniejszych faktur.

@@ -303,7 +303,24 @@ Do zweryfikowania osobno: przebieg wysyłki faktur w Django (`invoices/send` z s
 - **Katalog pozycji**: każda zapisana pozycja (nazwa + jednostka) jest zapamiętywana z ostatnią ceną i stawką; przy kolejnej fakturze można ją wybrać albo wpisać nową. Zarządzanie katalogiem: web `/outgoing/catalog/`, iOS Ustawienia → Katalog pozycji. API: `GET /api/outgoing/catalog/`.
 - **iOS, faza 4 (bez wysyłki)**: zakładka Sprzedaż z szkicami faktur, formularz z nabywcami i katalogiem, generator FA(3) w Swift zgodny z Django (golden files walidowane XSD), podgląd i eksport XML. Wysyłka do KSeF czeka na weryfikację przebiegu sesji KSeF 2.0.
 
+### Dodane 2026-10-12 (punkty 1–6 kolejności prac)
+1. **Przelewy**: wybór zaakceptowanych faktur, rachunek obciążany, generowanie pliku, udostępnianie (Pliki, AirDrop, poczta), historia i reset paczki.
+2. **Wyciągi**: import z aplikacji Pliki (MT940, CSV Erste/VeloBank, UTF-8 i Windows-1250), automatyczne dopasowanie z poziomem pewności, potwierdzanie, ręczne przypisanie, zatwierdzenie oznaczające faktury jako opłacone. Przykładowy wyciąg w trybie demo.
+3. **Wysyłka do KSeF** zgodnie z oficjalną specyfikacją OpenAPI KSeF 2.0 (`/v2`): sesja interaktywna, AES-256-CBC + RSA-OAEP (certyfikat `SymmetricKeyEncryption`), hashe SHA-256, zamknięcie sesji, status (100/150/200/4xx) i UPO. Potwierdzenie przed wysyłką na produkcję, poprawka i ponowna wysyłka po odrzuceniu. **Nie zweryfikowane na żywo** — wymaga tokena KSeF ze środowiska testowego.
+4. **iCloud Drive**: lustro różnicowe po każdej zmianie, struktura katalogu z sekcji 4.8, przywracanie przy pierwszym uruchomieniu, katalog lokalny gdy iCloud wyłączony, ostrzeżenie o drugim urządzeniu, „Zapisz wszystko ponownie”.
+5. **Wykończenie**: podsumowanie kosztów (Swift Charts), eksport CSV, komunikaty błędów w 4 językach, synchronizacja w tle (BGAppRefreshTask) i powiadomienia o nowych fakturach, tymczasowa ikona (`scripts/generate_icon.swift`).
+6. **Publikacja (przygotowanie)**: manifest prywatności, materiały do App Store w 4 językach, notatka dla recenzenta i polityka prywatności w `docs/ios-app-store.md`.
+
+### Ustalenia ze specyfikacji KSeF 2.0 ważne dla Django
+- Endpoint `invoices/send` używany w `apps/ksef/client.py` **nie istnieje** w API 2.0 — wysyłka faktur w Django nie może działać. Właściwy przebieg jak w iOS (sesja interaktywna).
+- Django wybiera pierwszy certyfikat z `security/public-key-certificates`; KSeF zwraca dwa (token i klucz symetryczny) — należy wybierać po `usage`.
+
 ### Następne kroki
+1. Test wysyłki na `api-test` z prawdziwym tokenem; potem ta sama poprawka wysyłki w Django (na `main`).
+2. Pomoc ze zrzutami ekranu (gdy UI się ustabilizuje) i przegląd tłumaczeń es/uk.
+3. Konto Apple Developer, App Store Connect, IAP, kontener iCloud, TestFlight z księgowymi.
+
+### Poprzednie następne kroki (zrealizowane)
 1. Ekrany przelewów (wybór faktur, rachunek, udostępnienie pliku, historia, reset) — logika i repozytorium są gotowe.
 2. Ekrany wyciągów (import z Plików, przegląd dopasowań, zatwierdzanie) — wymaga repozytorium wyciągów w Persistence.
 3. Prototyp wysyłki faktury FA(3) na `api-test` przed fazą 4.

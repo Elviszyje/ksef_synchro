@@ -35,6 +35,18 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    NavigationLink { CloudSettingsView() } label: {
+                        Label {
+                            VStack(alignment: .leading) {
+                                Text("iCloud Drive")
+                                Text(model.cloud.isEnabled ? "Kopia danych włączona" : "Wyłączona")
+                                    .font(.caption).foregroundStyle(.secondary)
+                            }
+                        } icon: { Image(systemName: "icloud") }
+                    }
+                }
+
+                Section {
                     Toggle(isOn: Binding(get: { lock.isEnabled }, set: { on in
                         if on { Task { _ = await lock.enable() } } else { lock.isEnabled = false }
                     })) {
@@ -70,8 +82,29 @@ struct SettingsView: View {
             .confirmationDialog("Usunąć wszystkie dane z tego iPhone'a?", isPresented: $confirmDelete, titleVisibility: .visible) {
                 Button("Usuń", role: .destructive) { try? model.deleteAllData() }
             } message: {
-                Text("Faktury, pliki przelewów, wyciągi i token KSeF zostaną usunięte z telefonu. Faktury można ponownie pobrać z KSeF.")
+                Text("Faktury, pliki przelewów, wyciągi i token KSeF zostaną usunięte z telefonu. Pliki w iCloud Drive też znikną przy najbliższym zapisie — wyłącz wcześniej kopię w iCloud, jeśli chcesz je zachować.")
             }
+        }
+    }
+}
+
+struct NotificationsToggle: View {
+    @State private var enabled = BackgroundSync.notificationsEnabled
+
+    var body: some View {
+        Toggle(isOn: Binding(get: { enabled }, set: { on in
+            if on {
+                Task {
+                    let granted = await BackgroundSync.requestNotificationPermission()
+                    enabled = granted
+                    BackgroundSync.notificationsEnabled = granted
+                }
+            } else {
+                enabled = false
+                BackgroundSync.notificationsEnabled = false
+            }
+        })) {
+            Label("Powiadomienia o nowych fakturach", systemImage: "bell.badge")
         }
     }
 }
@@ -144,7 +177,7 @@ struct BankAccountsView: View {
             label = ""
             error = nil
         } catch {
-            self.error = error.localizedDescription
+            self.error = error.userMessage
         }
     }
 }
@@ -227,6 +260,12 @@ struct KSeFSettingsView: View {
             }
 
             Section {
+                NotificationsToggle()
+            } footer: {
+                Text("Aplikacja sprawdza KSeF w tle mniej więcej co tyle godzin, ile wynosi interwał synchronizacji. Moment uruchomienia wybiera iOS, więc nie jest to gwarantowane — po otwarciu aplikacji przeciągnij listę faktur, aby zsynchronizować od razu.")
+            }
+
+            Section {
                 NavigationLink { KSeFGuideView() } label: {
                     Label("Instrukcja krok po kroku", systemImage: "list.number")
                 }
@@ -246,7 +285,7 @@ struct KSeFSettingsView: View {
             try await model.testConnection()
             testState = .ok
         } catch {
-            testState = .failed(error.localizedDescription)
+            testState = .failed(error.userMessage)
         }
     }
 }

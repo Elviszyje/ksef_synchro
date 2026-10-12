@@ -96,6 +96,13 @@ public struct OutgoingInvoice: Identifiable, Hashable, Sendable {
     public var status: OutgoingInvoiceStatus
     public var environment: KSeFEnvironment
     public var items: [OutgoingInvoiceItem]
+    /// Wysyłka do KSeF: sesja interaktywna, numer faktury w sesji, numer KSeF, XML, UPO, błąd.
+    public var ksefSessionReference = ""
+    public var ksefInvoiceReference = ""
+    public var ksefNumber = ""
+    public var generatedXML = ""
+    public var upoXML = ""
+    public var errorMessage = ""
     public var createdAt: Date
     public var updatedAt: Date
     public var updatedByDevice: String
@@ -135,7 +142,8 @@ public struct OutgoingInvoice: Identifiable, Hashable, Sendable {
     public var amountVAT: Decimal { items.reduce(0) { $0 + $1.amountVAT } }
     public var amountGross: Decimal { items.reduce(0) { $0 + $1.amountGross } }
     public var hasExemptItems: Bool { items.contains { $0.vatRate == .exempt } }
-    public var canBeEdited: Bool { status == .draft }
+    /// Szkic albo faktura odrzucona przez KSeF (do poprawy i ponownej wysyłki), jak `can_be_queued` w Django.
+    public var canBeEdited: Bool { status == .draft || status == .rejected }
 
     /// Problemy blokujące zapis (komunikaty po polsku; UI tłumaczy je przez klucze).
     public var validationIssues: [SalesValidationIssue] {

@@ -15,7 +15,8 @@ ios/
     Sources/Persistence        # SQLite (GRDB): schemat, repozytoria
     Sources/AppServices        # synchronizacja KSeF, dane demo
     Tests/DomainTests/Fixtures # golden files z Django (input/ ręcznie, expected/ generowane)
-  scripts/translations.py      # tłumaczenia pl/en/es/uk → String Catalogs
+  scripts/translations.py      # tłumaczenia pl/en/es/uk → String Catalogs (z odmianą przez liczbę)
+  scripts/generate_icon.swift  # tymczasowa ikona aplikacji
 ```
 
 ## Praca na co dzień
@@ -31,7 +32,11 @@ cd ios/Packages/KSeFektywnieKit && swift test
 xcodebuild -project ios/KSeFektywnie.xcodeproj -scheme KSeFektywnie \
   -destination 'platform=iOS Simulator,name=iPhone 17' build
 
-# zrzut ekranu na danych demo (tylko Debug): argument uruchomienia -demo
+# zrzuty ekranu na danych demo (tylko Debug), argumenty uruchomienia:
+#   -demo                       dane demo w pamięci (bez lustra iCloud)
+#   -demo-cloud                 jak wyżej, z lustrem (na symulatorze: katalog lokalny)
+#   -tab sales|payments|statements|settings
+#   -open-sale 2  -open-statement YES  -open-dashboard YES
 ```
 
 ## Golden files z Django

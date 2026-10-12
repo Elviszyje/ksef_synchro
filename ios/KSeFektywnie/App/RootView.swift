@@ -40,25 +40,37 @@ struct MainTabView: View {
         TabView(selection: $selection) {
             Tab("Faktury", systemImage: "doc.text", value: .invoices) { InvoicesView() }
             Tab("Sprzedaż", systemImage: "square.and.pencil", value: .sales) { SalesListView() }
-            Tab("Przelewy", systemImage: "banknote", value: .payments) {
-                ComingSoonView(title: "Przelewy", symbol: "banknote")
-            }
-            Tab("Wyciągi", systemImage: "tray.and.arrow.down", value: .statements) {
-                ComingSoonView(title: "Wyciągi", symbol: "tray.and.arrow.down")
-            }
+            Tab("Przelewy", systemImage: "banknote", value: .payments) { PaymentsView() }
+            Tab("Wyciągi", systemImage: "tray.and.arrow.down", value: .statements) { StatementsView() }
             Tab("Ustawienia", systemImage: "gearshape", value: .settings) { SettingsView() }
         }
     }
 }
 
 /// Argumenty uruchomienia do zrzutów ekranu i testów UI (tylko Debug):
-/// `-demo`, `-tab sales`, `-open-sale 2` (otwiera n-ty szkic faktury sprzedażowej).
+/// `-demo`, `-tab sales`, `-open-sale 2` (n-ty szkic sprzedaży), `-open-statement YES` (pierwszy wyciąg).
 enum DebugLaunch {
     static var initialTab: AppTab? {
         #if DEBUG
         UserDefaults.standard.string(forKey: "tab").flatMap(AppTab.init(rawValue:))
         #else
         nil
+        #endif
+    }
+
+    static var openDashboard: Bool {
+        #if DEBUG
+        UserDefaults.standard.bool(forKey: "open-dashboard")
+        #else
+        false
+        #endif
+    }
+
+    static var openFirstStatement: Bool {
+        #if DEBUG
+        UserDefaults.standard.bool(forKey: "open-statement")
+        #else
+        false
         #endif
     }
 
@@ -88,21 +100,5 @@ struct LockScreen: View {
             }
         }
         .task { if lock.isLocked { await lock.unlock() } }
-    }
-}
-
-struct ComingSoonView: View {
-    let title: LocalizedStringKey
-    let symbol: String
-
-    var body: some View {
-        NavigationStack {
-            ContentUnavailableView {
-                Label(title, systemImage: symbol)
-            } description: {
-                Text("Ta część aplikacji pojawi się w kolejnej wersji roboczej.")
-            }
-            .navigationTitle(title)
-        }
     }
 }

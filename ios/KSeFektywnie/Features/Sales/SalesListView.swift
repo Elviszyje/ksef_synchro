@@ -12,6 +12,12 @@ struct SalesListView: View {
     var body: some View {
         NavigationStack {
             List {
+                if model.company?.ksefEnvironment == .test {
+                    Section {
+                        Label("Środowisko testowe KSeF — faktury nie mają skutków prawnych.", systemImage: "testtube.2")
+                            .font(.footnote).foregroundStyle(.orange)
+                    }
+                }
                 ForEach(invoices) { invoice in
                     Button { editing = invoice } label: { SalesRow(invoice: invoice) }
                         .tint(.primary)
@@ -37,9 +43,15 @@ struct SalesListView: View {
             }
             .navigationTitle("Sprzedaż")
             .sheet(item: $editing) { invoice in
-                SalesInvoiceForm(initial: invoice)
+                if invoice.canBeEdited {
+                    SalesInvoiceForm(initial: invoice)
+                } else {
+                    SalesInvoiceDetail(invoiceID: invoice.id)
+                }
             }
+            .refreshable { await model.refreshSalesSubmissions() }
             .task { await observe() }
+            .task { await model.refreshSalesSubmissions() }
         }
     }
 
@@ -58,7 +70,7 @@ struct SalesListView: View {
     }
 
     private func delete(_ offsets: IndexSet) {
-        for index in offsets where invoices[index].canBeEdited {
+        for index in offsets where invoices[index].status == .draft {
             try? model.sales?.deleteDraft(invoices[index].id)
         }
     }

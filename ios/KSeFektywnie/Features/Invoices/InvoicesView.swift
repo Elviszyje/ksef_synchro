@@ -1,4 +1,6 @@
 import SwiftUI
+import CoreTransferable
+import UniformTypeIdentifiers
 import GRDB
 import Domain
 import Persistence
@@ -8,6 +10,7 @@ struct InvoicesView: View {
     @State private var invoices: [Invoice] = []
     @State private var filter = InvoiceFilter()
     @State private var loadError: String?
+    @State private var showDashboard = DebugLaunch.openDashboard
 
     var body: some View {
         NavigationStack {
@@ -38,10 +41,22 @@ struct InvoicesView: View {
             .searchable(text: $filter.search, prompt: Text("Numer, sprzedawca, NIP"))
             .refreshable { await model.sync() }
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button { showDashboard = true } label: { Label("Podsumowanie kosztów", systemImage: "chart.bar") }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    if !invoices.isEmpty {
+                        ShareLink(item: InvoiceCSVExport(invoices: invoices),
+                                  preview: SharePreview(InvoiceCSVExport.fileName)) {
+                            Label("Eksport CSV", systemImage: "square.and.arrow.up")
+                        }
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) { filterMenu }
             }
             .navigationTitle("Faktury")
             .navigationDestination(for: UUID.self) { InvoiceDetailView(invoiceID: $0) }
+            .navigationDestination(isPresented: $showDashboard) { CostDashboardView() }
             .task(id: filter) { await observe() }
         }
     }
@@ -72,7 +87,7 @@ struct InvoicesView: View {
                 invoices = value
             }
         } catch {
-            loadError = error.localizedDescription
+            loadError = error.userMessage
         }
     }
 }
@@ -110,5 +125,20 @@ struct InvoiceRow: View {
             }
         }
         .accessibilityElement(children: .combine)
+    }
+}
+
+/// CSV bieżącej listy faktur, generowany dopiero w chwili udostępnienia.
+struct InvoiceCSVExport: Transferable {
+    let invoices: [Invoice]
+
+    static var fileName: String { "faktury_\(LocalDate.today().iso).csv" }
+
+    static var transferRepresentation: some TransferRepresentation {
+        FileRepresentation(exportedContentType: .commaSeparatedText) { export in
+            let url = FileManager.default.temporaryDirectory.appending(path: fileName)
+            try InvoiceCSV.export(export.invoices) { String(localized: $0.label) }.write(to: url, options: .atomic)
+            return SentTransferredFile(url)
+        }
     }
 }

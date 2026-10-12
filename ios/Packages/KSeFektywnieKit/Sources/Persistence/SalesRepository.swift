@@ -69,9 +69,21 @@ struct OutgoingInvoiceRecord: FetchableRecord, PersistableRecord {
             status: OutgoingInvoiceStatus(rawValue: row["status"]) ?? .draft,
             environment: KSeFEnvironment(rawValue: row["environment"]) ?? .test,
             createdAt: row["createdAt"], updatedAt: row["updatedAt"], updatedByDevice: row["updatedByDevice"])
+        invoice.ksefSessionReference = row["ksefSessionReference"]
+        invoice.ksefInvoiceReference = row["ksefInvoiceReference"]
+        invoice.ksefNumber = row["ksefNumber"]
+        invoice.generatedXML = row["generatedXml"]
+        invoice.upoXML = row["upoXml"]
+        invoice.errorMessage = row["errorMessage"]
     }
 
     func encode(to c: inout PersistenceContainer) throws {
+        c["ksefSessionReference"] = invoice.ksefSessionReference
+        c["ksefInvoiceReference"] = invoice.ksefInvoiceReference
+        c["ksefNumber"] = invoice.ksefNumber
+        c["generatedXml"] = invoice.generatedXML
+        c["upoXml"] = invoice.upoXML
+        c["errorMessage"] = invoice.errorMessage
         c["id"] = invoice.id
         c["companyId"] = invoice.companyID
         c["buyerId"] = invoice.buyerID
@@ -167,6 +179,8 @@ public struct SalesRepository: Sendable {
         return try db.writer.write { db in
             var invoice = draft
             invoice.companyID = companyID
+            // Poprawiona faktura odrzucona przez KSeF wraca do szkicu.
+            if invoice.status == .rejected { invoice.status = .draft }
             invoice.updatedAt = now
             invoice.updatedByDevice = device
             if let existing = try OutgoingInvoiceRecord.filter(key: invoice.id).fetchOne(db), !existing.invoice.canBeEdited {
@@ -181,24 +195,35 @@ public struct SalesRepository: Sendable {
                 invoice.buyerID = try upsertBuyer(invoice, db: db, now: now)
             }
             try OutgoingInvoiceRecord(invoice).save(db)
-            try db.execute(sql: "DELETE FROM outgoingInvoiceItem WHERE outgoingInvoiceId = ?", arguments: [invoice.id])
-            for (index, item) in invoice.items.enumerated() {
-                try db.execute(sql: """
-                    INSERT INTO outgoingInvoiceItem (outgoingInvoiceId, lp, name, unit, quantity, unitPriceNet, vatRate, amountNet, amountVat, amountGross)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """, arguments: [invoice.id, index + 1, item.name, item.unit, DecimalText.string(item.quantity),
-                                     Money.db(item.unitPriceNet), item.vatRate.rawValue,
-                                     Money.db(item.amountNet), Money.db(item.amountVAT), Money.db(item.amountGross)])
-            }
+            try insertSalesItems(invoice, db)
             try CatalogRepository.remember(invoice.items, companyID: companyID, device: device, now: now, db: db)
             return invoice
         }
     }
 
+    /// Zmiana stanu wysyłki (bez walidacji formularza) — używane przez usługę wysyłki.
+    @discardableResult
+    public func updateSubmission(_ id: UUID, now: Date = Date(), _ change: (inout OutgoingInvoice) -> Void) throws -> OutgoingInvoice? {
+        try db.writer.write { db in
+            guard let record = try OutgoingInvoiceRecord.filter(Column("companyId") == companyID).filter(key: id).fetchOne(db) else { return nil }
+            var invoice = try withItems(record.invoice, db)
+            change(&invoice)
+            invoice.updatedAt = now
+            invoice.updatedByDevice = device
+            try OutgoingInvoiceRecord(invoice).update(db)
+            return invoice
+        }
+    }
+
+    /// Faktury wysłane, których wynik nie jest jeszcze znany (albo brak UPO).
+    public func awaitingKSeF() throws -> [OutgoingInvoice] {
+        try invoices().filter { $0.status == .sending || ($0.status == .accepted && $0.upoXML.isEmpty) }
+    }
+
     public func deleteDraft(_ id: UUID) throws {
         try db.writer.write { db in
             guard let record = try OutgoingInvoiceRecord.filter(Column("companyId") == companyID).filter(key: id).fetchOne(db) else { return }
-            guard record.invoice.canBeEdited else { throw SalesError.notEditable }
+            guard record.invoice.status == .draft else { throw SalesError.notEditable }
             _ = try record.delete(db)
         }
     }
@@ -241,15 +266,7 @@ public struct SalesRepository: Sendable {
 }
 
 private func withItems(_ invoice: OutgoingInvoice, _ db: Database) throws -> OutgoingInvoice {
-    var result = invoice
-    result.items = try Row.fetchAll(db, sql: "SELECT * FROM outgoingInvoiceItem WHERE outgoingInvoiceId = ? ORDER BY lp",
-                                    arguments: [invoice.id]).map { row in
-        OutgoingInvoiceItem(name: row["name"], unit: row["unit"],
-                            quantity: DecimalText.parse(row["quantity"]) ?? 0,
-                            unitPriceNet: Money.decimal(row["unitPriceNet"] as Int64),
-                            vatRate: VATRate(rawValue: row["vatRate"]) ?? .standard)
-    }
-    return result
+    try salesWithItems(invoice, db)
 }
 
 // MARK: - Katalog pozycji

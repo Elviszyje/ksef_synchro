@@ -81,17 +81,21 @@ public actor KSeFClient {
         return access
     }
 
-    /// Certyfikat do szyfrowania tokena. KSeF zwraca kilka certyfikatów z polem `usage`;
-    /// wybieramy ten do `KsefTokenEncryption`, a gdy go brak — pierwszy (jak Django).
-    func tokenEncryptionCertificate() async throws -> Data {
+    /// Certyfikat klucza publicznego MF o danym przeznaczeniu (`KsefTokenEncryption`
+    /// albo `SymmetricKeyEncryption`); gdy KSeF nie poda przeznaczenia — pierwszy (jak Django).
+    func certificate(usage: String) async throws -> (der: Data, publicKeyId: String?) {
         let data = try await send("security/public-key-certificates", method: "GET")
         let decoded = try JSONSerialization.jsonObject(with: data)
         let entries: [[String: Any]] = (decoded as? [[String: Any]]) ?? [(decoded as? [String: Any]) ?? [:]]
-        let entry = entries.first { (($0["usage"] as? [String]) ?? []).contains("KsefTokenEncryption") } ?? entries.first
+        let entry = entries.first { (($0["usage"] as? [String]) ?? []).contains(usage) } ?? entries.first
         guard let base64 = entry?["certificate"] as? String, let der = Data(base64Encoded: base64) else {
             throw KSeFError.authentication("Brak certyfikatu klucza publicznego KSeF.")
         }
-        return der
+        return (der, entry?["publicKeyId"] as? String)
+    }
+
+    func tokenEncryptionCertificate() async throws -> Data {
+        try await certificate(usage: "KsefTokenEncryption").der
     }
 
     func waitForAuthentication(reference: String, authToken: String, maxAttempts: Int = 30) async throws {
@@ -109,7 +113,7 @@ public actor KSeFClient {
         throw KSeFError.authentication("Przekroczono czas oczekiwania na autoryzację (ref: \(reference)).")
     }
 
-    private func validToken() async throws -> String {
+    func validToken() async throws -> String {
         if let accessToken, let validUntil = accessToken.validUntil, validUntil > Date().addingTimeInterval(60) {
             return accessToken.token
         }
@@ -163,7 +167,7 @@ public actor KSeFClient {
 
     func send(_ path: String, method: String, body: [String: Any]? = nil, bearer: String? = nil,
               accept: String = "application/json") async throws -> Data {
-        var request = URLRequest(url: baseURL.appending(path: "api/v2/\(path)"))
+        var request = URLRequest(url: baseURL.appending(path: "v2/\(path)"))
         request.httpMethod = method
         request.timeoutInterval = 30
         request.setValue(accept, forHTTPHeaderField: "Accept")

@@ -10,6 +10,9 @@ struct OnboardingView: View {
     @State private var address = ""
     @State private var environment = KSeFEnvironment.production
     @State private var error: String?
+    @State private var backup: (location: CloudSync.Location, companies: [String], writtenAt: Date)?
+    @State private var restoring = false
+    @State private var restoreProgress: (Int, Int) = (0, 0)
 
     private var nipValid: Bool { Validation.isValidNIP(nip) }
 
@@ -23,6 +26,28 @@ struct OnboardingView: View {
                             .foregroundStyle(.secondary)
                     }
                     .padding(.vertical, 4)
+                }
+
+                if let backup {
+                    Section {
+                        Button {
+                            Task { await restore(backup.location) }
+                        } label: {
+                            HStack {
+                                Label("Przywróć dane z iCloud", systemImage: "icloud.and.arrow.down")
+                                Spacer()
+                                if restoring { ProgressView() }
+                            }
+                        }
+                        .disabled(restoring)
+                        if restoring && restoreProgress.1 > 0 {
+                            ProgressView(value: Double(restoreProgress.0), total: Double(restoreProgress.1))
+                        }
+                    } header: {
+                        Text("Znaleziono kopię")
+                    } footer: {
+                        Text("\(backup.companies.joined(separator: ", ")) — zapisano \(backup.writtenAt.formatted(date: .abbreviated, time: .shortened)). Token KSeF trzeba będzie wpisać ponownie.")
+                    }
                 }
 
                 Section {
@@ -61,7 +86,7 @@ struct OnboardingView: View {
 
                 Section {
                     Button("Wypróbuj na przykładowych danych") {
-                        do { try model.startDemo() } catch { self.error = error.localizedDescription }
+                        do { try model.startDemo() } catch { self.error = error.userMessage }
                     }
                     .frame(maxWidth: .infinity)
                 } footer: {
@@ -69,6 +94,19 @@ struct OnboardingView: View {
                 }
             }
             .navigationTitle("Konfiguracja")
+            .task { backup = await CloudSync.availableBackup() }
+        }
+    }
+
+    private func restore(_ location: CloudSync.Location) async {
+        restoring = true
+        defer { restoring = false }
+        do {
+            try await model.restoreFromCloud(location) { done, total in
+                Task { @MainActor in restoreProgress = (done, total) }
+            }
+        } catch {
+            self.error = error.userMessage
         }
     }
 
@@ -77,7 +115,7 @@ struct OnboardingView: View {
             try model.createCompany(nip: nip.filter(\.isNumber), name: name.trimmingCharacters(in: .whitespaces),
                                     address: address.trimmingCharacters(in: .whitespacesAndNewlines), environment: environment)
         } catch {
-            self.error = error.localizedDescription
+            self.error = error.userMessage
         }
     }
 }

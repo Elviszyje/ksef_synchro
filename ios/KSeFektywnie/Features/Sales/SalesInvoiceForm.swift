@@ -16,6 +16,9 @@ struct SalesInvoiceForm: View {
     @State private var issues: [SalesValidationIssue] = []
     @State private var error: String?
     @State private var suggestions: [String] = []
+    @State private var confirmSend = false
+    @State private var sending = false
+    @State private var sentInvoiceID: UUID?
 
     init(initial: OutgoingInvoice) { _draft = State(initialValue: initial) }
 
@@ -24,6 +27,16 @@ struct SalesInvoiceForm: View {
     var body: some View {
         NavigationStack {
             Form {
+                if draft.status == .rejected && !draft.errorMessage.isEmpty {
+                    Section {
+                        Label { Text(draft.errorMessage) } icon: { Image(systemName: "xmark.octagon.fill") }
+                            .foregroundStyle(.red)
+                    } header: {
+                        Text("Odrzucona przez KSeF")
+                    } footer: {
+                        Text("Popraw fakturę i wyślij ją ponownie.")
+                    }
+                }
                 buyerSection
                 itemsSection
                 if draft.hasExemptItems { exemptionSection }
@@ -31,8 +44,22 @@ struct SalesInvoiceForm: View {
                 summarySection
                 if !issues.isEmpty || error != nil { problemsSection }
                 Section {
-                    Text("Wysyłka do KSeF pojawi się w kolejnej wersji roboczej. Szkic możesz już zapisać i wyeksportować jako XML FA(3).")
-                        .font(.footnote).foregroundStyle(.secondary)
+                    Button {
+                        prepareSend()
+                    } label: {
+                        HStack {
+                            Label("Wyślij do KSeF", systemImage: "paperplane.fill")
+                            Spacer()
+                            if sending { ProgressView() }
+                        }
+                    }
+                    .disabled(sending || model.ksefToken == nil)
+                } footer: {
+                    if model.ksefToken == nil {
+                        Text("Aby wysłać fakturę, zapisz token KSeF w Ustawieniach (z uprawnieniem do wystawiania faktur).")
+                    } else if model.company?.ksefEnvironment == .test {
+                        Text("Środowisko testowe KSeF — faktury nie mają skutków prawnych.")
+                    }
                 }
             }
             .disabled(!editable)
@@ -68,6 +95,14 @@ struct SalesInvoiceForm: View {
                 }
             }
             .sheet(isPresented: $showXML) { XMLPreview(invoice: draft) }
+            .confirmationDialog(sendTitle, isPresented: $confirmSend, titleVisibility: .visible) {
+                Button("Wyślij do KSeF") { Task { await send() } }
+            } message: {
+                Text(sendMessage)
+            }
+            .sheet(item: Binding(get: { sentInvoiceID.map(IdentifiedID.init) }, set: { sentInvoiceID = $0?.id })) { sent in
+                SalesInvoiceDetail(invoiceID: sent.id, onClose: { dismiss() })
+            }
             .task { suggestions = (try? model.sales?.exemptionSuggestions()) ?? VATExemptionSuggestions.common }
         }
     }
@@ -187,13 +222,48 @@ struct SalesInvoiceForm: View {
     }
 
     private func save() {
+        if persist() { dismiss() }
+    }
+
+    /// Zapis szkicu; zwraca false i pokazuje problemy, gdy dane są niekompletne.
+    private func persist() -> Bool {
         issues = draft.validationIssues
-        guard issues.isEmpty, let sales = model.sales else { return }
+        guard issues.isEmpty, let sales = model.sales else { return false }
         do {
-            try sales.saveDraft(draft, saveBuyer: saveBuyer)
-            dismiss()
+            draft = try sales.saveDraft(draft, saveBuyer: saveBuyer)
+            error = nil
+            return true
         } catch {
-            self.error = error.localizedDescription
+            self.error = error.userMessage
+            return false
+        }
+    }
+
+    private var isProduction: Bool { model.company?.ksefEnvironment == .production }
+
+    private var sendTitle: LocalizedStringKey {
+        isProduction ? "Wystawić fakturę w KSeF?" : "Wysłać do testowego KSeF?"
+    }
+
+    private var sendMessage: LocalizedStringKey {
+        isProduction
+            ? "Faktura \(draft.invoiceNumber) na \(draft.amountGross.money(draft.currency)) zostanie wysłana do produkcyjnego KSeF. Po przyjęciu jest wystawiona i nie można jej usunąć — błędy poprawia się fakturą korygującą."
+            : "Faktura zostanie wysłana do środowiska testowego KSeF. Nie ma skutków prawnych."
+    }
+
+    private func prepareSend() {
+        if persist() { confirmSend = true }
+    }
+
+    private func send() async {
+        sending = true
+        defer { sending = false }
+        do {
+            let result = try await model.sendService().send(draft.id)
+            sentInvoiceID = result.id
+        } catch {
+            self.error = error.userMessage
+            draft = (try? model.sales?.find(draft.id)) ?? draft
         }
     }
 }
@@ -356,7 +426,7 @@ struct XMLPreview: View {
                     }
                 case .failure(let error):
                     ContentUnavailableView("Nie można wygenerować XML", systemImage: "exclamationmark.triangle",
-                                           description: Text(error.localizedDescription))
+                                           description: Text(error.userMessage))
                 }
             }
             .navigationTitle("XML FA(3)")

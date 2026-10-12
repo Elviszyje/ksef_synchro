@@ -15,12 +15,15 @@ final class AppModel {
     private(set) var bankAccounts: [CompanyBankAccount] = []
     private(set) var startupError: String?
 
+    let cloud: CloudSync
+
     var syncInProgress = false
     var syncMessage: String?
 
     init(database: AppDatabase, deviceID: String) {
         self.database = database
         self.deviceID = deviceID
+        self.cloud = CloudSync(database: database, deviceID: deviceID)
         reload()
     }
 
@@ -32,9 +35,10 @@ final class AppModel {
             return id
         }()
         #if DEBUG
-        // Zrzuty ekranu i testy UI: świeża baza w pamięci z danymi demo.
-        if ProcessInfo.processInfo.arguments.contains("-demo") {
+        // Zrzuty ekranu i testy UI: świeża baza w pamięci z danymi demo, bez lustra iCloud.
+        if ProcessInfo.processInfo.arguments.contains("-demo") || ProcessInfo.processInfo.arguments.contains("-demo-cloud") {
             let model = AppModel(database: try! AppDatabase.inMemory(), deviceID: deviceID)
+            model.cloud.isEnabled = ProcessInfo.processInfo.arguments.contains("-demo-cloud")
             try? model.startDemo()
             return model
         }
@@ -43,7 +47,7 @@ final class AppModel {
             return AppModel(database: try AppDatabase.open(at: try databaseURL()), deviceID: deviceID)
         } catch {
             let model = AppModel(database: try! AppDatabase.inMemory(), deviceID: deviceID)
-            model.startupError = error.localizedDescription
+            model.startupError = error.userMessage
             return model
         }
     }
@@ -63,7 +67,7 @@ final class AppModel {
                 try database.reader.read { try CompanyBankAccount.filter(Column.companyId == c.id).fetchAll($0) }
             } ?? []
         } catch {
-            startupError = error.localizedDescription
+            startupError = error.userMessage
         }
     }
 
@@ -74,6 +78,21 @@ final class AppModel {
     var sales: SalesRepository? {
         company.map { SalesRepository(db: database, companyID: $0.id, device: deviceID) }
     }
+
+    var payments: PaymentFileRepository? {
+        company.map { PaymentFileRepository(db: database, companyID: $0.id, device: deviceID) }
+    }
+
+    var paymentPayer: PaymentPayer? {
+        company.map { PaymentPayer(debitAccount: defaultBankAccount?.accountNumber ?? "", name: $0.name, address: $0.address) }
+    }
+
+    var statements: StatementRepository? {
+        company.map { StatementRepository(db: database, companyID: $0.id, device: deviceID) }
+    }
+
+    /// Banki rachunków firmy — ich parsery CSV są sprawdzane najpierw.
+    var preferredBankKeys: [String] { bankAccounts.map(\.bankKey) }
 
     var catalog: CatalogRepository? {
         company.map { CatalogRepository(db: database, companyID: $0.id, device: deviceID) }
@@ -146,6 +165,17 @@ final class AppModel {
         return KSeFClient(environment: company.ksefEnvironment, nip: company.nip, apiToken: token)
     }
 
+    func sendService() throws -> KSeFSendService {
+        guard let company else { throw KSeFError.missingToken }
+        return KSeFSendService(company: company, sender: try makeClient(), db: database, device: deviceID)
+    }
+
+    /// Odświeża faktury sprzedażowe czekające na wynik z KSeF lub UPO.
+    func refreshSalesSubmissions() async {
+        guard ksefToken != nil, let service = try? sendService() else { return }
+        await service.refreshPending()
+    }
+
     func testConnection() async throws {
         _ = try await makeClient().authenticate()
     }
@@ -160,8 +190,17 @@ final class AppModel {
             syncMessage = SyncSummary.text(result)
             reload()
         } catch {
-            syncMessage = error.localizedDescription
+            syncMessage = error.userMessage
         }
+    }
+
+    // MARK: - iCloud
+
+    /// Przywraca dane z kopii w iCloud Drive (pierwsze uruchomienie na nowym telefonie).
+    func restoreFromCloud(_ location: CloudSync.Location, progress: @escaping @Sendable (Int, Int) -> Void) async throws {
+        _ = try await CloudSync.restore(from: location, into: database, progress: progress)
+        reload()
+        await cloud.start()
     }
 
     // MARK: - Demo

@@ -117,7 +117,7 @@ struct InvoiceDetailView: View {
             try model.invoices?.changeStatus(invoiceID, to: status)
             load()
         } catch {
-            self.error = error.localizedDescription
+            self.error = error.userMessage
         }
     }
 

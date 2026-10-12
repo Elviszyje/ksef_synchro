@@ -62,6 +62,12 @@ struct KSeFClientTests {
         KSeFClient(baseURL: URL(string: "https://ksef.test")!, nip: "1132854320", apiToken: token, session: session, sleep: { _ in })
     }
 
+    static func decryptData(_ base64: String) throws -> Data {
+        let attributes: [String: Any] = [kSecAttrKeyType as String: kSecAttrKeyTypeRSA, kSecAttrKeyClass as String: kSecAttrKeyClassPrivate]
+        let key = try #require(SecKeyCreateWithData(Data(base64Encoded: privateKey)! as CFData, attributes as CFDictionary, nil))
+        return try #require(SecKeyCreateDecryptedData(key, .rsaEncryptionOAEPSHA256, Data(base64Encoded: base64)! as CFData, nil)) as Data
+    }
+
     static func decrypt(_ base64: String) throws -> String {
         let attributes: [String: Any] = [kSecAttrKeyType as String: kSecAttrKeyTypeRSA, kSecAttrKeyClass as String: kSecAttrKeyClassPrivate]
         let key = try #require(SecKeyCreateWithData(Data(base64Encoded: privateKey)! as CFData, attributes as CFDictionary, nil))
@@ -73,19 +79,20 @@ struct KSeFClientTests {
     static func authFlow(authPolls: Counter) -> @Sendable (URLRequest, Data?) -> StubProtocol.Reply {
         { request, _ in
             switch request.url!.path {
-            case "/api/v2/auth/challenge":
+            case "/v2/auth/challenge":
                 return .init(body: json(["challenge": "CH-1", "timestampMs": 1_760_000_000_123]))
-            case "/api/v2/security/public-key-certificates":
+            case "/v2/security/public-key-certificates":
                 return .init(body: json([
-                    ["certificate": "AAAA", "usage": ["SymmetricKeyEncryption"]],
+                    ["certificate": "AAAA", "usage": ["Unknown"]],
                     ["certificate": certificate, "usage": ["KsefTokenEncryption"]],
+                    ["certificate": certificate, "usage": ["SymmetricKeyEncryption"], "publicKeyId": String(repeating: "A", count: 44)],
                 ]))
-            case "/api/v2/auth/ksef-token":
+            case "/v2/auth/ksef-token":
                 return .init(status: 202, body: json(["referenceNumber": "REF-1", "authenticationToken": ["token": "AUTH-T", "validUntil": "2099-01-01T00:00:00Z"]]))
-            case "/api/v2/auth/REF-1":
+            case "/v2/auth/REF-1":
                 let n = authPolls.increment()
                 return .init(body: json(["status": ["code": n < 2 ? 100 : 200, "description": "x"]]))
-            case "/api/v2/auth/token/redeem":
+            case "/v2/auth/token/redeem":
                 return .init(body: json(["accessToken": ["token": "ACCESS-T", "validUntil": "2099-07-11T12:23:56.0154302+00:00"]]))
             default:
                 return .init(status: 404)
@@ -118,7 +125,7 @@ struct KSeFClientTests {
         StubProtocol.handler.withLock {
             let base = Self.authFlow(authPolls: Counter())
             $0 = { request, body in
-                if request.url!.path == "/api/v2/auth/REF-1" {
+                if request.url!.path == "/v2/auth/REF-1" {
                     return .init(body: json(["status": ["code": 450, "description": "Nieprawidłowy token"]]))
                 }
                 return base(request, body)
@@ -137,7 +144,7 @@ struct KSeFClientTests {
         let auth = Self.authFlow(authPolls: Counter(1))
         StubProtocol.handler.withLock {
             $0 = { request, body in
-                guard request.url!.path == "/api/v2/invoices/query/metadata" else { return auth(request, body) }
+                guard request.url!.path == "/v2/invoices/query/metadata" else { return auth(request, body) }
                 let q = try! JSONSerialization.jsonObject(with: body!) as! [String: Any]
                 let offset = q["pageOffset"] as! Int
                 let from = (q["dateRange"] as! [String: String])["from"]!
@@ -163,8 +170,8 @@ struct KSeFClientTests {
         StubProtocol.handler.withLock {
             $0 = { request, body in
                 switch request.url!.path {
-                case "/api/v2/invoices/ksef/OK": return .init(body: Data("<Faktura/>".utf8))
-                case "/api/v2/invoices/ksef/MISSING": return .init(status: 404)
+                case "/v2/invoices/ksef/OK": return .init(body: Data("<Faktura/>".utf8))
+                case "/v2/invoices/ksef/MISSING": return .init(status: 404)
                 default: return auth(request, body)
                 }
             }
@@ -191,5 +198,73 @@ struct KSeFClientTests {
         #expect(KSeFClient.errorMessage(json(["exception": ["exceptionDetailList": [["exceptionDescription": "Brak uprawnień"]]]])) == "Brak uprawnień")
         #expect(KSeFClient.errorMessage(json(["detail": "x"])) == "x")
         #expect(KSeFClient.parseDate("2025-07-11T12:23:56.0154302+00:00") != nil)
+    }
+
+    @Test("Wysyłka: sesja interaktywna, szyfrowanie AES/RSA, hashe, zamknięcie, status i UPO")
+    func sendInvoice() async throws {
+        let auth = Self.authFlow(authPolls: Counter(1))
+        StubProtocol.handler.withLock {
+            $0 = { request, body in
+                switch (request.httpMethod!, request.url!.path) {
+                case ("POST", "/v2/sessions/online"):
+                    return .init(status: 201, body: json(["referenceNumber": "SES-1", "validUntil": "2099-01-01T00:00:00Z"]))
+                case ("POST", "/v2/sessions/online/SES-1/invoices"):
+                    return .init(status: 202, body: json(["referenceNumber": "INV-1"]))
+                case ("POST", "/v2/sessions/online/SES-1/close"):
+                    return .init(status: 204)
+                case ("GET", "/v2/sessions/SES-1/invoices/INV-1"):
+                    return .init(body: json(["referenceNumber": "INV-1", "ksefNumber": "1111111111-20261012-ABCDEF-12",
+                                             "status": ["code": 200, "description": "Sukces"]]))
+                case ("GET", "/v2/sessions/SES-1/invoices/INV-1/upo"):
+                    return .init(body: Data("<UPO/>".utf8))
+                default:
+                    return auth(request, body)
+                }
+            }
+        }
+        let xml = Data("<Faktura>zażółć</Faktura>".utf8)
+        let client = client()
+        let submissions = try await client.submitInvoices([xml])
+        #expect(submissions == [InvoiceSubmission(sessionReference: "SES-1", invoiceReference: "INV-1")])
+
+        let requests = StubProtocol.requests.withLock { $0 }
+        let open = try JSONSerialization.jsonObject(with: try #require(requests.first { $0.0.url!.path == "/v2/sessions/online" }?.1)) as! [String: Any]
+        #expect(open["formCode"] as? [String: String] == ["systemCode": "FA (3)", "schemaVersion": "1-0E", "value": "FA"])
+        let encryption = open["encryption"] as! [String: String]
+        let key = try Self.decryptData(encryption["encryptedSymmetricKey"]!)
+        let iv = try #require(Data(base64Encoded: encryption["initializationVector"]!))
+        #expect(key.count == 32 && iv.count == 16)
+        #expect(encryption["publicKeyId"]?.count == 44)
+
+        let sent = try JSONSerialization.jsonObject(with: try #require(requests.first { $0.0.url!.path.hasSuffix("SES-1/invoices") }?.1)) as! [String: Any]
+        let ciphertext = try #require(Data(base64Encoded: sent["encryptedInvoiceContent"] as! String))
+        #expect(try InvoiceEncryption(key: key, iv: iv).decrypt(ciphertext) == xml)
+        #expect(sent["invoiceHash"] as? String == InvoiceEncryption.sha256Base64(xml))
+        #expect(sent["invoiceSize"] as? Int == xml.count)
+        #expect(sent["encryptedInvoiceHash"] as? String == InvoiceEncryption.sha256Base64(ciphertext))
+        #expect(sent["encryptedInvoiceSize"] as? Int == ciphertext.count)
+        #expect(ciphertext.count % 16 == 0)
+        #expect(requests.contains { $0.0.url!.path == "/v2/sessions/online/SES-1/close" })
+
+        let status = try await client.invoiceStatus(submissions[0])
+        #expect(status.isAccepted && status.ksefNumber == "1111111111-20261012-ABCDEF-12")
+        #expect(try await client.invoiceUPO(submissions[0]) == Data("<UPO/>".utf8))
+    }
+
+    @Test("Status odrzucenia z detalami walidacji")
+    func rejectedStatus() async throws {
+        let auth = Self.authFlow(authPolls: Counter(1))
+        StubProtocol.handler.withLock {
+            $0 = { request, body in
+                if request.url!.path == "/v2/sessions/S/invoices/I" {
+                    return .init(body: json(["status": ["code": 450, "description": "Błąd weryfikacji semantyki dokumentu faktury",
+                                                        "details": ["Nieprawidłowy NIP nabywcy"]]]))
+                }
+                return auth(request, body)
+            }
+        }
+        let status = try await client().invoiceStatus(InvoiceSubmission(sessionReference: "S", invoiceReference: "I"))
+        #expect(status.isRejected)
+        #expect(status.message == "Błąd weryfikacji semantyki dokumentu faktury\nNieprawidłowy NIP nabywcy")
     }
 }

@@ -14,7 +14,7 @@ extension LocalDate {
 }
 
 extension InvoiceStatus {
-    var label: LocalizedStringResource {
+    nonisolated var label: LocalizedStringResource {
         switch self {
         case .new: "Nowa"
         case .disputed: "Sporna"

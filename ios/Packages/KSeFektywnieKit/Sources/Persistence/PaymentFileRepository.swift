@@ -41,12 +41,26 @@ public struct PaymentFileRepository: Sendable {
 
     /// Faktury gotowe do przelewu: zaakceptowane, z numerem rachunku.
     public func payableInvoices() throws -> [Invoice] {
-        try db.reader.read {
-            try Invoice.filter(Column("companyId") == companyID)
-                .filter(Column("status") == InvoiceStatus.accepted.rawValue)
-                .filter(Column("bankAccountNumber") != "")
-                .order(Column("paymentDueDate").ascNullsLast, Column("issueDate").desc)
-                .fetchAll($0)
+        let request = payableRequest()
+        return try db.reader.read { try request.fetchAll($0) }
+    }
+
+    func payableRequest() -> QueryInterfaceRequest<Invoice> {
+        Invoice.filter(Column("companyId") == companyID)
+            .filter(Column("status") == InvoiceStatus.accepted.rawValue)
+            .filter(Column("bankAccountNumber") != "")
+            .order(Column("paymentDueDate").ascNullsLast, Column("issueDate").desc)
+    }
+
+    public func observePayable() -> ValueObservation<ValueReducers.Fetch<[Invoice]>> {
+        let request = payableRequest()
+        return ValueObservation.tracking { try request.fetchAll($0) }
+    }
+
+    public func observeFiles() -> ValueObservation<ValueReducers.Fetch<[PaymentFile]>> {
+        let companyID = companyID
+        return ValueObservation.tracking {
+            try PaymentFile.filter(Column("companyId") == companyID).order(Column("createdAt").desc).fetchAll($0)
         }
     }
 

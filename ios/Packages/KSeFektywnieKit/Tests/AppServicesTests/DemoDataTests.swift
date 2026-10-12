@@ -23,6 +23,10 @@ struct DemoDataTests {
         #expect(sales.allSatisfy { $0.validationIssues.isEmpty })
         #expect(try CatalogRepository(db: db, companyID: company.id, device: "d").items().first?.name == "Konsultacje IT")
 
+        let statement = try #require(try StatementRepository(db: db, companyID: company.id, device: "d").summaries().first)
+        #expect(statement.debitCount == 2)
+        #expect(statement.matchCount == 1)
+
         let invoices = try InvoiceRepository(db: db, companyID: company.id, device: "d").fetch()
         #expect(invoices.count == 8)
         #expect(Set(invoices.map(\.status)) == Set(InvoiceStatus.allCases))

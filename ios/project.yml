@@ -22,6 +22,18 @@ targets:
     platform: iOS
     sources:
       - path: KSeFektywnie
+    entitlements:
+      path: KSeFektywnie/KSeFektywnie.entitlements
+    info:
+      path: KSeFektywnie/Info.plist
+      properties:
+        BGTaskSchedulerPermittedIdentifiers: [pl.ksefektywnie.app.refresh]
+        UIBackgroundModes: [fetch]
+        NSUbiquitousContainers:
+          iCloud.pl.ksefektywnie.app:
+            NSUbiquitousContainerIsDocumentScopePublic: true
+            NSUbiquitousContainerName: KS-eFektywnie
+            NSUbiquitousContainerSupportedFolderLevels: Any
     dependencies:
       - package: KSeFektywnieKit
         products: [Domain, KSeFClient, Persistence, AppServices]
@@ -38,6 +50,8 @@ targets:
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
+        INFOPLIST_KEY_UIFileSharingEnabled: YES
+        INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace: YES
         INFOPLIST_KEY_NSFaceIDUsageDescription: "Face ID chroni dostęp do Twoich faktur i danych bankowych."
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
