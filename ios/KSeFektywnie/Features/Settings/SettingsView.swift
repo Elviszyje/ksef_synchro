@@ -48,7 +48,7 @@ struct SettingsView: View {
 
                 Section {
                     Toggle(isOn: Binding(get: { lock.isEnabled }, set: { on in
-                        if on { Task { _ = await lock.enable() } } else { lock.isEnabled = false }
+                        if on { Task { _ = await lock.enable() } } else { lock.disable() }
                     })) {
                         Label("Blokada \(lock.biometryName)", systemImage: "faceid")
                     }

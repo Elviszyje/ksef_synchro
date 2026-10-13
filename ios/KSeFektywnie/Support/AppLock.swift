@@ -1,22 +1,27 @@
 import Foundation
 import LocalAuthentication
 import Observation
+import AppServices
 
 /// Blokada aplikacji Face ID / Touch ID z kodem urządzenia jako zapasem.
+/// Logika przejść jest w `AppLockState` (testy w pakiecie); tu tylko LocalAuthentication.
 @Observable
 final class AppLock {
-    var isEnabled: Bool {
-        didSet { UserDefaults.standard.set(isEnabled, forKey: "appLockEnabled") }
-    }
-    private(set) var isLocked: Bool
-    private var backgroundedAt: Date?
-    /// Krótki powrót z tła (np. z arkusza udostępniania) nie wymaga ponownego uwierzytelnienia.
-    let gracePeriod: TimeInterval = 30
+    private(set) var state: AppLockState
+
+    var isEnabled: Bool { state.isEnabled }
+    var isLocked: Bool { state.isLocked }
+    var isAuthenticating: Bool { state.isAuthenticating }
 
     init() {
-        let enabled = UserDefaults.standard.bool(forKey: "appLockEnabled")
-        isEnabled = enabled
-        isLocked = enabled
+        var grace: TimeInterval = 30
+        #if DEBUG
+        // Testy na symulatorze: -lockGraceSeconds 2
+        if UserDefaults.standard.object(forKey: "lockGraceSeconds") != nil {
+            grace = UserDefaults.standard.double(forKey: "lockGraceSeconds")
+        }
+        #endif
+        state = AppLockState(enabled: UserDefaults.standard.bool(forKey: "appLockEnabled"), gracePeriod: grace)
     }
 
     var biometryName: String {
@@ -32,24 +37,18 @@ final class AppLock {
 
     var isAvailable: Bool { LAContext().canEvaluatePolicy(.deviceOwnerAuthentication, error: nil) }
 
-    func didEnterBackground() { backgroundedAt = Date() }
+    func didEnterBackground() { state.didEnterBackground(at: Date()) }
 
-    func willEnterForeground() {
-        guard isEnabled, let at = backgroundedAt, Date().timeIntervalSince(at) > gracePeriod else { return }
-        isLocked = true
-    }
+    func didBecomeActive() { state.didBecomeActive(at: Date()) }
 
+    /// Jedno wywołanie Face ID naraz; wynik zapisany niezależnie od zmian stanu sceny w trakcie.
     func unlock() async {
+        guard state.beginAuthentication() else { return }
         let context = LAContext()
         context.localizedCancelTitle = String(localized: "Anuluj")
-        do {
-            if try await context.evaluatePolicy(.deviceOwnerAuthentication,
-                                                localizedReason: String(localized: "Odblokuj dostęp do faktur")) {
-                isLocked = false
-            }
-        } catch {
-            isLocked = true
-        }
+        let success = (try? await context.evaluatePolicy(.deviceOwnerAuthentication,
+                                                         localizedReason: String(localized: "Odblokuj dostęp do faktur"))) ?? false
+        state.finishAuthentication(success: success)
     }
 
     /// Włączenie wymaga udanego uwierzytelnienia, żeby nie zablokować się bez dostępu.
@@ -57,7 +56,13 @@ final class AppLock {
         let context = LAContext()
         guard (try? await context.evaluatePolicy(.deviceOwnerAuthentication,
                                                  localizedReason: String(localized: "Potwierdź włączenie blokady"))) == true else { return false }
-        isEnabled = true
+        state.enable()
+        UserDefaults.standard.set(true, forKey: "appLockEnabled")
         return true
+    }
+
+    func disable() {
+        state.disable()
+        UserDefaults.standard.set(false, forKey: "appLockEnabled")
     }
 }

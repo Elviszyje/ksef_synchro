@@ -13,18 +13,32 @@ struct InvoiceDetailView: View {
     var body: some View {
         Form {
             if let invoice {
+                // Jeden zwarty wiersz. `LabeledContent` z `Label` w formularzu iOS 26 dostawał
+                // błędnie wyliczoną, zmienną wysokość (puste miejsce pod statusem).
                 Section {
-                    LabeledContent("Status") {
-                        Label { Text(invoice.status.label) } icon: { Image(systemName: invoice.status.symbol) }
+                    HStack(spacing: 12) {
+                        Image(systemName: invoice.status.symbol)
+                            .font(.title2)
                             .foregroundStyle(invoice.status.color)
-                    }
-                    if !invoice.allowedTransitions.isEmpty {
-                        Menu("Zmień status") {
-                            ForEach(invoice.allowedTransitions, id: \.self) { status in
-                                Button { change(to: status) } label: { Text(status.label) }
+                            .frame(width: 32)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Status").font(.caption).foregroundStyle(.secondary)
+                            Text(invoice.status.label).font(.headline).foregroundStyle(invoice.status.color)
+                        }
+                        Spacer(minLength: 8)
+                        if !invoice.allowedTransitions.isEmpty {
+                            Menu {
+                                ForEach(invoice.allowedTransitions, id: \.self) { status in
+                                    Button { change(to: status) } label: { Text(status.label) }
+                                }
+                            } label: {
+                                Text("Zmień status")
                             }
+                            .buttonStyle(.bordered)
                         }
                     }
+                    .padding(.vertical, 2)
+                    .accessibilityElement(children: .contain)
                 }
 
                 Section("Kwoty") {

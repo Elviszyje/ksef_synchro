@@ -11,9 +11,10 @@ struct InvoicesView: View {
     @State private var filter = InvoiceFilter()
     @State private var loadError: String?
     @State private var showDashboard = DebugLaunch.openDashboard
+    @State private var path: [UUID] = []
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             List {
                 if model.isDemo {
                     Section { Label("Tryb demo — dane przykładowe", systemImage: "theatermasks").font(.footnote) }
@@ -85,6 +86,10 @@ struct InvoicesView: View {
         do {
             for try await value in repo.observe(filter).values(in: model.database.reader) {
                 invoices = value
+                if path.isEmpty, let number = DebugLaunch.openInvoiceNumber,
+                   let match = value.first(where: { $0.invoiceNumber == number }) {
+                    path = [match.id]
+                }
             }
         } catch {
             loadError = error.userMessage

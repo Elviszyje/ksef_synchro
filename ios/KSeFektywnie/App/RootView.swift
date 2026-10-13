@@ -16,13 +16,13 @@ struct RootView: View {
         // Rozmycie w przełączniku aplikacji i ekran blokady.
         .overlay {
             if lock.isLocked || scenePhase != .active && lock.isEnabled {
-                LockScreen()
+                LockScreen(sceneIsActive: scenePhase == .active)
             }
         }
         .onChange(of: scenePhase) { _, phase in
             switch phase {
             case .background: lock.didEnterBackground()
-            case .active: lock.willEnterForeground()
+            case .active: lock.didBecomeActive()
             default: break
             }
         }
@@ -58,6 +58,15 @@ enum DebugLaunch {
         #endif
     }
 
+    /// `-open-invoice FV/2026/0008`
+    static var openInvoiceNumber: String? {
+        #if DEBUG
+        UserDefaults.standard.string(forKey: "open-invoice")
+        #else
+        nil
+        #endif
+    }
+
     static var openDashboard: Bool {
         #if DEBUG
         UserDefaults.standard.bool(forKey: "open-dashboard")
@@ -86,6 +95,7 @@ enum DebugLaunch {
 
 struct LockScreen: View {
     @Environment(AppLock.self) private var lock
+    let sceneIsActive: Bool
 
     var body: some View {
         ZStack {
@@ -96,9 +106,14 @@ struct LockScreen: View {
                 if lock.isLocked {
                     Button("Odblokuj") { Task { await lock.unlock() } }
                         .buttonStyle(.glassProminent)
+                        .disabled(lock.isAuthenticating)
                 }
             }
         }
-        .task { if lock.isLocked { await lock.unlock() } }
+        // Face ID uruchamia się sam przy każdym zablokowaniu, ale tylko w aktywnej scenie
+        // (wywołane w stanie nieaktywnym kończy się błędem i zostawiało blokadę).
+        .task(id: lock.isLocked && sceneIsActive) {
+            if lock.isLocked && sceneIsActive { await lock.unlock() }
+        }
     }
 }
