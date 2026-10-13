@@ -98,6 +98,11 @@ struct InvoiceDetailView: View {
                     }
                 }
 
+                if invoice.status != .paid {
+                    ReminderSection(target: .invoice(invoice.id), makeDraft: { ReminderDrafts.invoice(invoice) },
+                                    dueDate: invoice.paymentDueDate)
+                }
+
                 Section("Notatki") {
                     TextField("Dodaj notatkę", text: $notes, axis: .vertical)
                         .onSubmit(saveNotes)

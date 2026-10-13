@@ -38,6 +38,7 @@ struct MainTabView: View {
     @Environment(AppModel.self) private var model
     @State private var selection: AppTab = DebugLaunch.initialTab ?? .invoices
     @State private var flight = PaymentsFlight()
+    @State private var reminderPresenter = ReminderPresenter()
     @State private var payableCount = 0
 
     var body: some View {
@@ -50,8 +51,19 @@ struct MainTabView: View {
             Tab("Ustawienia", systemImage: "gearshape", value: .settings) { SettingsView() }
         }
         .environment(flight)
+        .environment(reminderPresenter)
+        .sheet(item: $reminderPresenter.request) { request in
+            ReminderEditor(draft: request.draft, dueDate: request.dueDate, existing: request.existing, onSave: request.onSave)
+        }
         .overlay { PaymentsFlightOverlay(tabFraction: 0.5).environment(flight) }
         .sensoryFeedback(.impact(weight: .light), trigger: flight.landings)
+        .onChange(of: model.openTarget) { _, target in
+            switch target {
+            case .invoice?: selection = .invoices
+            case .paymentFile?: selection = .payments
+            case nil: break
+            }
+        }
         .task { await observePayable() }
     }
 

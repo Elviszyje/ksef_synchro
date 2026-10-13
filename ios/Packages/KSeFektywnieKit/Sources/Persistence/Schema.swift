@@ -248,4 +248,17 @@ enum Schema {
             t.uniqueKey(["companyId", "name", "unit"])
         }
     }
+
+    /// v3: powiązania faktur i paczek przelewów z przypomnieniami iOS (EventKit).
+    /// Identyfikator przypomnienia jest lokalny dla urządzenia — tabela nie trafia do lustra iCloud.
+    static func v3(_ db: Database) throws {
+        try db.create(table: "reminderLink") { t in
+            t.belongsTo("company", onDelete: .cascade).notNull()
+            t.column("recordType", .text).notNull()
+            t.column("recordId", .text).notNull()
+            t.column("reminderIdentifier", .text).notNull()
+            t.column("createdAt", .datetime).notNull()
+            t.primaryKey(["recordType", "recordId"])
+        }
+    }
 }

@@ -311,6 +311,13 @@ Do zweryfikowania osobno: przebieg wysyłki faktur w Django (`invoices/send` z s
 5. **Wykończenie**: podsumowanie kosztów (Swift Charts), eksport CSV, komunikaty błędów w 4 językach, synchronizacja w tle (BGAppRefreshTask) i powiadomienia o nowych fakturach, tymczasowa ikona (`scripts/generate_icon.swift`).
 6. **Publikacja (przygotowanie)**: manifest prywatności, materiały do App Store w 4 językach, notatka dla recenzenta i polityka prywatności w `docs/ios-app-store.md`.
 
+### Dodane 2026-10-13
+- Jednoznaczne statusy płatności w iOS: „Do zapłaty” (`zaakceptowana`), „Przelew przygotowany” (`przekazano_do_oplacenia`); akcje z opisem, licznik na zakładce Przelewy, animacja przejścia do Przelewów.
+- Gesty na liście faktur (w prawo „Do zapłaty”, w lewo „Sporna”) z cofnięciem; testy interfejsu XCUITest.
+- Historia paczek przelewów jako osobny ekran z wyszukiwaniem i filtrami (stan rozliczenia, okres, bank).
+- Integracja z aplikacją Przypomnienia (EventKit): przypomnienie do faktury i do paczki przelewów, link `ksefektywnie://` otwierający rekord, automatyczne odhaczanie po opłaceniu/rozliczeniu. Powiązania w tabeli `reminderLink` (nie trafiają do lustra iCloud — identyfikatory przypomnień są lokalne).
+- Blokada Face ID przepisana na testowalny model stanów (`AppLockState`).
+
 ### Ustalenia ze specyfikacji KSeF 2.0 ważne dla Django
 - Endpoint `invoices/send` używany w `apps/ksef/client.py` **nie istnieje** w API 2.0 — wysyłka faktur w Django nie może działać. Właściwy przebieg jak w iOS (sesja interaktywna).
 - Django wybiera pierwszy certyfikat z `security/public-key-certificates`; KSeF zwraca dwa (token i klucz symetryczny) — należy wybierać po `usage`.

@@ -39,6 +39,7 @@ KS-eFektywnie to faktury z Krajowego Systemu e-Faktur na Twoim iPhonie — bez k
 • Faktury sprzedażowe: wystaw fakturę FA(3), wyślij ją do KSeF i pobierz UPO. Pozycje i nabywców zapamiętujesz raz.
 • Kopia w iCloud Drive: faktury (JSON i XML), pliki przelewów i wyciągi jako zwykłe pliki w Twoim iCloud.
 • Bezpieczeństwo: dane tylko na telefonie, token KSeF w pęku kluczy, blokada Face ID.
+• Przypomnienia: przypomnienie o płatności faktury lub o imporcie paczki przelewów trafia do aplikacji Przypomnienia i odhacza się samo po opłaceniu.
 • Przewodnik krok po kroku: jak wygenerować token w KSeF i połączyć aplikację.
 
 KS-eFektywnie nie jest aplikacją Ministerstwa Finansów.
@@ -104,6 +105,7 @@ The app has no user accounts and no backend; all data is stored on the device an
 2. Dane (faktury, pliki przelewów, wyciągi, ustawienia) są przechowywane na urządzeniu użytkownika. Baza danych jest chroniona szyfrowaniem plików iOS.
 3. Token KSeF jest przechowywany wyłącznie w pęku kluczy urządzenia i nie trafia do kopii zapasowych ani do iCloud.
 4. Jeśli użytkownik ma włączony iCloud Drive, aplikacja zapisuje kopię danych w prywatnym iCloud użytkownika. Autor nie ma do niej dostępu.
-5. Aplikacja łączy się wyłącznie z: API Krajowego Systemu e-Faktur (Ministerstwo Finansów) — w celu pobierania i wysyłania faktur na żądanie użytkownika; App Store (zakupy napiwków) — obsługiwane przez Apple.
-6. Aplikacja nie używa reklam, analityki ani śledzenia.
-7. Kontakt: [adres e-mail autora — do uzupełnienia].
+5. Jeśli użytkownik doda przypomnienie, aplikacja zapisuje je w aplikacji Przypomnienia iOS (na urządzeniu i w iCloud użytkownika, zgodnie z jego ustawieniami). Dostęp do Przypomnień służy wyłącznie do tworzenia, edycji i odhaczania przypomnień utworzonych przez aplikację.
+6. Aplikacja łączy się wyłącznie z: API Krajowego Systemu e-Faktur (Ministerstwo Finansów) — w celu pobierania i wysyłania faktur na żądanie użytkownika; App Store (zakupy napiwków) — obsługiwane przez Apple.
+7. Aplikacja nie używa reklam, analityki ani śledzenia.
+8. Kontakt: [adres e-mail autora — do uzupełnienia].

@@ -16,6 +16,9 @@ final class AppModel {
     private(set) var startupError: String?
 
     let cloud: CloudSync
+    let reminders = RemindersService()
+    /// Rekord do otwarcia z linku w aplikacji Przypomnienia.
+    var openTarget: ReminderTarget?
 
     var syncInProgress = false
     var syncMessage: String?
@@ -40,6 +43,10 @@ final class AppModel {
             let model = AppModel(database: try! AppDatabase.inMemory(), deviceID: deviceID)
             model.cloud.isEnabled = ProcessInfo.processInfo.arguments.contains("-demo-cloud")
             try? model.startDemo()
+            if ProcessInfo.processInfo.arguments.contains("-print-demo-links"),
+               let first = try? model.invoices?.fetch().first {
+                print("DEMO-LINK \(ReminderTarget.invoice(first.id).deepLink.absoluteString) \(first.invoiceNumber)")
+            }
             return model
         }
         #endif
@@ -93,6 +100,10 @@ final class AppModel {
 
     /// Banki rachunków firmy — ich parsery CSV są sprawdzane najpierw.
     var preferredBankKeys: [String] { bankAccounts.map(\.bankKey) }
+
+    var reminderLinks: ReminderLinkRepository? {
+        company.map { ReminderLinkRepository(db: database, companyID: $0.id) }
+    }
 
     var catalog: CatalogRepository? {
         company.map { CatalogRepository(db: database, companyID: $0.id, device: deviceID) }

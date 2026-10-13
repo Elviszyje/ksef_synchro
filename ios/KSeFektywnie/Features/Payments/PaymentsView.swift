@@ -8,6 +8,7 @@ struct PaymentsView: View {
     @Environment(AppModel.self) private var model
     @State private var payable: [Invoice] = []
     @State private var showHistory = DebugLaunch.openPaymentHistory
+    @State private var linkedFile: PaymentFile?
     @State private var selection = Set<UUID>()
     @State private var accountNumber = ""
     @State private var generated: PaymentFile?
@@ -90,6 +91,13 @@ struct PaymentsView: View {
                 }
             }
             .navigationDestination(isPresented: $showHistory) { PaymentHistoryView() }
+            .navigationDestination(item: $linkedFile) { PaymentFileDetailView(file: $0) }
+            .onChange(of: model.openTarget, initial: true) { _, target in
+                if case .paymentFile(let id)? = target {
+                    linkedFile = try? model.payments?.files().first { $0.id == id }
+                    model.openTarget = nil
+                }
+            }
             .navigationTitle("Przelewy")
             .sheet(item: $generated) { file in PaymentFileShareSheet(file: file) }
             .task { await observePayable() }
@@ -184,6 +192,9 @@ struct PaymentFileDetailView: View {
                 if let url = try? PaymentFileExport.temporaryURL(for: file) {
                     ShareLink(item: url) { Label("Udostępnij plik", systemImage: "square.and.arrow.up") }
                 }
+            }
+            if invoices.contains(where: { $0.status != .paid }) {
+                ReminderSection(target: .paymentFile(file.id), makeDraft: { ReminderDrafts.paymentFile(file, invoices: invoices) })
             }
             Section("Faktury w pliku") {
                 ForEach(invoices) { invoice in

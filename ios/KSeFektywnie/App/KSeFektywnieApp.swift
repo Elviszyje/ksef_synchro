@@ -1,5 +1,6 @@
 import SwiftUI
 import StoreKit
+import Domain
 
 @main
 struct KSeFektywnieApp: App {
@@ -14,6 +15,8 @@ struct KSeFektywnieApp: App {
                 .environment(lock)
                 .task { await TipJar.finishPendingTransactions() }
                 .task { await model.cloud.start() }
+                .task { model.reminders.start(database: model.database) { [model] in model.reminderLinks } }
+                .onOpenURL { url in model.openTarget = ReminderTarget(deepLink: url) }
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .background, let hours = model.company?.syncIntervalHours {

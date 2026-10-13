@@ -29,6 +29,7 @@ struct InvoicesView: View {
                 }
                 ForEach(invoices) { invoice in
                     NavigationLink(value: invoice.id) { InvoiceRow(invoice: invoice) }
+                        .accessibilityIdentifier("invoice-\(invoice.id.uuidString)")
                         .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { rowFrames[invoice.id] = $0 }
                         // W prawo: zatwierdź do zapłaty. W lewo: sporna. Po każdym geście pasek „Cofnij”.
                         .swipeActions(edge: .leading, allowsFullSwipe: true) {
@@ -95,6 +96,12 @@ struct InvoicesView: View {
             .navigationDestination(for: UUID.self) { InvoiceDetailView(invoiceID: $0) }
             .navigationDestination(isPresented: $showDashboard) { CostDashboardView() }
             .task(id: filter) { await observe() }
+            .onChange(of: model.openTarget, initial: true) { _, target in
+                if case .invoice(let id)? = target {
+                    path = [id]
+                    model.openTarget = nil
+                }
+            }
             .task {
                 guard let raw = DebugLaunch.autoSwipe, let status = InvoiceStatus(rawValue: raw == "accepted" ? "zaakceptowana" : "sporna") else { return }
                 try? await Task.sleep(for: .seconds(2))

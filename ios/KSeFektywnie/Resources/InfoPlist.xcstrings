@@ -56,6 +56,34 @@
           }
         }
       }
+    },
+    "NSRemindersFullAccessUsageDescription": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The app adds reminders about invoice payments and transfer batches, and checks them off once paid."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La aplicación añade recordatorios de pagos de facturas y lotes de transferencias, y los marca al pagarse."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aplikacja dodaje przypomnienia o płatnościach faktur i paczkach przelewów oraz odhacza je po opłaceniu."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Застосунок додає нагадування про оплату рахунків-фактур і пакети переказів та позначає їх після оплати."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -188,6 +188,28 @@
         }
       }
     },
+    "2 dni przed terminem płatności": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 days before the due date"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 días antes del vencimiento"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "За 2 дні до терміну оплати"
+          }
+        }
+      }
+    },
     "Aby wysłać fakturę, zapisz token KSeF w Ustawieniach (z uprawnieniem do wystawiania faktur).": {
       "localizations": {
         "en": {
@@ -426,6 +448,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "Блокування %@"
+          }
+        }
+      }
+    },
+    "Brak dostępu do Przypomnień.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No access to Reminders."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin acceso a Recordatorios."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немає доступу до Нагадувань."
+          }
+        }
+      }
+    },
+    "Brak dostępu do Przypomnień. Włącz go w Ustawieniach iOS → KS-eFektywnie → Przypomnienia.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No access to Reminders. Turn it on in iOS Settings → KS-eFektywnie → Reminders."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin acceso a Recordatorios. Actívalo en Ajustes de iOS → KS-eFektywnie → Recordatorios."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немає доступу до Нагадувань. Увімкніть його в Параметрах iOS → KS-eFektywnie → Нагадування."
           }
         }
       }
@@ -1134,6 +1200,28 @@
         }
       }
     },
+    "Dodaj przypomnienie": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add reminder"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadir recordatorio"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Додати нагадування"
+          }
+        }
+      }
+    },
     "Dodaj rachunek": {
       "localizations": {
         "en": {
@@ -1350,6 +1438,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Рахунок-фактура"
+          }
+        }
+      }
+    },
+    "Faktura %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invoice %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Factura %@"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Рахунок-фактура %@"
           }
         }
       }
@@ -2168,6 +2278,28 @@
         }
       }
     },
+    "Jutro rano": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tomorrow morning"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mañana por la mañana"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Завтра вранці"
+          }
+        }
+      }
+    },
     "KS-eFektywnie": {
       "shouldTranslate": false
     },
@@ -2416,6 +2548,28 @@
         }
       }
     },
+    "Kiedy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuándo"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Коли"
+          }
+        }
+      }
+    },
     "Konfiguracja": {
       "localizations": {
         "en": {
@@ -2482,6 +2636,28 @@
         }
       }
     },
+    "Kwota: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Amount: %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importe: %@"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сума: %@"
+          }
+        }
+      }
+    },
     "Kwoty": {
       "localizations": {
         "en": {
@@ -2526,10 +2702,54 @@
         }
       }
     },
+    "Lista": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "List"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lista"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Список"
+          }
+        }
+      }
+    },
     "MPP": {
       "shouldTranslate": false
     },
     "Mechanizm podzielonej płatności": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Split payment mechanism (MPP)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mecanismo de pago dividido (MPP)"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Механізм розділеного платежу (MPP)"
+          }
+        }
+      }
+    },
+    "Mechanizm podzielonej płatności (MPP)": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -3217,6 +3437,28 @@
         }
       }
     },
+    "Notatka": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Note"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nota"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нотатка"
+          }
+        }
+      }
+    },
     "Notatki": {
       "localizations": {
         "en": {
@@ -3345,6 +3587,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Нові рахунки-фактури в KSeF"
+          }
+        }
+      }
+    },
+    "Nowe przypomnienie": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New reminder"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuevo recordatorio"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нове нагадування"
           }
         }
       }
@@ -4086,6 +4350,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Файл, продавець, номер рахунку"
+          }
+        }
+      }
+    },
+    "Plik: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File: %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivo: %@"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Файл: %@"
           }
         }
       }
@@ -4860,6 +5146,28 @@
         }
       }
     },
+    "Przypomnienie": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reminder"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recordatorio"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нагадування"
+          }
+        }
+      }
+    },
     "Przywróć dane z iCloud": {
       "localizations": {
         "en": {
@@ -5032,6 +5340,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "Рахунок, з якого списуються перекази. Формат банківського файлу вибирається автоматично: Erste і mBank мають власні формати, інші банки — Elixir-0."
+          }
+        }
+      }
+    },
+    "Rachunek obciążany: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Debited account: %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuenta de cargo: %@"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Рахунок списання: %@"
+          }
+        }
+      }
+    },
+    "Rachunek: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account: %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuenta: %@"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Рахунок: %@"
           }
         }
       }
@@ -5300,6 +5652,28 @@
         }
       }
     },
+    "Sprawdź zapłatę: %@ (%@)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check payment: %@ (%@)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprobar el pago: %@ (%@)"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перевірити оплату: %@ (%@)"
+          }
+        }
+      }
+    },
     "Sprzedawca": {
       "localizations": {
         "en": {
@@ -5318,6 +5692,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Продавець"
+          }
+        }
+      }
+    },
+    "Sprzedawca: %@, NIP %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seller: %@, NIP %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vendedor: %@, NIP %@"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Продавець: %@, NIP %@"
           }
         }
       }
@@ -5520,6 +5916,28 @@
         }
       }
     },
+    "Szybki wybór": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quick pick"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selección rápida"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Швидкий вибір"
+          }
+        }
+      }
+    },
     "Ta zmiana statusu jest niedozwolona.": {
       "localizations": {
         "en": {
@@ -5582,6 +6000,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Термін оплати"
+          }
+        }
+      }
+    },
+    "Termin płatności: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Due date: %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vencimiento: %@"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Термін оплати: %@"
           }
         }
       }
@@ -6026,6 +6466,28 @@
         }
       }
     },
+    "Tytuł": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Title"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Título"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Назва"
+          }
+        }
+      }
+    },
     "UPO %@.xml": {
       "shouldTranslate": false
     },
@@ -6227,6 +6689,28 @@
         }
       }
     },
+    "Usuń przypomnienie": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete reminder"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminar recordatorio"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Видалити нагадування"
+          }
+        }
+      }
+    },
     "Usuń token": {
       "localizations": {
         "en": {
@@ -6295,6 +6779,28 @@
     },
     "VAT": {
       "shouldTranslate": false
+    },
+    "W dniu terminu płatności": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On the due date"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El día del vencimiento"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "У день терміну оплати"
+          }
+        }
+      }
     },
     "W plikach Elixir-0 nazwa i adres są skracane do 35 znaków każde.": {
       "localizations": {
@@ -6692,6 +7198,28 @@
         }
       }
     },
+    "Wyjaśnij fakturę: %@ (%@)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clarify invoice: %@ (%@)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aclarar factura: %@ (%@)"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "З'ясувати рахунок-фактуру: %@ (%@)"
+          }
+        }
+      }
+    },
     "Wykres kosztów brutto z ostatnich 12 miesięcy": {
       "localizations": {
         "en": {
@@ -6911,6 +7439,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "З каталогу"
+          }
+        }
+      }
+    },
+    "Za tydzień": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In a week"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dentro de una semana"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Через тиждень"
+          }
+        }
+      }
+    },
+    "Zaimportuj przelewy w banku: %@, %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import transfers in the bank: %@, %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importar transferencias en el banco: %@, %@"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Імпортувати перекази в банку: %@, %@"
           }
         }
       }
@@ -7157,6 +7729,28 @@
         }
       }
     },
+    "Zapłać: %@ (%@)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pay: %@ (%@)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pagar: %@ (%@)"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Оплатити: %@ (%@)"
+          }
+        }
+      }
+    },
     "Zatwierdzony": {
       "localizations": {
         "en": {
@@ -7329,6 +7923,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Змінені файли"
+          }
+        }
+      }
+    },
+    "Zmień przypomnienie": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change reminder"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar recordatorio"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Змінити нагадування"
           }
         }
       }
