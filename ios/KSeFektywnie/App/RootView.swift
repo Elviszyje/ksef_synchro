@@ -100,6 +100,15 @@ enum DebugLaunch {
         #endif
     }
 
+    /// `-auto-swipe disputed|accepted`: po chwili wykonuje gest na pierwszej fakturze listy.
+    static var autoSwipe: String? {
+        #if DEBUG
+        UserDefaults.standard.string(forKey: "auto-swipe")
+        #else
+        nil
+        #endif
+    }
+
     static var openDashboard: Bool {
         #if DEBUG
         UserDefaults.standard.bool(forKey: "open-dashboard")

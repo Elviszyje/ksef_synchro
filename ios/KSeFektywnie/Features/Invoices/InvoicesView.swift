@@ -13,6 +13,8 @@ struct InvoicesView: View {
     @State private var showDashboard = DebugLaunch.openDashboard
     @State private var path: [UUID] = []
     @State private var rowFrames: [UUID: CGRect] = [:]
+    @State private var undo: UndoStatus?
+    @State private var swipeFeedback = 0
     @Environment(PaymentsFlight.self) private var flight
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -28,12 +30,21 @@ struct InvoicesView: View {
                 ForEach(invoices) { invoice in
                     NavigationLink(value: invoice.id) { InvoiceRow(invoice: invoice) }
                         .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { rowFrames[invoice.id] = $0 }
+                        // W prawo: zatwierdź do zapłaty. W lewo: sporna. Po każdym geście pasek „Cofnij”.
                         .swipeActions(edge: .leading, allowsFullSwipe: true) {
                             if invoice.allowedTransitions.contains(.accepted) {
-                                Button { approve(invoice) } label: {
+                                Button { swipe(invoice, to: .accepted) } label: {
                                     Label(invoice.isCorrection ? "Zatwierdź korektę" : "Do zapłaty", systemImage: "banknote")
                                 }
                                 .tint(.orange)
+                            }
+                        }
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            if invoice.allowedTransitions.contains(.disputed) {
+                                Button { swipe(invoice, to: .disputed) } label: {
+                                    Label("Sporna", systemImage: "exclamationmark.bubble")
+                                }
+                                .tint(.red)
                             }
                         }
                 }
@@ -51,6 +62,19 @@ struct InvoicesView: View {
                     }
                 }
             }
+            .safeAreaInset(edge: .bottom) {
+                if let undo {
+                    UndoBanner(item: undo) { performUndo(undo) }
+                        .padding(.horizontal)
+                        .padding(.bottom, 8)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .task(id: undo.id) {
+                            try? await Task.sleep(for: .seconds(5))
+                            withAnimation(.snappy) { if self.undo?.id == undo.id { self.undo = nil } }
+                        }
+                }
+            }
+            .sensoryFeedback(.selection, trigger: swipeFeedback)
             .searchable(text: $filter.search, prompt: Text("Numer, sprzedawca, NIP"))
             .refreshable { await model.sync() }
             .toolbar {
@@ -71,6 +95,11 @@ struct InvoicesView: View {
             .navigationDestination(for: UUID.self) { InvoiceDetailView(invoiceID: $0) }
             .navigationDestination(isPresented: $showDashboard) { CostDashboardView() }
             .task(id: filter) { await observe() }
+            .task {
+                guard let raw = DebugLaunch.autoSwipe, let status = InvoiceStatus(rawValue: raw == "accepted" ? "zaakceptowana" : "sporna") else { return }
+                try? await Task.sleep(for: .seconds(2))
+                if let first = invoices.first(where: { $0.allowedTransitions.contains(status) }) { swipe(first, to: status) }
+            }
         }
     }
 
@@ -93,16 +122,27 @@ struct InvoicesView: View {
         }
     }
 
-    /// Zatwierdzenie z listy: faktura „wpada” do zakładki Przelewy.
-    private func approve(_ invoice: Invoice) {
+    /// Zmiana statusu gestem na liście. Zatwierdzona faktura „wpada” do zakładki Przelewy.
+    private func swipe(_ invoice: Invoice, to status: InvoiceStatus) {
+        let note: String = status == .accepted ? "Zatwierdzona do zapłaty z listy faktur." : "Oznaczona jako sporna z listy faktur."
         do {
-            try model.invoices?.changeStatus(invoice.id, to: .accepted, note: "Zatwierdzona do zapłaty z listy faktur.")
-            if invoice.movesToPaymentsWhenAccepted, !reduceMotion, let frame = rowFrames[invoice.id] {
+            try model.invoices?.changeStatus(invoice.id, to: status, note: note)
+            let after = (try? model.invoices?.find(invoice.id))??.status ?? status
+            if status == .accepted, invoice.movesToPaymentsWhenAccepted, !reduceMotion, let frame = rowFrames[invoice.id] {
                 flight.launch(from: CGPoint(x: frame.minX + 60, y: frame.midY))
             }
+            withAnimation(.snappy) {
+                undo = UndoStatus(invoiceID: invoice.id, invoiceNumber: invoice.invoiceNumber, previous: invoice.status, current: after)
+            }
+            swipeFeedback += 1
         } catch {
             loadError = error.userMessage
         }
+    }
+
+    private func performUndo(_ item: UndoStatus) {
+        _ = try? model.invoices?.revertStatus(item.invoiceID, from: item.current, to: item.previous)
+        withAnimation(.snappy) { undo = nil }
     }
 
     private func observe() async {
@@ -169,5 +209,39 @@ struct InvoiceCSVExport: Transferable {
             try InvoiceCSV.export(export.invoices) { String(localized: $0.label) }.write(to: url, options: .atomic)
             return SentTransferredFile(url)
         }
+    }
+}
+
+/// Ostatnia zmiana statusu gestem — do cofnięcia.
+struct UndoStatus: Identifiable, Equatable {
+    let id = UUID()
+    let invoiceID: UUID
+    let invoiceNumber: String
+    let previous: InvoiceStatus
+    let current: InvoiceStatus
+}
+
+struct UndoBanner: View {
+    let item: UndoStatus
+    let onUndo: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: item.current.symbol).foregroundStyle(item.current.color)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(item.invoiceNumber).font(.caption).foregroundStyle(.secondary)
+                Text(item.current.label).font(.subheadline.weight(.semibold))
+            }
+            Spacer()
+            Button("Cofnij", action: onUndo)
+                .buttonStyle(.bordered)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(.regularMaterial, in: .rect(cornerRadius: 18))
+        .glassEffect(in: .rect(cornerRadius: 18))
+        .shadow(color: .black.opacity(0.08), radius: 8, y: 2)
+        .accessibilityElement(children: .combine)
+        .accessibilityAction(named: Text("Cofnij"), onUndo)
     }
 }

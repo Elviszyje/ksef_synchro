@@ -396,6 +396,7 @@ T = {
  "Zatwierdź do zapłaty": ("Approve for payment", "Aprobar para pago", "Затвердити до оплати"),
  "Zatwierdź korektę": ("Approve correction", "Aprobar rectificación", "Затвердити коригування"),
  "Zostanie od razu rozliczona": ("Will be settled right away", "Se liquidará de inmediato", "Буде одразу розраховано"),
+ "Cofnij": ("Undo", "Deshacer", "Скасувати"),
  "Wersja": ("Version", "Versión", "Версія"),
  "Witaj w KS-eFektywnie": ("Welcome to KS-eFektywnie", "Bienvenido a KS-eFektywnie", "Вітаємо в KS-eFektywnie"),
  "Wklej token KSeF": ("Paste KSeF token", "Pega el token de KSeF", "Вставте токен KSeF"),

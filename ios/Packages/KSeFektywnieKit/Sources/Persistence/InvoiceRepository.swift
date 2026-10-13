@@ -116,6 +116,19 @@ public struct InvoiceRepository: Sendable {
         }
     }
 
+    /// Cofnięcie ostatniej zmiany statusu (np. przypadkowe przesunięcie na liście).
+    /// Działa tylko, gdy faktura nadal ma status `expected` — inaczej nic nie zmienia i zwraca false.
+    @discardableResult
+    public func revertStatus(_ id: UUID, from expected: InvoiceStatus, to previous: InvoiceStatus, now: Date = Date()) throws -> Bool {
+        try db.writer.write { db in
+            guard var invoice = try base().filter(key: id).fetchOne(db), invoice.status == expected,
+                  let change = invoice.forceStatus(previous, note: "Cofnięto zmianę statusu.", at: now, device: device) else { return false }
+            try invoice.update(db)
+            try InvoiceStatusLogEntry(invoiceID: id, change: change, device: device).insert(db)
+            return true
+        }
+    }
+
     public func updateNotes(_ id: UUID, notes: String, now: Date = Date()) throws {
         try db.writer.write { db in
             guard var invoice = try base().filter(key: id).fetchOne(db) else { return }

@@ -90,6 +90,21 @@ struct PersistenceTests {
         #expect(log[0].device == "test-device")
     }
 
+    @Test("Cofnięcie zmiany statusu z listy")
+    func revert() throws {
+        let inv = invoice("A")
+        try invoices.upsertFromKSeF([inv])
+        try invoices.changeStatus(inv.id, to: .accepted)
+        // Reguły nie pozwalają wrócić z "Do zapłaty" do "Nowa" — cofnięcie musi to umieć.
+        #expect(try invoices.revertStatus(inv.id, from: .accepted, to: .new))
+        #expect(try invoices.find(inv.id)?.status == .new)
+        #expect(try invoices.statusLog(inv.id).first?.change.note == "Cofnięto zmianę statusu.")
+        // Gdy w międzyczasie status się zmienił, cofnięcie niczego nie robi.
+        try invoices.changeStatus(inv.id, to: .disputed)
+        #expect(try !invoices.revertStatus(inv.id, from: .accepted, to: .new))
+        #expect(try invoices.find(inv.id)?.status == .disputed)
+    }
+
     @Test("Filtry listy")
     func filters() throws {
         try invoices.upsertFromKSeF([invoice("A"), invoice("B", status: .accepted), invoice("C", status: .paid)])
