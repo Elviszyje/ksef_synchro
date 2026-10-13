@@ -300,7 +300,7 @@ struct ManualMatchSheet: View {
             .overlay {
                 if candidates.isEmpty {
                     ContentUnavailableView("Brak faktur do przypisania", systemImage: "doc.text.magnifyingglass",
-                                           description: Text("Przypisać można faktury zaakceptowane lub przekazane do opłacenia."))
+                                           description: Text("Przypisać można faktury „Do zapłaty” i z przygotowanym przelewem."))
                 }
             }
             .navigationTitle("Przypisz fakturę")

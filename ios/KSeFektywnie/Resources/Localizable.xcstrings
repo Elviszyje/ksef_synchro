@@ -452,24 +452,24 @@
         }
       }
     },
-    "Brak faktur do zapłaty. Zaakceptuj fakturę z numerem rachunku, aby dodać ją do przelewu.": {
+    "Brak faktur do zapłaty. Zatwierdź fakturę do zapłaty w zakładce Faktury — pojawi się tutaj.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No invoices to pay. Accept an invoice with a bank account number to add it to a transfer."
+            "value": "No invoices to pay. Approve an invoice for payment in the Invoices tab — it will appear here."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No hay facturas por pagar. Acepta una factura con número de cuenta para añadirla a una transferencia."
+            "value": "No hay facturas por pagar. Aprueba una factura para pago en la pestaña Facturas y aparecerá aquí."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Немає рахунків-фактур до оплати. Прийміть рахунок-фактуру з номером рахунку, щоб додати її до переказу."
+            "value": "Немає рахунків-фактур до оплати. Затвердьте рахунок-фактуру до оплати на вкладці «Фактури» — він з'явиться тут."
           }
         }
       }
@@ -756,6 +756,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Що вам потрібно"
+          }
+        }
+      }
+    },
+    "Czeka w zakładce Przelewy na wygenerowanie pliku dla banku.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting in the Transfers tab for the bank file to be generated."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espera en la pestaña Transferencias a que se genere el archivo para el banco."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Очікує на вкладці «Перекази» на створення файлу для банку."
           }
         }
       }
@@ -1222,24 +1244,24 @@
         }
       }
     },
-    "Faktura %@ nie jest zaakceptowana lub nie ma numeru rachunku.": {
+    "Faktura %@ nie jest „Do zapłaty” albo nie ma numeru rachunku.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invoice %@ is not accepted or has no bank account number."
+            "value": "Invoice %@ is not “To pay” or has no bank account number."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La factura %@ no está aceptada o no tiene número de cuenta."
+            "value": "La factura %@ no está «Por pagar» o no tiene número de cuenta."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Рахунок-фактура %@ не прийнятий або не має номера рахунку."
+            "value": "Рахунок-фактура %@ не має статусу «До оплати» або не має номера рахунку."
           }
         }
       }
@@ -1486,24 +1508,24 @@
         }
       }
     },
-    "Faktury zostaną oznaczone jako „Przekazano do opłacenia”. Plik zaimportuj w bankowości internetowej.": {
+    "Faktury zmienią status na „Przelew przygotowany”. Plik zaimportuj w bankowości internetowej.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The invoices will be marked as “Sent for payment”. Import the file in your online banking."
+            "value": "The invoices will change to “Transfer prepared”. Import the file in your online banking."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Las facturas se marcarán como «Enviada para pago». Importa el archivo en tu banca en línea."
+            "value": "Las facturas pasarán a «Transferencia preparada». Importa el archivo en tu banca en línea."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Рахунки-фактури буде позначено як «Передано до оплати». Імпортуйте файл в інтернет-банкінгу."
+            "value": "Рахунки-фактури отримають статус «Переказ підготовлено». Імпортуйте файл в інтернет-банкінгу."
           }
         }
       }
@@ -1988,6 +2010,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Одиниця"
+          }
+        }
+      }
+    },
+    "Jest w pliku przelewów dla banku. Po imporcie wyciągu zostanie oznaczona jako opłacona.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "It is in the bank transfer file. It will be marked as paid after you import the statement."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Está en el archivo de transferencias del banco. Se marcará como pagada al importar el extracto."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Він у файлі переказів для банку. Після імпорту виписки буде позначений як оплачений."
           }
         }
       }
@@ -3594,6 +3638,72 @@
         }
       }
     },
+    "Oznacz jako opłaconą": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark as paid"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marcar como pagada"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Позначити як оплачений"
+          }
+        }
+      }
+    },
+    "Oznacz jako sporną": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark as disputed"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marcar como en disputa"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Позначити як спірний"
+          }
+        }
+      }
+    },
+    "Oznacz: przelew przygotowany": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark: transfer prepared"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marcar: transferencia preparada"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Позначити: переказ підготовлено"
+          }
+        }
+      }
+    },
     "Oznaczyć %lld faktur jako opłacone?": {
       "localizations": {
         "en": {
@@ -4332,28 +4442,6 @@
         }
       }
     },
-    "Przekazano do opłacenia": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sent for payment"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Enviada para pago"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Передано до оплати"
-          }
-        }
-      }
-    },
     "Przelew": {
       "localizations": {
         "en": {
@@ -4372,6 +4460,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "Переказ"
+          }
+        }
+      }
+    },
+    "Przelew przygotowany": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transfer prepared"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transferencia preparada"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Переказ підготовлено"
+          }
+        }
+      }
+    },
+    "Przelew zlecony poza aplikacją": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transfer ordered outside the app"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transferencia ordenada fuera de la aplicación"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Переказ замовлено поза застосунком"
           }
         }
       }
@@ -4442,24 +4574,24 @@
         }
       }
     },
-    "Przypisać można faktury zaakceptowane lub przekazane do opłacenia.": {
+    "Przypisać można faktury „Do zapłaty” i z przygotowanym przelewem.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You can assign accepted invoices or invoices sent for payment."
+            "value": "You can assign invoices that are “To pay” or have a prepared transfer."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Puedes asignar facturas aceptadas o enviadas para pago."
+            "value": "Puedes asignar facturas «Por pagar» o con transferencia preparada."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Можна призначити прийняті або передані до оплати рахунки-фактури."
+            "value": "Можна призначити рахунки-фактури зі статусом «До оплати» або з підготовленим переказом."
           }
         }
       }
@@ -4508,6 +4640,28 @@
         }
       }
     },
+    "Przywróć do weryfikacji": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return to review"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volver a revisión"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Повернути на перевірку"
+          }
+        }
+      }
+    },
     "Pusty plik.": {
       "localizations": {
         "en": {
@@ -4548,6 +4702,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Оплата"
+          }
+        }
+      }
+    },
+    "Płatność wstrzymana do wyjaśnienia z dostawcą.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Payment on hold until clarified with the supplier."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pago en espera hasta aclararlo con el proveedor."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Оплату призупинено до з'ясування з постачальником."
           }
         }
       }
@@ -4640,24 +4816,24 @@
         }
       }
     },
-    "Reset cofa faktury do statusu „Zaakceptowana” i usuwa plik z historii. Niedostępny, gdy któraś faktura jest już opłacona.": {
+    "Reset przywraca faktury do statusu „Do zapłaty” i usuwa plik z historii. Niedostępny, gdy któraś faktura jest już opłacona.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Resetting returns the invoices to “Accepted” and removes the file from history. Not available if any invoice is already paid."
+            "value": "Resetting returns the invoices to “To pay” and removes the file from history. Not available if any invoice is already paid."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El restablecimiento devuelve las facturas a «Aceptada» y elimina el archivo del historial. No disponible si alguna factura ya está pagada."
+            "value": "El restablecimiento devuelve las facturas a «Por pagar» y elimina el archivo del historial. No disponible si alguna factura ya está pagada."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Скидання повертає рахунки-фактури до статусу «Прийнятий» і видаляє файл з історії. Недоступно, якщо будь-яку з них уже оплачено."
+            "value": "Скидання повертає рахунки-фактури до статусу «До оплати» і видаляє файл з історії. Недоступно, якщо будь-яку з них уже оплачено."
           }
         }
       }
@@ -4728,6 +4904,28 @@
         }
       }
     },
+    "Rozliczona.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settled."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liquidada."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Розраховано."
+          }
+        }
+      }
+    },
     "Skopiuj token od razu": {
       "localizations": {
         "en": {
@@ -4790,6 +4988,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Перевірка…"
+          }
+        }
+      }
+    },
+    "Sprawdź fakturę i zatwierdź ją do zapłaty.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the invoice and approve it for payment."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revisa la factura y apruébala para pago."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перевірте рахунок-фактуру та затвердьте його до оплати."
           }
         }
       }
@@ -5318,6 +5538,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Токен збережено"
+          }
+        }
+      }
+    },
+    "Trafi do zakładki Przelewy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moves to the Transfers tab"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pasará a la pestaña Transferencias"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Потрапить на вкладку «Перекази»"
           }
         }
       }
@@ -5922,6 +6164,28 @@
         }
       }
     },
+    "Wstrzymaj płatność": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Put payment on hold"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poner el pago en espera"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Призупинити оплату"
+          }
+        }
+      }
+    },
     "Wybierz pozycję z katalogu albo dodaj nową. Nowe pozycje trafiają do katalogu po zapisaniu faktury.": {
       "localizations": {
         "en": {
@@ -6321,28 +6585,6 @@
         }
       }
     },
-    "Zaakceptowana": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Accepted"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aceptada"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Прийнятий"
-          }
-        }
-      }
-    },
     "Zaloguj się do Aplikacji Podatnika KSeF": {
       "localizations": {
         "en": {
@@ -6563,6 +6805,28 @@
         }
       }
     },
+    "Zapłacona poza aplikacją": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paid outside the app"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pagada fuera de la aplicación"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Оплачено поза застосунком"
+          }
+        }
+      }
+    },
     "Zatwierdzony": {
       "localizations": {
         "en": {
@@ -6603,6 +6867,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "Затвердити"
+          }
+        }
+      }
+    },
+    "Zatwierdź do zapłaty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approve for payment"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aprobar para pago"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Затвердити до оплати"
+          }
+        }
+      }
+    },
+    "Zatwierdź korektę": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approve correction"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aprobar rectificación"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Затвердити коригування"
           }
         }
       }
@@ -6735,6 +7043,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Знайдено копію"
+          }
+        }
+      }
+    },
+    "Zostanie od razu rozliczona": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Will be settled right away"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se liquidará de inmediato"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Буде одразу розраховано"
           }
         }
       }

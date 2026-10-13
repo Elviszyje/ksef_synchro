@@ -128,7 +128,7 @@ public struct PaymentFileRepository: Sendable {
             guard let file = try PaymentFile.filter(Column("companyId") == companyID).filter(key: fileID).fetchOne(db) else { return }
             if invoices.contains(where: { $0.status == .paid }) { throw PaymentFileError.paidInvoiceInBatch }
             for var invoice in invoices where invoice.status == .sentForPayment {
-                if let change = invoice.forceStatus(.accepted, note: "Cofnięto do zaakceptowana — reset paczki \(file.fileName)",
+                if let change = invoice.forceStatus(.accepted, note: "Cofnięto do „Do zapłaty” — reset paczki \(file.fileName)",
                                                     at: now, device: device) {
                     try invoice.update(db)
                     try InvoiceStatusLogEntry(invoiceID: invoice.id, change: change, device: device).insert(db)

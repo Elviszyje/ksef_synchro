@@ -5,6 +5,9 @@ import Persistence
 struct InvoiceDetailView: View {
     let invoiceID: UUID
     @Environment(AppModel.self) private var model
+    @Environment(PaymentsFlight.self) private var flight
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var statusButtonFrame: CGRect = .zero
     @State private var invoice: Invoice?
     @State private var log: [InvoiceStatusLogEntry] = []
     @State private var notes = ""
@@ -21,24 +24,34 @@ struct InvoiceDetailView: View {
                             .font(.title2)
                             .foregroundStyle(invoice.status.color)
                             .frame(width: 32)
+                            .contentTransition(.symbolEffect(.replace))
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Status").font(.caption).foregroundStyle(.secondary)
                             Text(invoice.status.label).font(.headline).foregroundStyle(invoice.status.color)
                         }
                         Spacer(minLength: 8)
-                        if !invoice.allowedTransitions.isEmpty {
+                        if !invoice.statusActions.isEmpty {
                             Menu {
-                                ForEach(invoice.allowedTransitions, id: \.self) { status in
-                                    Button { change(to: status) } label: { Text(status.label) }
+                                ForEach(invoice.statusActions, id: \.target) { action in
+                                    Button { change(to: action.target) } label: {
+                                        Label {
+                                            Text(action.title)
+                                            if let subtitle = action.subtitle { Text(subtitle) }
+                                        } icon: { Image(systemName: action.symbol) }
+                                    }
                                 }
                             } label: {
                                 Text("Zmień status")
                             }
                             .buttonStyle(.bordered)
+                            .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { statusButtonFrame = $0 }
                         }
                     }
                     .padding(.vertical, 2)
                     .accessibilityElement(children: .contain)
+                    Text(invoice.status.explanation)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
 
                 Section("Kwoty") {
@@ -116,7 +129,13 @@ struct InvoiceDetailView: View {
         }
         .navigationTitle(invoice?.invoiceNumber ?? "")
         .navigationBarTitleDisplayMode(.inline)
-        .task { load() }
+        .task {
+            load()
+            if DebugLaunch.autoApprove, invoice?.allowedTransitions.contains(.accepted) == true {
+                try? await Task.sleep(for: .seconds(2))
+                change(to: .accepted)
+            }
+        }
     }
 
     private func load() {
@@ -128,8 +147,12 @@ struct InvoiceDetailView: View {
 
     private func change(to status: InvoiceStatus) {
         do {
+            let flies = status == .accepted && invoice?.movesToPaymentsWhenAccepted == true
             try model.invoices?.changeStatus(invoiceID, to: status)
-            load()
+            if flies && !reduceMotion && statusButtonFrame != .zero {
+                flight.launch(from: CGPoint(x: statusButtonFrame.midX, y: statusButtonFrame.midY))
+            }
+            withAnimation(.snappy) { load() }
         } catch {
             self.error = error.userMessage
         }

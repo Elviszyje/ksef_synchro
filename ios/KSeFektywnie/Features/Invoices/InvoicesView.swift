@@ -12,6 +12,9 @@ struct InvoicesView: View {
     @State private var loadError: String?
     @State private var showDashboard = DebugLaunch.openDashboard
     @State private var path: [UUID] = []
+    @State private var rowFrames: [UUID: CGRect] = [:]
+    @Environment(PaymentsFlight.self) private var flight
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -24,6 +27,15 @@ struct InvoicesView: View {
                 }
                 ForEach(invoices) { invoice in
                     NavigationLink(value: invoice.id) { InvoiceRow(invoice: invoice) }
+                        .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { rowFrames[invoice.id] = $0 }
+                        .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                            if invoice.allowedTransitions.contains(.accepted) {
+                                Button { approve(invoice) } label: {
+                                    Label(invoice.isCorrection ? "Zatwierdź korektę" : "Do zapłaty", systemImage: "banknote")
+                                }
+                                .tint(.orange)
+                            }
+                        }
                 }
             }
             .overlay {
@@ -78,6 +90,18 @@ struct InvoicesView: View {
         } label: {
             Label("Filtry", systemImage: filter == InvoiceFilter(search: filter.search)
                   ? "line.3.horizontal.decrease.circle" : "line.3.horizontal.decrease.circle.fill")
+        }
+    }
+
+    /// Zatwierdzenie z listy: faktura „wpada” do zakładki Przelewy.
+    private func approve(_ invoice: Invoice) {
+        do {
+            try model.invoices?.changeStatus(invoice.id, to: .accepted, note: "Zatwierdzona do zapłaty z listy faktur.")
+            if invoice.movesToPaymentsWhenAccepted, !reduceMotion, let frame = rowFrames[invoice.id] {
+                flight.launch(from: CGPoint(x: frame.minX + 60, y: frame.midY))
+            }
+        } catch {
+            loadError = error.userMessage
         }
     }
 

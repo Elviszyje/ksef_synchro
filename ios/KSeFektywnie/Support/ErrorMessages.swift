@@ -35,7 +35,7 @@ extension Error {
         case let e as PaymentFileError:
             switch e {
             case .noInvoices: return String(localized: "Nie wybrano faktur.")
-            case .invoiceNotPayable(let number): return String(localized: "Faktura \(number) nie jest zaakceptowana lub nie ma numeru rachunku.")
+            case .invoiceNotPayable(let number): return String(localized: "Faktura \(number) nie jest „Do zapłaty” albo nie ma numeru rachunku.")
             case .paidInvoiceInBatch: return String(localized: "Nie można zresetować paczki — co najmniej jedna faktura ma status „Opłacona”.")
             }
         case let e as SalesError:

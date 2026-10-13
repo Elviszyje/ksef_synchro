@@ -1,4 +1,5 @@
 import SwiftUI
+import GRDB
 
 struct RootView: View {
     @Environment(AppModel.self) private var model
@@ -34,16 +35,39 @@ enum AppTab: String, Hashable {
 }
 
 struct MainTabView: View {
+    @Environment(AppModel.self) private var model
     @State private var selection: AppTab = DebugLaunch.initialTab ?? .invoices
+    @State private var flight = PaymentsFlight()
+    @State private var payableCount = 0
 
     var body: some View {
         TabView(selection: $selection) {
             Tab("Faktury", systemImage: "doc.text", value: .invoices) { InvoicesView() }
             Tab("Sprzedaż", systemImage: "square.and.pencil", value: .sales) { SalesListView() }
             Tab("Przelewy", systemImage: "banknote", value: .payments) { PaymentsView() }
+                .badge(payableCount)
             Tab("Wyciągi", systemImage: "tray.and.arrow.down", value: .statements) { StatementsView() }
             Tab("Ustawienia", systemImage: "gearshape", value: .settings) { SettingsView() }
         }
+        .environment(flight)
+        .overlay { PaymentsFlightOverlay(tabFraction: 0.5).environment(flight) }
+        .sensoryFeedback(.impact(weight: .light), trigger: flight.landings)
+        .task { await observePayable() }
+    }
+
+    /// Licznik faktur „Do zapłaty” na zakładce Przelewy. Gdy leci miniaturka,
+    /// licznik zmienia się dopiero przy jej lądowaniu.
+    private func observePayable() async {
+        guard let payments = model.payments else { return }
+        do {
+            for try await value in payments.observePayable().values(in: model.database.reader) {
+                let count = value.count
+                if !flight.flights.isEmpty && count > payableCount {
+                    try? await Task.sleep(for: .milliseconds(700))
+                }
+                withAnimation(.snappy) { payableCount = count }
+            }
+        } catch {}
     }
 }
 
@@ -64,6 +88,15 @@ enum DebugLaunch {
         UserDefaults.standard.string(forKey: "open-invoice")
         #else
         nil
+        #endif
+    }
+
+    /// `-auto-approve YES` razem z `-open-invoice`: po chwili zatwierdza fakturę (nagrywanie animacji).
+    static var autoApprove: Bool {
+        #if DEBUG
+        UserDefaults.standard.bool(forKey: "auto-approve")
+        #else
+        false
         #endif
     }
 

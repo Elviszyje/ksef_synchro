@@ -3,7 +3,7 @@ import GRDB
 import Domain
 import Persistence
 
-/// Przelewy: wybór zaakceptowanych faktur → plik dla banku → historia paczek.
+/// Przelewy: faktury „Do zapłaty” → plik dla banku → historia paczek.
 struct PaymentsView: View {
     @Environment(AppModel.self) private var model
     @State private var payable: [Invoice] = []
@@ -33,7 +33,7 @@ struct PaymentsView: View {
 
                 Section {
                     if payable.isEmpty {
-                        Text("Brak faktur do zapłaty. Zaakceptuj fakturę z numerem rachunku, aby dodać ją do przelewu.")
+                        Text("Brak faktur do zapłaty. Zatwierdź fakturę do zapłaty w zakładce Faktury — pojawi się tutaj.")
                             .font(.subheadline).foregroundStyle(.secondary)
                     }
                     ForEach(payable) { invoice in
@@ -73,7 +73,7 @@ struct PaymentsView: View {
                         .buttonStyle(.glassProminent)
                         .frame(maxWidth: .infinity)
                     } footer: {
-                        Text("Faktury zostaną oznaczone jako „Przekazano do opłacenia”. Plik zaimportuj w bankowości internetowej.")
+                        Text("Faktury zmienią status na „Przelew przygotowany”. Plik zaimportuj w bankowości internetowej.")
                     }
                 }
 
@@ -209,7 +209,7 @@ struct PaymentFileDetailView: View {
             Section {
                 Button("Resetuj paczkę", role: .destructive) { confirmReset = true }
             } footer: {
-                Text("Reset cofa faktury do statusu „Zaakceptowana” i usuwa plik z historii. Niedostępny, gdy któraś faktura jest już opłacona.")
+                Text("Reset przywraca faktury do statusu „Do zapłaty” i usuwa plik z historii. Niedostępny, gdy któraś faktura jest już opłacona.")
             }
             if let error { Section { Text(error).foregroundStyle(.red) } }
         }
