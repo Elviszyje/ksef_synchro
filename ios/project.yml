@@ -61,6 +61,19 @@ targets:
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: X9AX9Q83H4
+  KSeFektywnieUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: KSeFektywnieUITests
+    dependencies:
+      - target: KSeFektywnie
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: pl.ksefektywnie.app.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_DEFAULT_ACTOR_ISOLATION: nonisolated
+        TEST_TARGET_NAME: KSeFektywnie
 schemes:
   KSeFektywnie:
     build:
@@ -71,3 +84,5 @@ schemes:
       storeKitConfiguration: KSeFektywnie/Resources/Tips.storekit
     test:
       config: Debug
+      targets:
+        - KSeFektywnieUITests
