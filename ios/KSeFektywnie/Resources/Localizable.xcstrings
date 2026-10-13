@@ -364,6 +364,28 @@
         }
       }
     },
+    "Bank": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bank"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Banco"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Банк"
+          }
+        }
+      }
+    },
     "Bezpieczeństwo": {
       "localizations": {
         "en": {
@@ -540,6 +562,28 @@
         }
       }
     },
+    "Brak paczek przelewów": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No transfer batches"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay lotes de transferencias"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немає пакетів переказів"
+          }
+        }
+      }
+    },
     "Brak połączenia z internetem.": {
       "localizations": {
         "en": {
@@ -602,6 +646,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Немає виписок"
+          }
+        }
+      }
+    },
+    "Brak wyników": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No results"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin resultados"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немає результатів"
           }
         }
       }
@@ -716,6 +782,28 @@
         }
       }
     },
+    "Cały okres": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All time"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todo el periodo"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Увесь період"
+          }
+        }
+      }
+    },
     "Cena jednostkowa netto": {
       "localizations": {
         "en": {
@@ -800,6 +888,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Очікує на вкладці «Перекази» на створення файлу для банку."
+          }
+        }
+      }
+    },
+    "Częściowo rozliczona": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partly settled"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liquidado en parte"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Частково розраховано"
           }
         }
       }
@@ -1882,24 +1992,24 @@
         }
       }
     },
-    "Historia plików": {
+    "Historia przelewów": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "File history"
+            "value": "Transfer history"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Historial de archivos"
+            "value": "Historial de transferencias"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Історія файлів"
+            "value": "Історія переказів"
           }
         }
       }
@@ -3440,6 +3550,28 @@
         }
       }
     },
+    "Oczekuje na zapłatę": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Awaiting payment"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pendiente de pago"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Очікує на оплату"
+          }
+        }
+      }
+    },
     "Odblokuj": {
       "localizations": {
         "en": {
@@ -3550,6 +3682,28 @@
         }
       }
     },
+    "Okres": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Period"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Periodo"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Період"
+          }
+        }
+      }
+    },
     "Opis (opcjonalnie)": {
       "localizations": {
         "en": {
@@ -3634,6 +3788,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "Остання синхронізація: %@"
+          }
+        }
+      }
+    },
+    "Ostatnie 30 dni": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last 30 days"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Últimos 30 días"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Останні 30 днів"
+          }
+        }
+      }
+    },
+    "Ostatnie 90 dni": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last 90 days"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Últimos 90 días"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Останні 90 днів"
           }
         }
       }
@@ -3866,6 +4064,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Файл готовий"
+          }
+        }
+      }
+    },
+    "Plik, sprzedawca, numer faktury": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File, seller, invoice number"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivo, vendedor, número de factura"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Файл, продавець, номер рахунку"
           }
         }
       }
@@ -4926,6 +5146,28 @@
         }
       }
     },
+    "Rozliczona": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settled"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liquidado"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Розраховано"
+          }
+        }
+      }
+    },
     "Rozliczona.": {
       "localizations": {
         "en": {
@@ -5296,6 +5538,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Така зміна статусу заборонена."
+          }
+        }
+      }
+    },
+    "Ten rok": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This year"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este año"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цей рік"
           }
         }
       }
@@ -6358,6 +6622,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "Виписки"
+          }
+        }
+      }
+    },
+    "Wyczyść filtry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear filters"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borrar filtros"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Очистити фільтри"
+          }
+        }
+      }
+    },
+    "Wygenerowane pliki dla banku pojawią się tutaj.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generated bank files will appear here."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los archivos generados para el banco aparecerán aquí."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Згенеровані файли для банку з'являться тут."
           }
         }
       }
@@ -7448,6 +7756,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Тестове середовище призначене для спроб і має окремі дані та токени. Для роботи зі справжніми рахунками-фактурами виберіть виробниче."
+          }
+        }
+      }
+    },
+    "Żadna paczka nie pasuje do wyszukiwania i filtrów.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No batch matches the search and filters."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ningún lote coincide con la búsqueda y los filtros."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Жоден пакет не відповідає пошуку та фільтрам."
           }
         }
       }

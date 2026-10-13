@@ -56,13 +56,22 @@ public enum DemoData {
             invoice(3, seller: sellers[2], net: "1204.88", issued: -20, due: -3, status: .new, item: "Energia elektryczna — wrzesień"),
             invoice(4, seller: sellers[3], net: "1800", issued: -15, due: 0, status: .disputed, item: "Prowadzenie księgowości"),
             invoice(5, seller: sellers[4], net: "20000", issued: -6, due: 24, status: .accepted, split: true, item: "Pręt zbrojeniowy fi 12, 5 t"),
-            invoice(6, seller: sellers[5], net: "149.59", issued: -25, due: -11, status: .sentForPayment, item: "Internet światłowodowy"),
-            invoice(7, seller: sellers[5], net: "149.59", issued: -55, due: -41, status: .paid, item: "Internet światłowodowy"),
+            invoice(6, seller: sellers[5], net: "149.59", issued: -25, due: -11, status: .accepted, item: "Internet światłowodowy"),
+            invoice(7, seller: sellers[5], net: "149.59", issued: -55, due: -41, status: .accepted, item: "Internet światłowodowy"),
             invoice(8, seller: sellers[0], net: "-100", issued: -1, due: nil, status: .new, type: "KOR", item: "Korekta — zwrot tonera"),
         ]
-        try InvoiceRepository(db: db, companyID: company.id, device: device).upsertFromKSeF(invoices, now: now)
+        let repo = InvoiceRepository(db: db, companyID: company.id, device: device)
+        try repo.upsertFromKSeF(invoices, now: now)
+        // Historyczna paczka przelewów: faktura 7 już opłacona, 6 czeka na wyciąg.
+        let paidLater = Date(timeInterval: -20 * 86_400, since: now)
+        try PaymentFileRepository(db: db, companyID: company.id, device: device).generate(
+            invoiceIDs: [invoices[5].id, invoices[6].id], debitAccount: account,
+            payer: PaymentPayer(debitAccount: account.accountNumber, name: company.name, address: company.address),
+            date: day(-21), now: Date(timeInterval: -21 * 86_400, since: now))
+        try repo.changeStatus(invoices[6].id, to: .paid, note: "Opłacona (dane demo).", now: paidLater)
+        let stored = try repo.fetch()
         try seedSales(company: company, account: account, db: db, device: device, today: today, now: now)
-        try seedStatement(company: company, invoices: invoices, db: db, device: device, today: today, now: now)
+        try seedStatement(company: company, invoices: stored, db: db, device: device, today: today, now: now)
         return company
     }
 

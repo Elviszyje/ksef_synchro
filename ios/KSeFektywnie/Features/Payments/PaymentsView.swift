@@ -7,7 +7,7 @@ import Persistence
 struct PaymentsView: View {
     @Environment(AppModel.self) private var model
     @State private var payable: [Invoice] = []
-    @State private var files: [PaymentFile] = []
+    @State private var showHistory = DebugLaunch.openPaymentHistory
     @State private var selection = Set<UUID>()
     @State private var accountNumber = ""
     @State private var generated: PaymentFile?
@@ -81,18 +81,18 @@ struct PaymentsView: View {
                     Section { Text(error).foregroundStyle(.red) }
                 }
 
-                if !files.isEmpty {
-                    Section("Historia plików") {
-                        ForEach(files) { file in
-                            NavigationLink { PaymentFileDetailView(file: file) } label: { PaymentFileRow(file: file) }
-                        }
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink { PaymentHistoryView() } label: {
+                        Label("Historia przelewów", systemImage: "clock.arrow.circlepath")
                     }
                 }
             }
+            .navigationDestination(isPresented: $showHistory) { PaymentHistoryView() }
             .navigationTitle("Przelewy")
             .sheet(item: $generated) { file in PaymentFileShareSheet(file: file) }
             .task { await observePayable() }
-            .task { await observeFiles() }
             .onAppear { if accountNumber.isEmpty { accountNumber = model.defaultBankAccount?.accountNumber ?? "" } }
         }
     }
@@ -123,12 +123,6 @@ struct PaymentsView: View {
         } catch {}
     }
 
-    private func observeFiles() async {
-        guard let payments = model.payments else { return }
-        do {
-            for try await value in payments.observeFiles().values(in: model.database.reader) { files = value }
-        } catch {}
-    }
 }
 
 struct PayableRow: View {

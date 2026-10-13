@@ -160,6 +160,23 @@ struct PersistenceTests {
         #expect(try invoices.statusLog(a.id).map(\.change.to) == [.accepted, .sentForPayment])
     }
 
+    @Test("Historia paczek: stan rozliczenia i dane do wyszukiwania")
+    func paymentHistory() throws {
+        let a = invoice("A", status: .accepted)
+        let b = invoice("B", gross: 100, status: .accepted)
+        try invoices.upsertFromKSeF([a, b])
+        try payments.generate(invoiceIDs: [a.id, b.id], debitAccount: account,
+                              payer: PaymentPayer(debitAccount: account.accountNumber, name: "F", address: ""))
+        let summary = try #require(try payments.summaries().first)
+        #expect(summary.settlement == .pending)
+        #expect(summary.sellerNames == ["Sprzedawca A", "Sprzedawca B"])
+        #expect(summary.invoiceNumbers == ["FV/A", "FV/B"])
+        try invoices.changeStatus(a.id, to: .paid)
+        #expect(try payments.summaries().first?.settlement == .partial)
+        try invoices.changeStatus(b.id, to: .paid)
+        #expect(try payments.summaries().first?.settlement == .settled)
+    }
+
     @Test("Reset paczki z opłaconą fakturą jest zablokowany")
     func resetBlockedWhenPaid() throws {
         let a = invoice("A", status: .accepted)

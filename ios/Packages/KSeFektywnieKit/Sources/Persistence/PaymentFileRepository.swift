@@ -104,6 +104,32 @@ public struct PaymentFileRepository: Sendable {
         }
     }
 
+    /// Historia paczek z liczbą opłaconych faktur oraz sprzedawcami i numerami do wyszukiwania.
+    public func observeSummaries() -> ValueObservation<ValueReducers.Fetch<[PaymentFileSummary]>> {
+        let companyID = companyID
+        return ValueObservation.tracking { db in try Self.fetchSummaries(db, companyID: companyID) }
+    }
+
+    public func summaries() throws -> [PaymentFileSummary] {
+        let companyID = companyID
+        return try db.reader.read { try Self.fetchSummaries($0, companyID: companyID) }
+    }
+
+    static func fetchSummaries(_ db: Database, companyID: UUID) throws -> [PaymentFileSummary] {
+        try PaymentFile.filter(Column("companyId") == companyID).order(Column("createdAt").desc).fetchAll(db).map { file in
+            let rows = try Row.fetchAll(db, sql: """
+                SELECT invoice.sellerName, invoice.invoiceNumber, invoice.status FROM invoice
+                JOIN paymentFileItem ON paymentFileItem.invoiceId = invoice.id
+                WHERE paymentFileItem.paymentFileId = ? ORDER BY paymentFileItem.lineNumber
+                """, arguments: [file.id])
+            return PaymentFileSummary(
+                file: file,
+                paidCount: rows.filter { ($0["status"] as String) == InvoiceStatus.paid.rawValue }.count,
+                sellerNames: rows.map { $0["sellerName"] },
+                invoiceNumbers: rows.map { $0["invoiceNumber"] })
+        }
+    }
+
     public func files() throws -> [PaymentFile] {
         try db.reader.read {
             try PaymentFile.filter(Column("companyId") == companyID).order(Column("createdAt").desc).fetchAll($0)

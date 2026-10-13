@@ -109,6 +109,14 @@ enum DebugLaunch {
         #endif
     }
 
+    static var openPaymentHistory: Bool {
+        #if DEBUG
+        UserDefaults.standard.bool(forKey: "open-payment-history")
+        #else
+        false
+        #endif
+    }
+
     static var openDashboard: Bool {
         #if DEBUG
         UserDefaults.standard.bool(forKey: "open-dashboard")
