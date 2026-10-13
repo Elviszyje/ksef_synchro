@@ -83,12 +83,7 @@ struct InvoicesView: View {
                     Button { showDashboard = true } label: { Label("Podsumowanie kosztów", systemImage: "chart.bar") }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    if !invoices.isEmpty {
-                        ShareLink(item: InvoiceCSVExport(invoices: invoices),
-                                  preview: SharePreview(InvoiceCSVExport.fileName)) {
-                            Label("Eksport CSV", systemImage: "square.and.arrow.up")
-                        }
-                    }
+                    if !invoices.isEmpty { exportMenu }
                 }
                 ToolbarItem(placement: .topBarTrailing) { filterMenu }
             }
@@ -102,12 +97,39 @@ struct InvoicesView: View {
                     model.openTarget = nil
                 }
             }
+            .task(id: invoices.count) {
+                guard DebugLaunch.dumpExports, !invoices.isEmpty else { return }
+                let export = InvoiceExport(invoices: invoices, companyName: model.company?.name ?? "",
+                                           companyNIP: model.company?.nip ?? "", today: .today())
+                let dir = URL.documentsDirectory.appending(path: "exports")
+                try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+                try? export.xlsx().write(to: dir.appending(path: "faktury.xlsx"))
+                try? InvoicePDF(export: export).render().write(to: dir.appending(path: "faktury.pdf"))
+            }
             .task {
                 guard let raw = DebugLaunch.autoSwipe, let status = InvoiceStatus(rawValue: raw == "accepted" ? "zaakceptowana" : "sporna") else { return }
                 try? await Task.sleep(for: .seconds(2))
                 if let first = invoices.first(where: { $0.allowedTransitions.contains(status) }) { swipe(first, to: status) }
             }
         }
+    }
+
+    private var exportMenu: some View {
+        let export = InvoiceExport(invoices: invoices, companyName: model.company?.name ?? "",
+                                   companyNIP: model.company?.nip ?? "", today: .today())
+        return Menu {
+            ShareLink(item: InvoiceXLSXFile(export: export),
+                      preview: SharePreview("\(export.baseName).xlsx", image: Image(systemName: "tablecells"))) {
+                Label("Excel (.xlsx)", systemImage: "tablecells")
+            }
+            ShareLink(item: InvoicePDFFile(export: export),
+                      preview: SharePreview("\(export.baseName).pdf", image: Image(systemName: "doc.richtext"))) {
+                Label("PDF", systemImage: "doc.richtext")
+            }
+        } label: {
+            Label("Eksportuj", systemImage: "square.and.arrow.up")
+        }
+        .accessibilityIdentifier("export-menu")
     }
 
     private var filterMenu: some View {
@@ -201,21 +223,6 @@ struct InvoiceRow: View {
             }
         }
         .accessibilityElement(children: .combine)
-    }
-}
-
-/// CSV bieżącej listy faktur, generowany dopiero w chwili udostępnienia.
-struct InvoiceCSVExport: Transferable {
-    let invoices: [Invoice]
-
-    static var fileName: String { "faktury_\(LocalDate.today().iso).csv" }
-
-    static var transferRepresentation: some TransferRepresentation {
-        FileRepresentation(exportedContentType: .commaSeparatedText) { export in
-            let url = FileManager.default.temporaryDirectory.appending(path: fileName)
-            try InvoiceCSV.export(export.invoices) { String(localized: $0.label) }.write(to: url, options: .atomic)
-            return SentTransferredFile(url)
-        }
     }
 }
 

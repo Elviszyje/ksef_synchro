@@ -16,7 +16,7 @@ Nazwa aplikacji: **KS-eFektywnie**. Kod iOS: katalog `ios/` w tym repo.
 ### Poza zakresem v1 (świadomie)
 - Role użytkowników, licencje, panel firm, audit log – nie mają sensu w aplikacji jednoosobowej.
 - Powiadomienia Telegram – zastąpione lokalnymi powiadomieniami iOS.
-- Export Excel (.xlsx) – w v1 export CSV przez arkusz udostępniania; .xlsx w v2 (wymaga pakietu do zapisu xlsx).
+- Export Excel (.xlsx) i PDF przez arkusz udostępniania (własny zapis xlsx bez zależności).
 - Dwukierunkowa synchronizacja między urządzeniami – v2 (na bazie katalogu iCloud Drive z sekcji 4.8 lub CloudKit). W v1: jednokierunkowe lustro do iCloud Drive + odtworzenie danych na nowym urządzeniu.
 
 ## 2. Architektura
@@ -93,7 +93,7 @@ Statusy i przejścia: port `STATUS_TRANSITIONS` oraz `STATUS_TRANSITIONS_CORRECT
 - Lista z filtrami (status, sprzedawca, zakres dat, przeterminowane, MPP), wyszukiwanie, sortowanie, zaznaczanie wielu i zmiana zbiorcza statusu.
 - Szczegół: nagłówek, kwoty, pozycje (`FaWiersz`), dane płatności, historia statusów, notatki, podgląd/udostępnienie surowego XML.
 - Dashboard: suma 12 mies., średnia, słupki miesięczne, top 5 sprzedawców (Swift Charts).
-- Export CSV z aktualnego filtra przez `ShareLink`.
+- Export Excel (.xlsx) i PDF z aktualnego filtra przez `ShareLink` (menu „Eksportuj”).
 
 ### 4.3 Pliki przelewów
 Źródło: `apps/payments/`.
@@ -167,7 +167,7 @@ KS-eFektywnie/
       2026-10_MT940.sta              # oryginał importu
       2026-10_MT940.json             # transakcje + dopasowania + kto/kiedy zatwierdził
     eksport/
-      faktury-kosztowe-2026-10.csv   # eksporty generowane na żądanie
+      faktury-kosztowe-2026-10.xlsx  # eksporty generowane na żądanie
 ```
 
 Zasady formatu:
@@ -261,7 +261,7 @@ Razem ok. 15–17 tygodni. Faza 4 jest najbardziej ryzykowna czasowo, bo zależy
 | Minimalna wersja iOS | 26 |
 | Liczba firm | Jedna w v1, architektura gotowa na wiele podmiotów |
 | Faktury wychodzące | W zakresie v1 |
-| Export | CSV w v1, xlsx później |
+| Export | Excel (.xlsx) i PDF |
 | Nazwa | KS-eFektywnie |
 | Lokalizacja kodu | `ios/` w tym repo |
 | Kopia danych | Katalog iCloud Drive z JSON/XML/plikami bankowymi, lustro write-through + odtworzenie w v1, dwukierunkowa sync w v2 |
@@ -317,6 +317,7 @@ Do zweryfikowania osobno: przebieg wysyłki faktur w Django (`invoices/send` z s
 - Historia paczek przelewów jako osobny ekran z wyszukiwaniem i filtrami (stan rozliczenia, okres, bank).
 - Integracja z aplikacją Przypomnienia (EventKit): przypomnienie do faktury i do paczki przelewów, link `ksefektywnie://` otwierający rekord, automatyczne odhaczanie po opłaceniu/rozliczeniu. Powiązania w tabeli `reminderLink` (nie trafiają do lustra iCloud — identyfikatory przypomnień są lokalne).
 - Blokada Face ID przepisana na testowalny model stanów (`AppLockState`).
+- Eksport listy faktur do Excel (.xlsx: liczby i daty jako wartości, autofiltr, zamrożony nagłówek, wyróżnienie przeterminowanych, wiersz sumy) i PDF (A4 poziomo, sumy według walut, numeracja stron) zamiast CSV. Zapis xlsx bez zależności (`Spreadsheet`, `ZipWriter`), zgodność sprawdzona openpyxl.
 
 ### Ustalenia ze specyfikacji KSeF 2.0 ważne dla Django
 - Endpoint `invoices/send` używany w `apps/ksef/client.py` **nie istnieje** w API 2.0 — wysyłka faktur w Django nie może działać. Właściwy przebieg jak w iOS (sesja interaktywna).

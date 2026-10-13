@@ -89,7 +89,7 @@ KS-eFektywnie works with KSeF, the Polish government e-invoicing system. Access 
 
 To review all features without KSeF:
 1. On the first screen tap **“Try it with sample data”**. This creates a fictitious company with purchase invoices, two sales invoice drafts, a bank statement and a catalog of items.
-2. Invoices tab: open an invoice, change its status, add a note. Use the chart button for the cost summary and the share button for CSV export.
+2. Invoices tab: open an invoice, change its status, add a note. Use the chart button for the cost summary and the share button to export the list to Excel (.xlsx) or PDF.
 3. Transfers tab: select invoices and tap “Generate transfer file”; the file can be shared.
 4. Statements tab: open the sample statement, confirm the suggested match and tap “Confirm”.
 5. Sales tab: open a draft, add an item from the catalog, preview the FA(3) XML. Sending to KSeF requires a token and is not available in demo mode.

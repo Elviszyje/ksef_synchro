@@ -38,18 +38,22 @@ struct CostSummaryTests {
         #expect(s.unpaidGross == Decimal(100 + 50 + 120 + 999 + 300 + 700 + 20))
     }
 
-    @Test("CSV: średniki, przecinek dziesiętny, cytowanie, BOM")
-    func csv() throws {
-        var i = inv("Firma; \"Cytat\"", "5260250274", Decimal(string: "1234.5")!, 2026, 10)
-        i.notes = "linia 1\nlinia 2"
-        i.isSplitPayment = true
-        let data = InvoiceCSV.export([i]) { $0.rawValue }
-        #expect(data.prefix(3) == Data([0xEF, 0xBB, 0xBF]))
-        let text = String(decoding: data.dropFirst(3), as: UTF8.self)
-        let lines = text.components(separatedBy: "\r\n")
-        #expect(lines[0].hasPrefix("Numer faktury;Nr referencyjny KSeF;Sprzedawca"))
-        #expect(lines[1].contains(";\"Firma; \"\"Cytat\"\"\";5260250274;2026-10-05;"))
-        #expect(lines[1].contains(";1234,50;PLN;TAK;nowa;"))
-        #expect(lines[1].hasSuffix("\"linia 1\nlinia 2\""))
+    @Test("Zestawienie faktur: wiersze, wyróżnienie przeterminowanych, sumy tylko dla jednej waluty")
+    func spreadsheet() {
+        var overdue = inv("A", "1", 100, 2026, 9, due: LocalDate(year: 2026, month: 9, day: 30))
+        overdue.isSplitPayment = true
+        let ok = inv("B", "2", 50, 2026, 10)
+        let titles = (1...14).map { "K\($0)" }
+        let sheet = InvoiceSpreadsheet.make([overdue, ok], titles: titles, statusLabel: { $0.rawValue }, yes: "TAK", no: "NIE",
+                                            totalLabel: "Razem", sheetName: "Faktury", today: LocalDate(year: 2026, month: 10, day: 13)!)
+        #expect(sheet.rows.count == 2)
+        #expect(sheet.rows[0][8] == .amount(100))
+        #expect(sheet.rows[0][10] == .text("TAK"))
+        #expect(sheet.rows[1][5] == .empty)
+        #expect(sheet.highlightedRows == [0])
+        #expect(sheet.totalColumns == [6, 7, 8])
+        let mixed = InvoiceSpreadsheet.make([ok, inv("C", "3", 10, 2026, 10, currency: "EUR")], titles: titles, statusLabel: { $0.rawValue },
+                                            yes: "T", no: "N", totalLabel: "R", sheetName: "F", today: LocalDate(year: 2026, month: 10, day: 13)!)
+        #expect(mixed.totalColumns.isEmpty)
     }
 }

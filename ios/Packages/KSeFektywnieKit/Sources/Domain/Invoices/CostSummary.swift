@@ -73,31 +73,27 @@ public struct CostSummary: Equatable, Sendable {
     }
 }
 
-/// Eksport listy faktur do CSV (kolumny jak w eksporcie Excel z Django).
-/// Średnik i przecinek dziesiętny — plik otwiera się poprawnie w polskim Excelu; UTF-8 z BOM.
-public enum InvoiceCSV {
-    public static let columns = ["Numer faktury", "Nr referencyjny KSeF", "Sprzedawca", "NIP sprzedawcy", "Data wystawienia",
-                                 "Termin płatności", "Netto", "VAT", "Brutto", "Waluta", "MPP", "Status", "Konto bankowe", "Notatki"]
+/// Zestawienie faktur do eksportu (kolumny jak w eksporcie Excel z Django).
+public enum InvoiceSpreadsheet {
+    /// Nagłówki kolumn w języku interfejsu dostarcza warstwa aplikacji (14 pozycji, kolejność jak niżej).
+    public static let columnWidths: [Double] = [24, 34, 36, 14, 14, 14, 14, 12, 14, 8, 6, 22, 32, 36]
 
-    public static func export(_ invoices: [Invoice], statusLabel: (InvoiceStatus) -> String) -> Data {
-        var lines = [columns.map(field).joined(separator: ";")]
-        for i in invoices {
-            lines.append([
-                i.invoiceNumber, i.ksefReferenceNumber, i.sellerName, i.sellerNIP, i.issueDate.iso,
-                i.paymentDueDate?.iso ?? "", amount(i.amountNet), amount(i.amountVAT), amount(i.amountGross),
-                i.currency, i.isSplitPayment ? "TAK" : "NIE", statusLabel(i.status), i.bankAccountNumber, i.notes,
-            ].map(field).joined(separator: ";"))
-        }
-        return Data([0xEF, 0xBB, 0xBF]) + Data(lines.joined(separator: "\r\n").utf8)
-    }
-
-    static func amount(_ d: Decimal) -> String {
-        PaymentText.formatAmount(d)
-    }
-
-    /// Pole w cudzysłowach, gdy zawiera separator, cudzysłów lub nową linię.
-    static func field(_ text: String) -> String {
-        guard text.contains(where: { $0 == ";" || $0 == "\"" || $0.isNewline }) else { return text }
-        return "\"" + text.replacingOccurrences(of: "\"", with: "\"\"") + "\""
+    public static func make(_ invoices: [Invoice], titles: [String], statusLabel: (InvoiceStatus) -> String,
+                            yes: String, no: String, totalLabel: String, sheetName: String, today: LocalDate) -> Spreadsheet {
+        precondition(titles.count == columnWidths.count)
+        var sheet = Spreadsheet(
+            sheetName: sheetName,
+            columns: zip(titles, columnWidths).map { Spreadsheet.Column($0, width: $1) },
+            rows: invoices.map { i in
+                [.text(i.invoiceNumber), .text(i.ksefReferenceNumber), .text(i.sellerName), .text(i.sellerNIP),
+                 .date(i.issueDate), i.paymentDueDate.map { .date($0) } ?? .empty,
+                 .amount(i.amountNet), .amount(i.amountVAT), .amount(i.amountGross), .text(i.currency),
+                 .text(i.isSplitPayment ? yes : no), .text(statusLabel(i.status)), .text(i.bankAccountNumber), .text(i.notes)]
+            })
+        sheet.highlightedRows = Set(invoices.indices.filter { invoices[$0].isOverdue(today: today) })
+        // Sumy tylko dla jednej waluty — sumowanie PLN z EUR nie ma sensu.
+        if Set(invoices.map(\.currency)).count <= 1 { sheet.totalColumns = [6, 7, 8] }
+        sheet.totalLabel = totalLabel
+        return sheet
     }
 }

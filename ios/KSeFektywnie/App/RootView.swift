@@ -121,6 +121,15 @@ enum DebugLaunch {
         #endif
     }
 
+    /// `-dump-exports YES`: zapisuje eksport listy faktur (xlsx i pdf) do Documents/exports (weryfikacja wyglądu).
+    static var dumpExports: Bool {
+        #if DEBUG
+        UserDefaults.standard.bool(forKey: "dump-exports")
+        #else
+        false
+        #endif
+    }
+
     static var openPaymentHistory: Bool {
         #if DEBUG
         UserDefaults.standard.bool(forKey: "open-payment-history")

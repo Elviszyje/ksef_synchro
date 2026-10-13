@@ -57,6 +57,12 @@
     "%@ → %@": {
       "shouldTranslate": false
     },
+    "%@.pdf": {
+      "shouldTranslate": false
+    },
+    "%@.xlsx": {
+      "shouldTranslate": false
+    },
     "%@.xml": {
       "shouldTranslate": false
     },
@@ -1376,27 +1382,30 @@
         }
       }
     },
-    "Eksport CSV": {
+    "Eksportuj": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Export CSV"
+            "value": "Export"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Exportar CSV"
+            "value": "Exportar"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Експорт CSV"
+            "value": "Експортувати"
           }
         }
       }
+    },
+    "Excel (.xlsx)": {
+      "shouldTranslate": false
     },
     "Faktur": {
       "localizations": {
@@ -2592,6 +2601,28 @@
         }
       }
     },
+    "Konto bankowe": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bank account"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuenta bancaria"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Банківський рахунок"
+          }
+        }
+      }
+    },
     "Kopia danych włączona": {
       "localizations": {
         "en": {
@@ -2720,6 +2751,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Список"
+          }
+        }
+      }
+    },
+    "Lp.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "N.º"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "№"
           }
         }
       }
@@ -2861,6 +2914,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "NIP покупця"
+          }
+        }
+      }
+    },
+    "NIP sprzedawcy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seller NIP"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NIP del vendedor"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NIP продавця"
           }
         }
       }
@@ -3169,6 +3244,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Нетто"
+          }
+        }
+      }
+    },
+    "Nie": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ні"
           }
         }
       }
@@ -3631,6 +3728,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Новий телефон"
+          }
+        }
+      }
+    },
+    "Nr referencyjny KSeF": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KSeF reference number"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Número de referencia KSeF"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Референтний номер KSeF"
           }
         }
       }
@@ -4288,6 +4407,9 @@
         }
       }
     },
+    "PDF": {
+      "shouldTranslate": false
+    },
     "Pierwsza synchronizacja": {
       "localizations": {
         "en": {
@@ -4394,6 +4516,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Прострочені"
+          }
+        }
+      }
+    },
+    "Po terminie płatności": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Past due date"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vencida"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Прострочено"
           }
         }
       }
@@ -5410,6 +5554,28 @@
         }
       }
     },
+    "Razem": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Разом"
+          }
+        }
+      }
+    },
     "Reset przywraca faktury do statusu „Do zapłaty” i usuwa plik z historii. Niedostępny, gdy któraś faktura jest już opłacona.": {
       "localizations": {
         "en": {
@@ -5806,6 +5972,28 @@
         }
       }
     },
+    "Strona %lld z %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Page %lld of %lld"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Página %lld de %lld"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сторінка %lld з %lld"
+          }
+        }
+      }
+    },
     "Suma": {
       "localizations": {
         "en": {
@@ -5956,6 +6144,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Така зміна статусу заборонена."
+          }
+        }
+      }
+    },
+    "Tak": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yes"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sí"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Так"
           }
         }
       }
@@ -6846,6 +7056,28 @@
         }
       }
     },
+    "Waluta": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Currency"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moneda"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Валюта"
+          }
+        }
+      }
+    },
     "Wersja": {
       "localizations": {
         "en": {
@@ -7172,6 +7404,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Згенеровані файли для банку з'являться тут."
+          }
+        }
+      }
+    },
+    "Wygenerowano: %@ · Liczba faktur: %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generated: %@ · Invoices: %lld"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generado: %@ · Facturas: %lld"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Створено: %@ · Кількість рахунків: %lld"
           }
         }
       }
@@ -7879,6 +8133,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Вибрати все"
+          }
+        }
+      }
+    },
+    "Zestawienie faktur kosztowych": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchase invoice report"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Informe de facturas de compra"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Звіт про вхідні рахунки"
           }
         }
       }
