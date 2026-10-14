@@ -261,4 +261,25 @@ enum Schema {
             t.primaryKey(["recordType", "recordId"])
         }
     }
+
+    /// v4: szablony wizualizacji faktur sprzedażowych (logo jako PNG w kolumnie BLOB).
+    static func v4(_ db: Database) throws {
+        try db.create(table: "invoiceTemplate") { t in
+            t.primaryKey("id", .text)
+            t.belongsTo("company", onDelete: .cascade).notNull()
+            t.column("name", .text).notNull()
+            t.column("layout", .text).notNull().defaults(to: "classic")
+            t.column("accentColor", .text).notNull()
+            t.column("language", .text).notNull().defaults(to: "pl")
+            t.column("logoPng", .blob)
+            t.column("showQrCode", .boolean).notNull().defaults(to: true)
+            t.column("showAmountInWords", .boolean).notNull().defaults(to: true)
+            t.column("showSignatureFields", .boolean).notNull().defaults(to: false)
+            t.column("footerText", .text).notNull().defaults(to: "")
+            t.column("closingNote", .text).notNull().defaults(to: "")
+            t.column("isDefault", .boolean).notNull().defaults(to: false)
+            t.column("updatedAt", .datetime).notNull()
+            t.column("updatedByDevice", .text).notNull().defaults(to: "")
+        }
+    }
 }

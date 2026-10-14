@@ -304,6 +304,28 @@
         }
       }
     },
+    "Angielski": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "English"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inglés"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Англійська"
+          }
+        }
+      }
+    },
     "Anuluj": {
       "localizations": {
         "en": {
@@ -410,6 +432,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Банк"
+          }
+        }
+      }
+    },
+    "Bez nazwy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Untitled"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin nombre"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Без назви"
           }
         }
       }
@@ -1162,6 +1206,28 @@
         }
       }
     },
+    "Dodaj logo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add logo"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadir logotipo"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Додати логотип"
+          }
+        }
+      }
+    },
     "Dodaj notatkę": {
       "localizations": {
         "en": {
@@ -1294,6 +1360,28 @@
         }
       }
     },
+    "Dodatkowe teksty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Additional text"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Textos adicionales"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Додаткові тексти"
+          }
+        }
+      }
+    },
     "Dokumenty": {
       "localizations": {
         "en": {
@@ -1312,6 +1400,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "Документи"
+          }
+        }
+      }
+    },
+    "Domyślny": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Predeterminada"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Типовий"
+          }
+        }
+      }
+    },
+    "Dopisek pod sumą, np. „Dziękujemy za współpracę”": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Note below the total, e.g. “Thank you for your business”"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nota bajo el total, p. ej. «Gracias por su confianza»"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Примітка під сумою, напр. «Дякуємо за співпрацю»"
           }
         }
       }
@@ -2309,6 +2441,28 @@
         }
       }
     },
+    "Język etykiet": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Label language"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Idioma de las etiquetas"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Мова підписів"
+          }
+        }
+      }
+    },
     "KS-eFektywnie": {
       "shouldTranslate": false
     },
@@ -2579,6 +2733,94 @@
         }
       }
     },
+    "Klasyczny": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Classic"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clásica"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Класичний"
+          }
+        }
+      }
+    },
+    "Kod QR KSeF": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KSeF QR code"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Código QR de KSeF"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QR-код KSeF"
+          }
+        }
+      }
+    },
+    "Kod QR pojawia się tylko na fakturach przyjętych przez KSeF. Pozwala nabywcy sprawdzić fakturę w KSeF.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The QR code appears only on invoices accepted by KSeF. It lets the buyer verify the invoice in KSeF."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El código QR solo aparece en facturas aceptadas por KSeF. Permite al comprador verificar la factura en KSeF."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QR-код з’являється лише на рахунках-фактурах, прийнятих KSeF. Він дозволяє покупцеві перевірити рахунок-фактуру в KSeF."
+          }
+        }
+      }
+    },
+    "Kolor %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Color %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Color %@"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Колір %@"
+          }
+        }
+      }
+    },
     "Konfiguracja": {
       "localizations": {
         "en": {
@@ -2667,6 +2909,28 @@
         }
       }
     },
+    "Kwota słownie": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Amount in words"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importe en letras"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сума прописом"
+          }
+        }
+      }
+    },
     "Kwota: %@": {
       "localizations": {
         "en": {
@@ -2707,6 +2971,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Суми"
+          }
+        }
+      }
+    },
+    "Licencja oprogramowania — 12 miesięcy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Software license — 12 months"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licencia de software — 12 meses"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ліцензія на програмне забезпечення — 12 місяців"
           }
         }
       }
@@ -2754,6 +3040,9 @@
           }
         }
       }
+    },
+    "Logo": {
+      "shouldTranslate": false
     },
     "Lp.": {
       "localizations": {
@@ -2824,6 +3113,28 @@
         }
       }
     },
+    "Miejsca na podpisy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signature fields"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espacio para firmas"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Місця для підписів"
+          }
+        }
+      }
+    },
     "Miesiąc": {
       "localizations": {
         "en": {
@@ -2842,6 +3153,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Місяць"
+          }
+        }
+      }
+    },
+    "Minimalistyczny": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimal"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimalista"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Мінімалістичний"
           }
         }
       }
@@ -3072,6 +3405,28 @@
         }
       }
     },
+    "Najlepiej sprawdza się logo na przezroczystym albo białym tle.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A logo on a transparent or white background works best."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Funciona mejor un logotipo con fondo transparente o blanco."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Найкраще підходить логотип на прозорому або білому тлі."
+          }
+        }
+      }
+    },
     "Najwięksi dostawcy w tym miesiącu": {
       "localizations": {
         "en": {
@@ -3204,6 +3559,28 @@
         }
       }
     },
+    "Nazwa szablonu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Template name"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nombre de la plantilla"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Назва шаблону"
+          }
+        }
+      }
+    },
     "Nazwa towaru lub usługi": {
       "localizations": {
         "en": {
@@ -3292,6 +3669,28 @@
         }
       }
     },
+    "Nie można przygotować wizualizacji": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cannot prepare the PDF"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se puede preparar el PDF"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не вдалося підготувати PDF"
+          }
+        }
+      }
+    },
     "Nie można wygenerować XML": {
       "localizations": {
         "en": {
@@ -3376,6 +3775,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Не налаштовано"
+          }
+        }
+      }
+    },
+    "Nie udało się wczytać obrazu.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not load the image."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo cargar la imagen."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не вдалося завантажити зображення."
           }
         }
       }
@@ -3706,6 +4127,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "Нове нагадування"
+          }
+        }
+      }
+    },
+    "Nowoczesny": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modern"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moderna"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сучасний"
+          }
+        }
+      }
+    },
+    "Nowy szablon": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New template"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nueva plantilla"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новий шаблон"
           }
         }
       }
@@ -4674,6 +5139,28 @@
         }
       }
     },
+    "Podgląd PDF": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PDF preview"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vista previa PDF"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перегляд PDF"
+          }
+        }
+      }
+    },
     "Podgląd XML FA(3)": {
       "localizations": {
         "en": {
@@ -4692,6 +5179,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "Перегляд XML FA(3)"
+          }
+        }
+      }
+    },
+    "Podgląd na ostatniej fakturze sprzedażowej albo na przykładowych danych.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview uses your latest sales invoice or sample data."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La vista previa usa tu última factura de venta o datos de ejemplo."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Попередній перегляд на останньому рахунку-фактурі продажу або на прикладових даних."
+          }
+        }
+      }
+    },
+    "Podgląd szablonu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Template preview"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vista previa de la plantilla"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Попередній перегляд шаблону"
           }
         }
       }
@@ -4758,6 +5289,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "Підсумок витрат"
+          }
+        }
+      }
+    },
+    "Polski": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Polish"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Polaco"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Польська"
+          }
+        }
+      }
+    },
+    "Polski i angielski": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Polish and English"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Polaco e inglés"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Польська та англійська"
           }
         }
       }
@@ -5928,6 +6503,28 @@
         }
       }
     },
+    "Standardowy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standard"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estándar"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Стандартний"
+          }
+        }
+      }
+    },
     "Status": {
       "localizations": {
         "en": {
@@ -5968,6 +6565,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ставка ПДВ"
+          }
+        }
+      }
+    },
+    "Stopka, np. KRS, kapitał zakładowy, telefon, e-mail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Footer, e.g. company register, share capital, phone, e-mail"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pie de página, p. ej. registro mercantil, capital social, teléfono, e-mail"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нижній колонтитул, напр. реєстр, статутний капітал, телефон, e-mail"
           }
         }
       }
@@ -6034,6 +6653,94 @@
           "stringUnit": {
             "state": "translated",
             "value": "Синхронізувати зараз"
+          }
+        }
+      }
+    },
+    "Szablon": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Template"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plantilla"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Шаблон"
+          }
+        }
+      }
+    },
+    "Szablon domyślny": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default template"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plantilla predeterminada"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Типовий шаблон"
+          }
+        }
+      }
+    },
+    "Szablon określa wygląd PDF faktur sprzedażowych: układ, kolor, logo, język etykiet i stopkę. Domyślny szablon jest wybrany w podglądzie faktury, a inny można wskazać w menu podglądu.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A template sets the look of sales invoice PDFs: layout, color, logo, label language and footer. The default template is selected in the invoice preview; you can pick another one from the preview menu."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La plantilla define el aspecto del PDF de las facturas de venta: diseño, color, logotipo, idioma de las etiquetas y pie de página. La plantilla predeterminada se selecciona en la vista previa; puedes elegir otra en el menú de la vista previa."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Шаблон визначає вигляд PDF рахунків-фактур продажу: макет, колір, логотип, мову підписів і нижній колонтитул. Типовий шаблон вибрано в попередньому перегляді, інший можна вказати в меню перегляду."
+          }
+        }
+      }
+    },
+    "Szablony faktur": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invoice templates"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plantillas de factura"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Шаблони рахунків-фактур"
           }
         }
       }
@@ -6500,6 +7207,28 @@
         }
       }
     },
+    "Treść": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Content"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contenido"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вміст"
+          }
+        }
+      }
+    },
     "Treść %lld faktur zostanie pobrana po %@ (limit KSeF).": {
       "localizations": {
         "en": {
@@ -6745,6 +7474,28 @@
         }
       }
     },
+    "Udostępnij PDF": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share PDF"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartir PDF"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Поділитися PDF"
+          }
+        }
+      }
+    },
     "Udostępnij XML": {
       "localizations": {
         "en": {
@@ -6789,6 +7540,28 @@
         }
       }
     },
+    "Układ": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Layout"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diseño"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Макет"
+          }
+        }
+      }
+    },
     "Ustawa o VAT": {
       "localizations": {
         "en": {
@@ -6829,6 +7602,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Налаштування"
+          }
+        }
+      }
+    },
+    "Usunąć szablon?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete template?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Eliminar la plantilla?"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Видалити шаблон?"
           }
         }
       }
@@ -6921,6 +7716,28 @@
         }
       }
     },
+    "Usuń szablon": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete template"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminar plantilla"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Видалити шаблон"
+          }
+        }
+      }
+    },
     "Usuń token": {
       "localizations": {
         "en": {
@@ -6961,6 +7778,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Видалити всі дані"
+          }
+        }
+      }
+    },
+    "Usługi doradcze": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consulting services"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Servicios de consultoría"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Консультаційні послуги"
           }
         }
       }
@@ -7118,6 +7957,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Вітаємо в KS-eFektywnie"
+          }
+        }
+      }
+    },
+    "Wizualizacja PDF": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PDF invoice"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Factura en PDF"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PDF рахунку-фактури"
           }
         }
       }
@@ -7452,6 +8313,28 @@
         }
       }
     },
+    "Wygląd": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appearance"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apariencia"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вигляд"
+          }
+        }
+      }
+    },
     "Wyjaśnij fakturę: %@ (%@)": {
       "localizations": {
         "en": {
@@ -7668,6 +8551,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Надіслати до KSeF"
+          }
+        }
+      }
+    },
+    "Własny kolor": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom color"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Color personalizado"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Власний колір"
           }
         }
       }
@@ -8199,6 +9104,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Змінені файли"
+          }
+        }
+      }
+    },
+    "Zmień logo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change logo"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar logotipo"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Змінити логотип"
           }
         }
       }

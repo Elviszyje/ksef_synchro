@@ -64,6 +64,12 @@ struct SalesInvoiceDetail: View {
                     }
 
                     Section("Dokumenty") {
+                        NavigationLink {
+                            InvoicePDFPreview(source: model.salesVisualization(invoice), templates: model.salesTemplates)
+                        } label: {
+                            Label("Wizualizacja PDF", systemImage: "doc.richtext")
+                        }
+                        .accessibilityIdentifier("invoice-visualization")
                         if !invoice.generatedXML.isEmpty {
                             ShareLink(item: invoice.generatedXML, preview: SharePreview("\(invoice.invoiceNumber).xml")) {
                                 Label("XML FA(3)", systemImage: "doc.text")

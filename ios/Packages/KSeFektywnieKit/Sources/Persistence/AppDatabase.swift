@@ -39,6 +39,7 @@ public final class AppDatabase: Sendable {
         migrator.registerMigration("v1", migrate: Schema.v1)
         migrator.registerMigration("v2-sales-catalog", migrate: Schema.v2)
         migrator.registerMigration("v3-reminders", migrate: Schema.v3)
+        migrator.registerMigration("v4-invoice-templates", migrate: Schema.v4)
         return migrator
     }
 }

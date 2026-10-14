@@ -13,6 +13,7 @@ struct SalesInvoiceForm: View {
     @State private var showBuyerPicker = false
     @State private var editingItem: OutgoingInvoiceItem?
     @State private var showXML = false
+    @State private var showPDF = false
     @State private var issues: [SalesValidationIssue] = []
     @State private var error: String?
     @State private var suggestions: [String] = []
@@ -73,6 +74,10 @@ struct SalesInvoiceForm: View {
                 ToolbarItem(placement: .bottomBar) {
                     Button { showXML = true } label: { Label("Podgląd XML FA(3)", systemImage: "chevron.left.forwardslash.chevron.right") }
                 }
+                ToolbarItem(placement: .bottomBar) {
+                    Button { showPDF = true } label: { Label("Podgląd PDF", systemImage: "doc.richtext") }
+                        .accessibilityIdentifier("draft-pdf")
+                }
             }
             .sheet(isPresented: $showItemPicker) {
                 CatalogPickerSheet { item, isNew in
@@ -95,6 +100,12 @@ struct SalesInvoiceForm: View {
                 }
             }
             .sheet(isPresented: $showXML) { XMLPreview(invoice: draft) }
+            .sheet(isPresented: $showPDF) {
+                NavigationStack {
+                    InvoicePDFPreview(source: model.salesVisualization(draft), templates: model.salesTemplates)
+                        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Zamknij") { showPDF = false } } }
+                }
+            }
             .confirmationDialog(sendTitle, isPresented: $confirmSend, titleVisibility: .visible) {
                 Button("Wyślij do KSeF") { Task { await send() } }
             } message: {

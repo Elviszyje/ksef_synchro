@@ -124,6 +124,12 @@ struct InvoiceDetailView: View {
                 Section {
                     LabeledContent("Numer KSeF", value: invoice.ksefReferenceNumber).font(.caption).textSelection(.enabled)
                     if !invoice.rawXML.isEmpty {
+                        NavigationLink {
+                            InvoicePDFPreview(source: model.costVisualization(invoice), templates: [model.costTemplate], isCostInvoice: true)
+                        } label: {
+                            Label("Wizualizacja PDF", systemImage: "doc.richtext")
+                        }
+                        .accessibilityIdentifier("invoice-visualization")
                         ShareLink(item: invoice.rawXML, preview: SharePreview("\(invoice.invoiceNumber).xml")) {
                             Label("Udostępnij XML", systemImage: "square.and.arrow.up")
                         }

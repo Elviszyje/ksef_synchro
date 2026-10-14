@@ -24,12 +24,13 @@ public struct CompanySnapshot: Sendable {
     public var sales: [OutgoingInvoice]
     public var buyers: [Buyer]
     public var catalog: [CatalogItem]
+    public var templates: [InvoiceTemplate]
     public var paymentFiles: [(file: PaymentFile, lines: [PaymentFileLine])]
     public var statements: [(statement: BankStatement, transactions: [BankTransaction], matches: [TransactionMatch])]
 
     public init(company: Company, bankAccounts: [CompanyBankAccount] = [], invoices: [Invoice] = [],
                 statusLogs: [InvoiceStatusLogEntry] = [], sales: [OutgoingInvoice] = [], buyers: [Buyer] = [],
-                catalog: [CatalogItem] = [], paymentFiles: [(file: PaymentFile, lines: [PaymentFileLine])] = [],
+                catalog: [CatalogItem] = [], templates: [InvoiceTemplate] = [], paymentFiles: [(file: PaymentFile, lines: [PaymentFileLine])] = [],
                 statements: [(statement: BankStatement, transactions: [BankTransaction], matches: [TransactionMatch])] = []) {
         self.company = company
         self.bankAccounts = bankAccounts
@@ -38,6 +39,7 @@ public struct CompanySnapshot: Sendable {
         self.sales = sales
         self.buyers = buyers
         self.catalog = catalog
+        self.templates = templates
         self.paymentFiles = paymentFiles
         self.statements = statements
     }
@@ -79,6 +81,7 @@ extension AppDatabase {
                 invoices: invoices, statusLogs: logs, sales: sales,
                 buyers: try Buyer.filter(byCompany).order(Column("nip")).fetchAll(db),
                 catalog: try CatalogItem.filter(byCompany).order(Column("name"), Column("unit")).fetchAll(db),
+                templates: try InvoiceTemplate.filter(byCompany).order(Column("name"), Column("id")).fetchAll(db),
                 paymentFiles: files, statements: statements)
         }
     }
@@ -90,6 +93,7 @@ extension AppDatabase {
             for account in snapshot.bankAccounts { try account.insert(db) }
             for buyer in snapshot.buyers { try buyer.insert(db) }
             for item in snapshot.catalog { try item.insert(db) }
+            for template in snapshot.templates { try template.insert(db) }
             for invoice in snapshot.invoices { try invoice.insert(db) }
             for log in snapshot.statusLogs { try log.insert(db) }
             for sale in snapshot.sales {

@@ -91,7 +91,7 @@ Statusy i przejścia: port `STATUS_TRANSITIONS` oraz `STATUS_TRANSITIONS_CORRECT
 Źródło: `apps/invoices/`.
 
 - Lista z filtrami (status, sprzedawca, zakres dat, przeterminowane, MPP), wyszukiwanie, sortowanie, zaznaczanie wielu i zmiana zbiorcza statusu.
-- Szczegół: nagłówek, kwoty, pozycje (`FaWiersz`), dane płatności, historia statusów, notatki, podgląd/udostępnienie surowego XML.
+- Szczegół: nagłówek, kwoty, pozycje (`FaWiersz`), dane płatności, historia statusów, notatki, podgląd/udostępnienie surowego XML i wizualizacji PDF (z kodem QR KSeF).
 - Dashboard: suma 12 mies., średnia, słupki miesięczne, top 5 sprzedawców (Swift Charts).
 - Export Excel (.xlsx) i PDF z aktualnego filtra przez `ShareLink` (menu „Eksportuj”).
 
@@ -119,7 +119,7 @@ Statusy i przejścia: port `STATUS_TRANSITIONS` oraz `STATUS_TRANSITIONS_CORRECT
 - Generator XML: **FA(3)** (namespace `http://crd.gov.pl/wzor/2025/06/25/13775/`), nie FA(2) jak w Django. Od 1 lutego 2026 KSeF przyjmuje wyłącznie FA(3), więc port generatora wymaga aktualizacji schematu (nagłówek `WariantFormularza` 3, `Nazwa` zamiast `PelnaNazwa`, zmiany w `Platnosc`). Wymaga walidacji przeciw XSD FA(3) na środowisku testowym przed pierwszą wysyłką produkcyjną.
 - Wysyłka: zweryfikować rzeczywisty przebieg KSeF 2.0 w dokumentacji (`/docs/v2`). Django wysyła surowy XML na `invoices/send`; w API 2.0 standardowa ścieżka to otwarcie sesji interaktywnej (`sessions/online`), zaszyfrowanie faktury AES-256-CBC kluczem symetrycznym zaszyfrowanym RSA-OAEP kluczem publicznym KSeF, wysłanie, odpytanie statusu i pobranie UPO sesji. Klient iOS ma implementować przebieg zgodny z dokumentacją, a nie kopiować Django 1:1. To jedyne miejsce, gdzie port nie jest wierny.
 - Statusy i akcje: `draft` → edycja i "Wyślij do KSeF" → `sending` (polling statusu co kilka sekund w pierwszej minucie, potem na żądanie) → `accepted` z numerem KSeF i UPO lub `rejected` z komunikatem błędu i możliwością poprawy i ponownej wysyłki. Bez kolejki Celery: wysyłka wykonuje się w tle aplikacji przez `URLSession` background-friendly z zapisem stanu po każdym kroku, aby przerwanie nie zgubiło referencji.
-- Szczegół: podgląd XML, UPO (udostępnienie jako plik), wydruk/PDF faktury do wysłania klientowi (SwiftUI `ImageRenderer` do PDF, prosty szablon zgodny z danymi FA).
+- Szczegół: podgląd XML, UPO (udostępnienie jako plik), wizualizacja PDF faktury do wysłania klientowi według szablonu (sekcja „Dodane 2026-10-13”).
 - Tryb testowy: wysyłka na `api-test` z fikcyjnym NIP, wprost oznaczona w UI banerem "ŚRODOWISKO TESTOWE", aby nikt nie pomylił faktury testowej z prawdziwą.
 
 ### 4.6 Bezpieczeństwo i Face ID
@@ -160,6 +160,8 @@ KS-eFektywnie/
         FV-2026-0001.upo.xml
         FV-2026-0001.pdf
     nabywcy.json
+    szablony.json                    # szablony wizualizacji PDF
+    szablony/<id>.png                # logo szablonu
     przelewy/
       2026-10-11_Erste_Bank.txt      # dokładnie ten plik, który poszedł do banku
       2026-10-11_Erste_Bank.json     # lista faktur w pliku, kwoty, rachunek obciążeniowy
@@ -297,6 +299,12 @@ Razem ok. 15–17 tygodni. Faza 4 jest najbardziej ryzykowna czasowo, bo zależy
 4. **Parser faktur zakupowych**: netto sumowało tylko `P_13_1`–`P_13_7`, gubiąc 0%, NP, odwrotne obciążenie i marżę. Poprawione w Django i w porcie Swift.
 
 Do zweryfikowania osobno: przebieg wysyłki faktur w Django (`invoices/send` z surowym XML) prawdopodobnie nie odpowiada sesji interaktywnej KSeF 2.0 z szyfrowaniem AES (sekcja 4.5).
+
+### Dodane 2026-10-13: wizualizacja faktur w PDF (iOS)
+- **Wizualizacja PDF** faktury kosztowej i sprzedażowej (A4): strony, pozycje (nagłówek tabeli powtarzany na kolejnych stronach), podsumowanie stawek z `P_13_x`/`P_14_x`, kwota do zapłaty i słownie, płatność, adnotacje (`P_16`–`P_23`, zwolnienie `P_19`, MPP), dane faktury korygowanej, `DodatkowyOpis`, stopka z XML. Treść zawsze z XML FA, więc obie wizualizacje korzystają z jednego parsera (`InvoiceDocument` w Domain); szkic sprzedaży generuje XML FA(3) w locie i ma znak wodny „PROJEKT”.
+- **Kod QR KSeF (KOD I)** na fakturach z numerem KSeF: `https://qr.ksef.mf.gov.pl/invoice/{NIP sprzedawcy}/{DD-MM-RRRR}/{SHA-256 pliku w Base64URL}` (test: `qr-test.ksef.mf.gov.pl`), pod kodem numer KSeF. Faktury sprzedażowe dostają kod dopiero po przyjęciu przez KSeF.
+- **Szablony faktur sprzedażowych** (Ustawienia → Szablony faktur): układ klasyczny / nowoczesny / minimalistyczny, kolor akcentu, logo, język etykiet (polski, angielski, dwujęzyczny), kod QR, kwota słownie, miejsca na podpisy, dopisek i stopka. Jeden szablon domyślny; w podglądzie faktury można wybrać inny. Tabela `invoiceTemplate` (migracja v4), kopia w lustrze iCloud.
+- Faktury kosztowe mają stały, neutralny wygląd i dopisek, że dokumentem jest XML w KSeF; etykiety po polsku albo dwujęzyczne, gdy interfejs jest w innym języku.
 
 ### Dodane 2026-10-12: zwolnienie z VAT i katalog pozycji (web + iOS)
 - **Podstawa zwolnienia z VAT** na fakturze sprzedażowej: rodzaj (ustawa / dyrektywa / inna → `P_19A`/`P_19B`/`P_19C`) i treść, wymagane, gdy pozycja ma stawkę ZW. Podpowiedzi: wcześniej użyte podstawy + najczęstsze przepisy.

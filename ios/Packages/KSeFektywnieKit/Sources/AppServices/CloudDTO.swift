@@ -348,6 +348,42 @@ struct CatalogDTO: Codable {
     }
 }
 
+/// Szablon wizualizacji; logo leży obok jako plik PNG (`szablony/<id>.png`).
+struct TemplateDTO: Codable {
+    var id: UUID
+    var name: String
+    var layout: String
+    var accent_color: String
+    var language: String
+    var logo_file: String?
+    var show_qr_code: Bool
+    var show_amount_in_words: Bool
+    var show_signature_fields: Bool
+    var footer_text: String
+    var closing_note: String
+    var is_default: Bool
+    var updated_at: Date
+    var updated_by_device: String
+
+    static func logoPath(_ id: UUID) -> String { "szablony/\(id.uuidString).png" }
+
+    init(_ t: InvoiceTemplate) {
+        id = t.id; name = t.name; layout = t.layout.rawValue; accent_color = t.accentColor; language = t.language.rawValue
+        logo_file = t.logoPNG == nil ? nil : Self.logoPath(t.id)
+        show_qr_code = t.showQRCode; show_amount_in_words = t.showAmountInWords; show_signature_fields = t.showSignatureFields
+        footer_text = t.footerText; closing_note = t.closingNote; is_default = t.isDefault
+        updated_at = t.updatedAt; updated_by_device = t.updatedByDevice
+    }
+
+    func template(companyID: UUID, logo: Data?) -> InvoiceTemplate {
+        InvoiceTemplate(id: id, companyID: companyID, name: name, layout: InvoiceLayout(rawValue: layout) ?? .classic,
+                        accentColor: accent_color, language: InvoiceLanguage(rawValue: language) ?? .pl, logoPNG: logo,
+                        showQRCode: show_qr_code, showAmountInWords: show_amount_in_words, showSignatureFields: show_signature_fields,
+                        footerText: footer_text, closingNote: closing_note, isDefault: is_default,
+                        updatedAt: updated_at, updatedByDevice: updated_by_device)
+    }
+}
+
 struct PaymentFileDTO: Codable {
     var schema_version: Int
     var id: UUID

@@ -20,6 +20,9 @@ struct SettingsView: View {
                     NavigationLink { CatalogView() } label: {
                         Label("Katalog pozycji", systemImage: "shippingbox")
                     }
+                    NavigationLink { InvoiceTemplatesView() } label: {
+                        Label("Szablony faktur", systemImage: "doc.richtext")
+                    }
                 }
 
                 Section {
@@ -299,10 +302,10 @@ extension Bundle {
 }
 
 extension String {
-    func nonEmptyOr(_ fallback: String) -> String { isEmpty ? fallback : self }
+    nonisolated func nonEmptyOr(_ fallback: String) -> String { isEmpty ? fallback : self }
 
     /// NRB w grupach: `61 1090 1014 0000 0712 1981 2874`.
-    var groupedNRB: String {
+    nonisolated var groupedNRB: String {
         guard count == 26 else { return self }
         var out = String(prefix(2))
         var rest = dropFirst(2)

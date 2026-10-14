@@ -54,7 +54,7 @@ final class CloudSync {
         location = await Self.resolveLocation()
         guard isEnabled else { return }
         let tables = ["company", "companyBankAccount", "invoice", "invoiceStatusLog", "outgoingInvoice", "outgoingInvoiceItem",
-                      "buyer", "catalogItem", "paymentFile", "paymentFileItem", "bankStatement", "bankTransaction", "transactionMatch"]
+                      "buyer", "catalogItem", "invoiceTemplate", "paymentFile", "paymentFileItem", "bankStatement", "bankTransaction", "transactionMatch"]
         let region = DatabaseRegionObservation(tracking: tables.map { Table($0) })
         observation = region.start(in: database.writer, onError: { _ in }, onChange: { [weak self] _ in
             Task { @MainActor in self?.schedule(delay: .seconds(3)) }

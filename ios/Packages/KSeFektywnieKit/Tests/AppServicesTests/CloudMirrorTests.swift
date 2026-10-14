@@ -24,6 +24,11 @@ struct CloudMirrorTests {
         try payments.generate(invoiceIDs: payable.map(\.id), debitAccount: account,
                               payer: PaymentPayer(debitAccount: account.accountNumber, name: company.name, address: company.address),
                               date: LocalDate(year: 2026, month: 10, day: 12)!, now: Self.now)
+        // Szablony wizualizacji, jeden z logo (osobny plik PNG w lustrze).
+        let templates = InvoiceTemplateRepository(db: db, companyID: company.id, device: "dev-A")
+        try templates.save(InvoiceTemplate(companyID: company.id, name: "Zwykły", layout: .modern, accentColor: "#0F766E",
+                                           logoPNG: Data([0x89, 0x50, 0x4E, 0x47, 1, 2, 3]), footerText: "KRS 0000000000"), now: Self.now)
+        try templates.save(InvoiceTemplate(companyID: company.id, name: "English", language: .en, showQRCode: false), now: Self.now)
     }
 
     func json(_ path: String) throws -> [String: Any] {
@@ -38,6 +43,8 @@ struct CloudMirrorTests {
         #expect(files.contains("manifest.json"))
         #expect(files.contains("1111111111/firma.json"))
         #expect(files.contains("1111111111/nabywcy.json") && files.contains("1111111111/katalog.json"))
+        #expect(files.contains("1111111111/szablony.json"))
+        #expect(files.filter { $0.hasPrefix("1111111111/szablony/") && $0.hasSuffix(".png") }.count == 1)
         #expect(files.contains { $0.hasPrefix("1111111111/faktury-kosztowe/2026/2026-10/") && $0.hasSuffix(".xml") })
         #expect(files.contains { $0.hasPrefix("1111111111/faktury-sprzedazowe/test/2026/FV-2026-0002") })
         #expect(files.contains { $0.hasPrefix("1111111111/przelewy/2026-") && $0.hasSuffix("Erste_Bank.txt") })
@@ -72,6 +79,7 @@ struct CloudMirrorTests {
         #expect(zip(a.sales, b.sales).allSatisfy { $0.items.map(\.amountGross) == $1.items.map(\.amountGross) && $0.exemptionBasis == $1.exemptionBasis })
         #expect(a.buyers == b.buyers)
         #expect(a.catalog == b.catalog)
+        #expect(a.templates == b.templates && a.templates.count == 2)
         #expect(a.paymentFiles.map(\.file) == b.paymentFiles.map(\.file))
         #expect(a.paymentFiles.map(\.lines) == b.paymentFiles.map(\.lines))
         #expect(a.statements.map(\.statement) == b.statements.map(\.statement))

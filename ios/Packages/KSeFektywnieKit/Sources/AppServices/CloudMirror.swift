@@ -182,6 +182,14 @@ public struct CloudMirror: Sendable {
 
             add("\(root)/nabywcy.json", try encoder.encode(s.buyers.map(BuyerDTO.init)), "buyers", company.id.uuidString)
             add("\(root)/katalog.json", try encoder.encode(s.catalog.map(CatalogDTO.init)), "catalog", company.id.uuidString)
+            if !s.templates.isEmpty {
+                add("\(root)/szablony.json", try encoder.encode(s.templates.map(TemplateDTO.init)), "templates", company.id.uuidString)
+                for template in s.templates {
+                    if let logo = template.logoPNG {
+                        add("\(root)/\(TemplateDTO.logoPath(template.id))", logo, "template.logo", template.id.uuidString)
+                    }
+                }
+            }
 
             for (file, lines) in s.paymentFiles {
                 let base = "\(Self.day(file.createdAt))_\(file.id.uuidString.prefix(8))_\(Self.safeName(file.fileName))"
@@ -297,6 +305,11 @@ public struct CloudMirror: Sendable {
             }
             if fs.exists("\(root)/katalog.json") {
                 snapshot.catalog = try decoder.decode([CatalogDTO].self, from: try fs.read("\(root)/katalog.json")).map { $0.item(companyID: company.id) }
+            }
+            if fs.exists("\(root)/szablony.json") {
+                snapshot.templates = try decoder.decode([TemplateDTO].self, from: try fs.read("\(root)/szablony.json")).map { dto in
+                    dto.template(companyID: company.id, logo: dto.logo_file.flatMap { try? fs.read("\(root)/\($0)") })
+                }
             }
             for path in try jsonFiles("przelewy") {
                 guard let dto = try? decoder.decode(PaymentFileDTO.self, from: try fs.read(path)),
