@@ -25,6 +25,13 @@ extension Error {
             case .missingToken:
                 return String(localized: "Brak tokena KSeF. Uzupełnij go w Ustawieniach.")
             }
+        case let e as WhiteListError:
+            switch e {
+            case .invalidNIP: return String(localized: "Nieprawidłowy NIP — sprawdź 10 cyfr.")
+            case .rateLimited: return String(localized: "Wyczerpano dzienny limit zapytań do Białej Listy. Spróbuj jutro albo wpisz dane ręcznie.")
+            case .network: return String(localized: "Brak połączenia z Białą Listą. Sprawdź internet albo wpisz dane ręcznie.")
+            case .unavailable: return String(localized: "Biała Lista nie odpowiada. Spróbuj później albo wpisz dane ręcznie.")
+            }
         case let e as StatementError:
             switch e {
             case .unrecognizedFormat: return String(localized: "Nie rozpoznano formatu pliku. Obsługiwane formaty: MT940 (SWIFT), CSV VeloBank, CSV Erste Bank.")

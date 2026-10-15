@@ -505,6 +505,28 @@
         }
       }
     },
+    "Biała Lista nie odpowiada. Spróbuj później albo wpisz dane ręcznie.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The VAT White List isn't responding. Try later or enter the details manually."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La Lista Blanca no responde. Inténtalo más tarde o introduce los datos manualmente."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Білий список не відповідає. Спробуйте пізніше або введіть дані вручну."
+          }
+        }
+      }
+    },
     "Blokada %@": {
       "localizations": {
         "en": {
@@ -725,6 +747,28 @@
         }
       }
     },
+    "Brak połączenia z Białą Listą. Sprawdź internet albo wpisz dane ręcznie.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can't reach the VAT White List. Check your internet connection or enter the details manually."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se puede conectar con la Lista Blanca. Comprueba la conexión o introduce los datos manualmente."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немає з'єднання з Білим списком. Перевірте інтернет або введіть дані вручну."
+          }
+        }
+      }
+    },
     "Brak połączenia z internetem.": {
       "localizations": {
         "en": {
@@ -765,6 +809,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Немає токена KSeF. Додайте його в Налаштуваннях."
+          }
+        }
+      }
+    },
+    "Brak w wykazie podatników VAT — wpisz dane ręcznie.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not in the VAT taxpayer register — enter the details manually."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No figura en el registro de contribuyentes de IVA: introduce los datos manualmente."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немає в реєстрі платників ПДВ — введіть дані вручну."
           }
         }
       }
@@ -1029,6 +1095,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Очікує на вкладці «Перекази» на створення файлу для банку."
+          }
+        }
+      }
+    },
+    "Czynny podatnik VAT — dane uzupełnione": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active VAT taxpayer — details filled in"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contribuyente de IVA activo — datos completados"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Активний платник ПДВ — дані заповнено"
           }
         }
       }
@@ -2510,6 +2598,28 @@
         }
       }
     },
+    "Język": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Idioma"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Мова"
+          }
+        }
+      }
+    },
     "Język etykiet": {
       "localizations": {
         "en": {
@@ -2553,6 +2663,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "KS-eFektywnie не є застосунком Міністерства фінансів Польщі."
+          }
+        }
+      }
+    },
+    "KS-eFektywnie — zgłoszenie problemu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KS-eFektywnie — problem report"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KS-eFektywnie — informe de problema"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KS-eFektywnie — повідомлення про проблему"
           }
         }
       }
@@ -4753,6 +4885,28 @@
         }
       }
     },
+    "Opisz, co się stało i jak to powtórzyć:": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Describe what happened and how to reproduce it:"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Describe qué ocurrió y cómo reproducirlo:"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Опишіть, що сталося і як це повторити:"
+          }
+        }
+      }
+    },
     "Opłacona": {
       "localizations": {
         "en": {
@@ -5252,6 +5406,28 @@
         }
       }
     },
+    "Pobierz dane z Białej Listy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fetch details from the VAT White List"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obtener datos de la Lista Blanca de IVA"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отримати дані з Білого списку ПДВ"
+          }
+        }
+      }
+    },
     "Pobierz wyciąg z bankowości (MT940, CSV Erste lub VeloBank) i zaimportuj go, aby rozliczyć przekazane do opłacenia faktury.": {
       "localizations": {
         "en": {
@@ -5578,6 +5754,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Показати все"
+          }
+        }
+      }
+    },
+    "Polityka prywatności": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy policy"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Política de privacidad"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Політика конфіденційності"
           }
         }
       }
@@ -7034,6 +7232,28 @@
         }
       }
     },
+    "Status VAT: %@ — dane uzupełnione": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VAT status: %@ — details filled in"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estado de IVA: %@ — datos completados"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Статус ПДВ: %@ — дані заповнено"
+          }
+        }
+      }
+    },
     "Stawka VAT": {
       "localizations": {
         "en": {
@@ -7096,6 +7316,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Сторінка %lld з %lld"
+          }
+        }
+      }
+    },
+    "Strona aplikacji": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App website"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sitio web de la app"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сайт застосунку"
           }
         }
       }
@@ -8866,6 +9108,28 @@
         }
       }
     },
+    "Wyczerpano dzienny limit zapytań do Białej Listy. Spróbuj jutro albo wpisz dane ręcznie.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The daily VAT White List query limit has been reached. Try again tomorrow or enter the details manually."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se ha alcanzado el límite diario de consultas a la Lista Blanca. Inténtalo mañana o introduce los datos manualmente."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вичерпано денний ліміт запитів до Білого списку. Спробуйте завтра або введіть дані вручну."
+          }
+        }
+      }
+    },
     "Wyczyść filtry": {
       "localizations": {
         "en": {
@@ -9745,6 +10009,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "Звіт про вхідні рахунки"
+          }
+        }
+      }
+    },
+    "Zgłoszenie otwiera wiadomość e-mail do autora z wersją aplikacji i systemu. Dopisz, co się stało — możesz dołączyć zrzut ekranu.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A report opens an email to the developer with the app and iOS version. Describe what happened — you can attach a screenshot."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El informe abre un correo al desarrollador con la versión de la app y de iOS. Describe lo ocurrido; puedes adjuntar una captura."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Звернення відкриває лист автору з версією застосунку та iOS. Опишіть, що сталося, — можна додати знімок екрана."
+          }
+        }
+      }
+    },
+    "Zgłoś problem": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Report a problem"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Informar de un problema"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Повідомити про проблему"
           }
         }
       }

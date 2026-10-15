@@ -62,10 +62,24 @@ struct SettingsView: View {
                     Text("Po włączeniu aplikacja wymaga uwierzytelnienia przy uruchomieniu i po powrocie z tła.")
                 }
 
-                Section("Pomoc") {
+                Section {
                     NavigationLink { KSeFGuideView() } label: {
                         Label("Jak połączyć się z KSeF", systemImage: "questionmark.circle")
                     }
+                    Link(destination: Support.reportURL(environment: model.company?.ksefEnvironment)) {
+                        Label("Zgłoś problem", systemImage: "envelope")
+                    }
+                    .accessibilityIdentifier("report-problem")
+                    Link(destination: Support.website) {
+                        Label("Strona aplikacji", systemImage: "safari")
+                    }
+                    Link(destination: Support.privacyPolicy) {
+                        Label("Polityka prywatności", systemImage: "hand.raised")
+                    }
+                } header: {
+                    Text("Pomoc")
+                } footer: {
+                    Text("Zgłoszenie otwiera wiadomość e-mail do autora z wersją aplikacji i systemu. Dopisz, co się stało — możesz dołączyć zrzut ekranu.")
                 }
 
                 Section {
@@ -311,5 +325,52 @@ extension String {
         var rest = dropFirst(2)
         while !rest.isEmpty { out += " " + rest.prefix(4); rest = rest.dropFirst(4) }
         return out
+    }
+}
+
+/// Kontakt z autorem i strona aplikacji.
+enum Support {
+    static let email = "bartosz@ikolek.pl"
+    static let website = URL(string: "https://ksefektywnie.ikolek.pl")!
+
+    /// Polityka prywatności w języku interfejsu (strona ma wersję polską i angielską).
+    static var privacyPolicy: URL {
+        Bundle.main.preferredLocalizations.first == "pl"
+            ? website.appending(path: "polityka-prywatnosci.html")
+            : website.appending(path: "en/privacy.html")
+    }
+
+    /// Wiadomość e-mail z tematem i danymi diagnostycznymi (bez danych firmy i faktur).
+    static func reportURL(environment: KSeFEnvironment?) -> URL {
+        var components = URLComponents()
+        components.scheme = "mailto"
+        components.path = email
+        components.queryItems = [
+            URLQueryItem(name: "subject", value: String(localized: "KS-eFektywnie — zgłoszenie problemu")),
+            URLQueryItem(name: "body", value: reportBody(environment: environment)),
+        ]
+        return components.url ?? URL(string: "mailto:\(email)")!
+    }
+
+    static func reportBody(environment: KSeFEnvironment?) -> String {
+        let os = ProcessInfo.processInfo.operatingSystemVersion
+        let lines = [
+            String(localized: "Opisz, co się stało i jak to powtórzyć:"),
+            "", "", "",
+            "—",
+            "KS-eFektywnie \(Bundle.main.appVersion)",
+            "iOS \(os.majorVersion).\(os.minorVersion).\(os.patchVersion) · \(deviceModel)",
+            "\(String(localized: "Język")): \(Bundle.main.preferredLocalizations.first ?? "?")"
+                + (environment.map { " · KSeF: \($0.rawValue)" } ?? ""),
+        ]
+        return lines.joined(separator: "\n")
+    }
+
+    /// Identyfikator modelu, np. „iPhone17,1” (na symulatorze — model symulowany).
+    static var deviceModel: String {
+        if let simulated = ProcessInfo.processInfo.environment["SIMULATOR_MODEL_IDENTIFIER"] { return simulated }
+        var info = utsname()
+        uname(&info)
+        return withUnsafeBytes(of: &info.machine) { String(decoding: $0.prefix { $0 != 0 }, as: UTF8.self) }
     }
 }

@@ -54,6 +54,10 @@ struct OnboardingView: View {
                     TextField("NIP", text: $nip)
                         .keyboardType(.numberPad)
                         .textContentType(.none)
+                    WhiteListLookup(nip: nip, autoLookup: name.isEmpty && address.isEmpty) { taxpayer in
+                        name = taxpayer.name
+                        address = taxpayer.address
+                    }
                     TextField("Nazwa firmy", text: $name)
                     TextField("Adres (do plików bankowych)", text: $address, axis: .vertical)
                 } header: {

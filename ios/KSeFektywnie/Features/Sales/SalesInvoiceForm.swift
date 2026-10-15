@@ -128,6 +128,11 @@ struct SalesInvoiceForm: View {
             LabeledContent("NIP") {
                 TextField("NIP nabywcy", text: $draft.buyerNIP).keyboardType(.numberPad).multilineTextAlignment(.trailing)
             }
+            WhiteListLookup(nip: draft.buyerNIP,
+                            autoLookup: draft.buyerName.isEmpty && draft.buyerAddress.isEmpty) { taxpayer in
+                draft.buyerName = taxpayer.name
+                draft.buyerAddress = taxpayer.address
+            }
             LabeledContent("Nazwa") {
                 TextField("Nazwa nabywcy", text: $draft.buyerName, axis: .vertical).multilineTextAlignment(.trailing)
             }

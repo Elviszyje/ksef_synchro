@@ -327,6 +327,13 @@ Do zweryfikowania osobno: przebieg wysyłki faktur w Django (`invoices/send` z s
 - Blokada Face ID przepisana na testowalny model stanów (`AppLockState`).
 - Eksport listy faktur do Excel (.xlsx: liczby i daty jako wartości, autofiltr, zamrożony nagłówek, wyróżnienie przeterminowanych, wiersz sumy) i PDF (A4 poziomo, sumy według walut, numeracja stron) zamiast CSV. Zapis xlsx bez zależności (`Spreadsheet`, `ZipWriter`), zgodność sprawdzona openpyxl.
 
+### Dodane 2026-10-15
+- Filtry dat na listach (Faktury, Sprzedaż, Wyciągi): ten miesiąc, poprzedni miesiąc, własny zakres.
+- Podgląd PDF faktury sprzedażowej z listy (menu kontekstowe, gest). Edytor „Układ strony” w szablonach: przeciąganie sekcji, logo i kodu QR na miniaturze prawdziwej faktury (migracja v5).
+- **Biała Lista MF** (port `apps/outgoing/nip_lookup.py`): dane nabywcy w formularzu faktury i dane firmy w onboardingu po wpisaniu NIP (automatycznie, gdy pola są puste, albo przyciskiem), ze statusem VAT. `WhiteListClient` w KSeFClient, limit MF 100 wyszukiwań dziennie.
+- Ustawienia → Pomoc: „Zgłoś problem” (e-mail do bartosz@ikolek.pl z wersją aplikacji, iOS i modelem), linki do strony i polityki prywatności.
+- Nowa ikona (jasna, ciemna, barwiona). Strona `ksefektywnie.ikolek.pl` w katalogu `website/`. Komplet tekstów do App Store Connect w `docs/ios-app-store.md`.
+
 ### Ustalenia ze specyfikacji KSeF 2.0 ważne dla Django
 - Endpoint `invoices/send` używany w `apps/ksef/client.py` **nie istnieje** w API 2.0 — wysyłka faktur w Django nie może działać. Właściwy przebieg jak w iOS (sesja interaktywna).
 - Django wybiera pierwszy certyfikat z `security/public-key-certificates`; KSeF zwraca dwa (token i klucz symetryczny) — należy wybierać po `usage`.
