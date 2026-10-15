@@ -93,8 +93,7 @@ struct InvoiceTemplateEditor: View {
         Form {
             Section {
                 NavigationLink {
-                    InvoicePDFPreview(source: sample.map { .success($0) } ?? .failure(InvoiceVisualizationError.unreadableXML),
-                                      templates: [template])
+                    InvoiceLayoutEditor(template: $template, sample: sample)
                 } label: {
                     HStack {
                         Spacer()
@@ -110,10 +109,23 @@ struct InvoiceTemplateEditor: View {
                         Spacer()
                     }
                 }
-                .accessibilityLabel(Text("Podgląd szablonu"))
+                .accessibilityLabel(Text("Układ strony"))
                 .accessibilityIdentifier("template-preview")
+                NavigationLink {
+                    InvoiceLayoutEditor(template: $template, sample: sample)
+                } label: {
+                    Label("Układ strony", systemImage: "rectangle.3.group")
+                }
+                .accessibilityIdentifier("template-layout")
+                NavigationLink {
+                    InvoicePDFPreview(source: sample.map { .success($0) } ?? .failure(InvoiceVisualizationError.unreadableXML),
+                                      templates: [template])
+                } label: {
+                    Label("Podgląd PDF", systemImage: "doc.richtext")
+                }
+                .accessibilityIdentifier("template-pdf")
             } footer: {
-                Text("Podgląd na ostatniej fakturze sprzedażowej albo na przykładowych danych.")
+                Text("W układzie strony przeciągasz sekcje, logo i kod QR na kartce. Podgląd na ostatniej fakturze sprzedażowej albo na przykładowych danych.")
             }
 
             Section("Nazwa") {

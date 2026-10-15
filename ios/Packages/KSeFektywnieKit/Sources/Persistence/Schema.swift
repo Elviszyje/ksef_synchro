@@ -282,4 +282,13 @@ enum Schema {
             t.column("updatedByDevice", .text).notNull().defaults(to: "")
         }
     }
+
+    /// v5: układ strony w szablonie (kolejność sekcji, strona logo i kodu QR).
+    static func v5(_ db: Database) throws {
+        try db.alter(table: "invoiceTemplate") { t in
+            t.add(column: "sectionOrder", .text).notNull().defaults(to: "")
+            t.add(column: "logoSide", .text).notNull().defaults(to: "")
+            t.add(column: "qrSide", .text).notNull().defaults(to: "trailing")
+        }
+    }
 }

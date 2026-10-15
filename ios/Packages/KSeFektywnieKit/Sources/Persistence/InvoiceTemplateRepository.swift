@@ -11,6 +11,8 @@ extension InvoiceTemplate: FetchableRecord, PersistableRecord {
                   language: InvoiceLanguage(rawValue: row["language"]) ?? .pl, logoPNG: row["logoPng"],
                   showQRCode: row["showQrCode"], showAmountInWords: row["showAmountInWords"],
                   showSignatureFields: row["showSignatureFields"], footerText: row["footerText"], closingNote: row["closingNote"],
+                  sectionOrder: InvoiceSection.decode(row["sectionOrder"]),
+                  logoSide: InvoiceSide(rawValue: row["logoSide"]), qrSide: InvoiceSide(rawValue: row["qrSide"]) ?? .trailing,
                   isDefault: row["isDefault"], updatedAt: row["updatedAt"], updatedByDevice: row["updatedByDevice"])
     }
 
@@ -27,6 +29,9 @@ extension InvoiceTemplate: FetchableRecord, PersistableRecord {
         c["showSignatureFields"] = showSignatureFields
         c["footerText"] = footerText
         c["closingNote"] = closingNote
+        c["sectionOrder"] = InvoiceSection.encode(sectionOrder)
+        c["logoSide"] = logoSide?.rawValue ?? ""
+        c["qrSide"] = qrSide.rawValue
         c["isDefault"] = isDefault
         c["updatedAt"] = updatedAt
         c["updatedByDevice"] = updatedByDevice

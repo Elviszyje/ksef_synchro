@@ -127,6 +127,31 @@ struct VisualizationTests {
         #expect(pl.title(.correction) == "Faktura korygująca")
     }
 
+    @Test("Kolejność sekcji: normalizacja i przenoszenie")
+    func sectionOrder() {
+        // Brakujące sekcje dopisane na końcu w kolejności domyślnej, powtórzenia znikają.
+        #expect(InvoiceSection.normalized([.payment, .items, .payment]) ==
+                [.payment, .items, .parties, .summary, .totals, .notes, .signatures])
+        #expect(InvoiceSection.decode("totals,nieznana,parties") ==
+                [.totals, .parties, .items, .summary, .payment, .notes, .signatures])
+        #expect(InvoiceSection.decode("") == InvoiceSection.defaultOrder)
+        #expect(InvoiceSection.decode(InvoiceSection.encode([.notes, .parties])).prefix(2) == [.notes, .parties])
+
+        var t = InvoiceTemplate(companyID: UUID(), name: "x")
+        #expect(!t.hasCustomArrangement && t.resolvedLogoSide == .leading)
+        t.layout = .modern
+        #expect(t.resolvedLogoSide == .trailing)
+        t.move(.signatures, to: .parties)
+        #expect(t.sectionOrder.first == .signatures)
+        t.move(.signatures, by: 1)
+        #expect(t.sectionOrder.prefix(2) == [.parties, .signatures])
+        t.move(.parties, by: -1)
+        #expect(t.sectionOrder.first == .parties)
+        #expect(t.hasCustomArrangement)
+        t.resetArrangement()
+        #expect(!t.hasCustomArrangement)
+    }
+
     @Test("Szablony: wbudowany, gdy brak zapisanych; domyślny pierwszy; kolor z hex")
     func templates() {
         let company = UUID()

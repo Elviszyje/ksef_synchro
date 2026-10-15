@@ -23,6 +23,23 @@ struct InvoiceTemplateRepositoryTests {
         #expect(try repo.defaultTemplate() == InvoiceTemplate.standard(companyID: company.id))
     }
 
+    @Test("Układ strony: kolejność sekcji, strona logo i kodu QR")
+    func arrangement() throws {
+        var template = InvoiceTemplate(companyID: company.id, name: "Układ")
+        template.move(.payment, to: .parties)
+        template.logoSide = .trailing
+        template.qrSide = .leading
+        try repo.save(template)
+        let stored = try #require(try repo.saved().first)
+        #expect(stored.sectionOrder == [.payment, .parties, .items, .summary, .totals, .notes, .signatures])
+        #expect(stored.logoSide == .trailing && stored.qrSide == .leading)
+
+        // Szablon sprzed migracji v5 ma domyślny układ.
+        try db.writer.write { try $0.execute(sql: "UPDATE invoiceTemplate SET sectionOrder = '', logoSide = ''") }
+        let old = try #require(try repo.saved().first)
+        #expect(old.sectionOrder == InvoiceSection.defaultOrder && old.logoSide == nil && !old.hasCustomArrangement == (old.qrSide == .trailing))
+    }
+
     @Test("Zapis z logo, pierwszy szablon domyślny, zmiana domyślnego, usunięcie")
     func lifecycle() throws {
         let logo = Data([0x89, 0x50, 0x4E, 0x47])

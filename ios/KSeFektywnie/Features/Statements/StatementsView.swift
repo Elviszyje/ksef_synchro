@@ -8,6 +8,7 @@ import Persistence
 struct StatementsView: View {
     @Environment(AppModel.self) private var model
     @State private var summaries: [StatementSummary] = []
+    @State private var period: DatePeriod = .all
     @State private var importing = false
     @State private var error: String?
     @State private var path: [UUID] = []
@@ -19,10 +20,16 @@ struct StatementsView: View {
                 if let error {
                     Section { Label(error, systemImage: "exclamationmark.triangle").foregroundStyle(.red) }
                 }
-                ForEach(summaries) { summary in
+                if !summaries.isEmpty {
+                    DatePeriodSection(period: $period)
+                }
+                if visible.isEmpty && !summaries.isEmpty {
+                    NoResultsSection { period = .all }
+                }
+                ForEach(visible) { summary in
                     NavigationLink(value: summary.statement.id) { StatementRow(summary: summary) }
                 }
-                .onDelete { offsets in offsets.map { summaries[$0].id }.forEach { try? model.statements?.delete($0) } }
+                .onDelete { offsets in offsets.map { visible[$0].id }.forEach { try? model.statements?.delete($0) } }
             }
             .overlay {
                 if summaries.isEmpty {
@@ -47,6 +54,12 @@ struct StatementsView: View {
             }
             .task { await observe() }
         }
+    }
+
+    /// Wyciągi z wybranego okresu: po dacie wyciągu, a gdy jej brak — po dacie importu.
+    private var visible: [StatementSummary] {
+        guard let bounds = period.bounds() else { return summaries }
+        return summaries.filter { bounds.contains($0.statement.statementDate ?? LocalDate($0.statement.uploadedAt)) }
     }
 
     private func importFile(_ result: Result<URL, Error>) {

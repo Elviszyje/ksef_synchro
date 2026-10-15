@@ -9,6 +9,7 @@ struct InvoicesView: View {
     @Environment(AppModel.self) private var model
     @State private var invoices: [Invoice] = []
     @State private var filter = InvoiceFilter()
+    @State private var period: DatePeriod = .all
     @State private var loadError: String?
     @State private var showDashboard = DebugLaunch.openDashboard
     @State private var path: [UUID] = []
@@ -26,6 +27,12 @@ struct InvoicesView: View {
                 }
                 if let message = model.syncMessage {
                     Section { Label(message, systemImage: "arrow.triangle.2.circlepath").font(.footnote) }
+                }
+                if !invoices.isEmpty || isNarrowed {
+                    DatePeriodSection(period: $period)
+                }
+                if invoices.isEmpty && isNarrowed {
+                    NoResultsSection { clearFilters() }
                 }
                 ForEach(invoices) { invoice in
                     NavigationLink(value: invoice.id) { InvoiceRow(invoice: invoice) }
@@ -51,7 +58,7 @@ struct InvoicesView: View {
                 }
             }
             .overlay {
-                if invoices.isEmpty {
+                if invoices.isEmpty && !isNarrowed {
                     ContentUnavailableView {
                         Label("Brak faktur", systemImage: "doc.text.magnifyingglass")
                     } description: {
@@ -91,6 +98,11 @@ struct InvoicesView: View {
             .navigationDestination(for: UUID.self) { InvoiceDetailView(invoiceID: $0) }
             .navigationDestination(isPresented: $showDashboard) { CostDashboardView() }
             .task(id: filter) { await observe() }
+            .onChange(of: period, initial: true) { _, period in
+                let bounds = period.bounds()
+                filter.issuedFrom = bounds?.lowerBound
+                filter.issuedTo = bounds?.upperBound
+            }
             .onChange(of: model.openTarget, initial: true) { _, target in
                 if case .invoice(let id)? = target {
                     path = [id]
@@ -146,9 +158,22 @@ struct InvoicesView: View {
             Toggle("Tylko przeterminowane", isOn: $filter.overdueOnly)
             Toggle("Tylko podzielona płatność", isOn: $filter.splitPaymentOnly)
         } label: {
-            Label("Filtry", systemImage: filter == InvoiceFilter(search: filter.search)
-                  ? "line.3.horizontal.decrease.circle" : "line.3.horizontal.decrease.circle.fill")
+            Label("Filtry", systemImage: hasMenuFilters
+                  ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
         }
+    }
+
+    /// Filtry z menu (bez wyszukiwania i okresu — te są widoczne osobno).
+    private var hasMenuFilters: Bool {
+        !filter.statuses.isEmpty || filter.overdueOnly || filter.splitPaymentOnly
+    }
+
+    /// Lista zawężona okresem lub filtrami z menu (pusta lista to wtedy „brak wyników”).
+    private var isNarrowed: Bool { period != .all || hasMenuFilters }
+
+    private func clearFilters() {
+        period = .all
+        filter = InvoiceFilter(search: filter.search)
     }
 
     /// Zmiana statusu gestem na liście. Zatwierdzona faktura „wpada” do zakładki Przelewy.

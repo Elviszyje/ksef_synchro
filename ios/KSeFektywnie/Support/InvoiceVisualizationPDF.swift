@@ -85,15 +85,20 @@ nonisolated struct InvoiceVisualizationPDF {
     }
 
     func blocks() -> [Block] {
-        var result = [headerBlock(), partiesBlock()]
-        if let correction = correctionBlock() { result.append(correction) }
-        result += itemBlocks()
-        result.append(summaryBlock())
-        result.append(totalsBlock())
-        result.append(paymentBlock())
-        if let notes = notesBlock() { result.append(notes) }
-        if template.showSignatureFields { result.append(signaturesBlock()) }
-        return result
+        [headerBlock()] + template.sectionOrder.flatMap(sectionBlocks)
+    }
+
+    /// Bloki jednej sekcji (pusta tablica, gdy sekcja nie ma treści na tej fakturze).
+    func sectionBlocks(_ section: InvoiceSection) -> [Block] {
+        switch section {
+        case .parties: [partiesBlock()] + (correctionBlock().map { [$0] } ?? [])
+        case .items: itemBlocks()
+        case .summary: [summaryBlock()]
+        case .totals: [totalsBlock()]
+        case .payment: paymentRows.isEmpty && !showsQR ? [] : [paymentBlock()]
+        case .notes: notesBlock().map { [$0] } ?? []
+        case .signatures: template.showSignatureFields ? [signaturesBlock()] : []
+        }
     }
 
     // MARK: - Tekst
@@ -162,10 +167,25 @@ nonisolated struct InvoiceVisualizationPDF {
 
     var logo: UIImage? { template.logoPNG.flatMap(UIImage.init(data:)) }
 
-    func logoRect(_ image: UIImage, in box: CGRect) -> CGRect {
+    var logoSide: InvoiceSide { template.resolvedLogoSide }
+
+    func logoRect(_ image: UIImage, in box: CGRect, align: InvoiceSide = .leading) -> CGRect {
         let scale = min(box.width / image.size.width, box.height / image.size.height, 1.5)
         let size = CGSize(width: image.size.width * scale, height: image.size.height * scale)
-        return CGRect(x: box.minX, y: box.minY + (box.height - size.height) / 2, width: size.width, height: size.height)
+        let x = align == .leading ? box.minX : box.maxX - size.width
+        return CGRect(x: x, y: box.minY + (box.height - size.height) / 2, width: size.width, height: size.height)
+    }
+
+    /// Ramka logo w nagłówku zaczynającym się na `y` (nowoczesny: białe pole w pasie u góry strony).
+    func logoFrame(headerTop y: CGFloat) -> CGRect? {
+        guard let logo else { return nil }
+        switch layout {
+        case .modern:
+            return CGRect(x: logoSide == .trailing ? Self.page.width - Self.margin - 140 : Self.margin, y: 22, width: 140, height: 60)
+        case .classic, .minimal:
+            let box = CGRect(x: logoSide == .leading ? Self.margin : Self.page.width - Self.margin - 170, y: y, width: 170, height: 52)
+            return logoRect(logo, in: box, align: logoSide)
+        }
     }
 
     var headerDates: [NSAttributedString] {
@@ -192,11 +212,11 @@ nonisolated struct InvoiceVisualizationPDF {
             return Block(height: band - Self.margin + 14 + datesHeight) { y in
                 Self.fill(CGRect(x: 0, y: 0, width: Self.page.width, height: band), accent)
                 let textWidth = Self.width - (logo == nil ? 0 : 150)
-                Self.draw(Self.text(title, Self.attrs(22, .bold, .white)), CGRect(x: Self.margin, y: 30, width: textWidth, height: 28))
+                let textX = Self.margin + (logo != nil && logoSide == .leading ? 150 : 0)
+                Self.draw(Self.text(title, Self.attrs(22, .bold, .white)), CGRect(x: textX, y: 30, width: textWidth, height: 28))
                 Self.draw(Self.text(number, Self.attrs(13, .semibold, UIColor(white: 1, alpha: 0.9))),
-                          CGRect(x: Self.margin, y: 60, width: textWidth, height: 18))
-                if let logo {
-                    let box = CGRect(x: Self.page.width - Self.margin - 140, y: 22, width: 140, height: 60)
+                          CGRect(x: textX, y: 60, width: textWidth, height: 18))
+                if let logo, let box = logoFrame(headerTop: y) {
                     Self.fill(box, .white, radius: 8)
                     var rect = logoRect(logo, in: box.insetBy(dx: 10, dy: 8))
                     rect.origin.x = box.midX - rect.width / 2
@@ -211,7 +231,8 @@ nonisolated struct InvoiceVisualizationPDF {
             let heading = Self.lines([Self.text(title, Self.attrs(layout == .classic ? 20 : 18, .bold, titleColor)),
                                       Self.text(number, Self.attrs(12, .semibold))])
             let logoHeight: CGFloat = logo == nil ? 0 : 62
-            let leftHeight = logoHeight + Self.height(heading, leftWidth)
+            let logoLeft = logoSide == .leading
+            let leftHeight = (logoLeft ? logoHeight : 0) + Self.height(heading, leftWidth)
             let dates = Self.lines(headerDates.map { row in
                 let m = NSMutableAttributedString(attributedString: row)
                 let style = NSMutableParagraphStyle()
@@ -219,16 +240,14 @@ nonisolated struct InvoiceVisualizationPDF {
                 m.addAttribute(.paragraphStyle, value: style, range: NSRange(location: 0, length: m.length))
                 return m
             })
-            let rightHeight = Self.height(dates, rightWidth)
+            let rightHeight = (logoLeft ? 0 : logoHeight) + Self.height(dates, rightWidth)
             let height = max(leftHeight, rightHeight) + 12
             return Block(height: height) { y in
-                var top = y
-                if let logo {
-                    logo.draw(in: logoRect(logo, in: CGRect(x: Self.margin, y: y, width: 170, height: 52)))
-                    top += logoHeight
-                }
-                Self.draw(heading, CGRect(x: Self.margin, y: top, width: leftWidth, height: 0))
-                Self.draw(dates, CGRect(x: Self.page.width - Self.margin - rightWidth, y: y + (logo == nil ? 4 : 0), width: rightWidth, height: 0))
+                if let logo, let rect = logoFrame(headerTop: y) { logo.draw(in: rect) }
+                let shift = logo == nil ? 0 : logoHeight
+                Self.draw(heading, CGRect(x: Self.margin, y: y + (logoLeft ? shift : 0), width: leftWidth, height: 0))
+                Self.draw(dates, CGRect(x: Self.page.width - Self.margin - rightWidth, y: y + (logo == nil ? 4 : (logoLeft ? 0 : shift)),
+                                        width: rightWidth, height: 0))
                 Self.hline(y + height - 2, color: layout == .minimal ? accent : Self.rule, thickness: layout == .minimal ? 1.2 : 0.6)
             }
         }
@@ -480,9 +499,18 @@ nonisolated struct InvoiceVisualizationPDF {
 
     var showsQR: Bool { template.showQRCode && doc.verificationURL != nil }
 
+    static let qrColumnWidth: CGFloat = 170
+
+    /// Kolumna kodu QR (z podpisem) w bloku płatności zaczynającym się na `y`.
+    func qrFrame(blockTop y: CGFloat, height: CGFloat) -> CGRect? {
+        guard showsQR else { return nil }
+        let x = template.qrSide == .trailing ? Self.page.width - Self.margin - Self.qrColumnWidth : Self.margin
+        return CGRect(x: x, y: y, width: Self.qrColumnWidth, height: height)
+    }
+
     func paymentBlock() -> Block {
         let qrSize: CGFloat = 92
-        let qrColumn: CGFloat = showsQR ? 170 : 0
+        let qrColumn: CGFloat = showsQR ? Self.qrColumnWidth : 0
         let rows = paymentRows
         let content = rows.isEmpty ? NSAttributedString()
             : Self.lines([Self.text(labels.payment.uppercased(), Self.attrs(7.5, .bold, layout == .classic ? Self.secondary : accent))] + rows)
@@ -492,9 +520,10 @@ nonisolated struct InvoiceVisualizationPDF {
         let qrHeight = showsQR ? qrSize + 4 + Self.height(ksefCaption, qrColumn) : 0
         let height = max(Self.height(content, textWidth), qrHeight)
         return Block(height: height, spacing: 18) { y in
-            Self.draw(content, CGRect(x: Self.margin, y: y, width: textWidth, height: 0))
-            guard showsQR, let url = doc.verificationURL else { return }
-            let x0 = Self.page.width - Self.margin - qrColumn
+            let textX = showsQR && template.qrSide == .leading ? Self.margin + qrColumn + 16 : Self.margin
+            Self.draw(content, CGRect(x: textX, y: y, width: textWidth, height: 0))
+            guard let url = doc.verificationURL, let column = qrFrame(blockTop: y, height: height) else { return }
+            let x0 = column.minX
             Self.drawQR(url.absoluteString, in: CGRect(x: x0 + (qrColumn - qrSize) / 2, y: y, width: qrSize, height: qrSize))
             Self.draw(ksefCaption, CGRect(x: x0, y: y + qrSize + 4, width: qrColumn, height: 0))
         }

@@ -27,7 +27,8 @@ struct CloudMirrorTests {
         // Szablony wizualizacji, jeden z logo (osobny plik PNG w lustrze).
         let templates = InvoiceTemplateRepository(db: db, companyID: company.id, device: "dev-A")
         try templates.save(InvoiceTemplate(companyID: company.id, name: "Zwykły", layout: .modern, accentColor: "#0F766E",
-                                           logoPNG: Data([0x89, 0x50, 0x4E, 0x47, 1, 2, 3]), footerText: "KRS 0000000000"), now: Self.now)
+                                           logoPNG: Data([0x89, 0x50, 0x4E, 0x47, 1, 2, 3]), footerText: "KRS 0000000000",
+                                           sectionOrder: [.items, .parties], logoSide: .leading, qrSide: .leading), now: Self.now)
         try templates.save(InvoiceTemplate(companyID: company.id, name: "English", language: .en, showQRCode: false), now: Self.now)
     }
 

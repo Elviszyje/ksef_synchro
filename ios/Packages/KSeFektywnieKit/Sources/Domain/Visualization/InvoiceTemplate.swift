@@ -18,6 +18,46 @@ public enum InvoiceLanguage: String, CaseIterable, Codable, Sendable {
     case plEn = "pl-en"
 }
 
+/// Sekcja strony faktury pod nagłówkiem. Kolejność ustawia użytkownik w szablonie (przeciąganie);
+/// nagłówek jest zawsze na górze.
+public enum InvoiceSection: String, CaseIterable, Codable, Sendable {
+    /// Sprzedawca i nabywca (z danymi korekty, gdy faktura jest korektą).
+    case parties
+    case items
+    /// Tabela stawek VAT.
+    case summary
+    /// Kwota do zapłaty i kwota słownie.
+    case totals
+    /// Płatność i kod QR KSeF.
+    case payment
+    /// Adnotacje, uwagi i dopisek.
+    case notes
+    case signatures
+
+    public static let defaultOrder = allCases
+
+    /// Każda sekcja dokładnie raz: powtórzone pomijane, brakujące dopisane na końcu
+    /// w kolejności domyślnej (odporność na starsze zapisy i nowe sekcje).
+    public static func normalized(_ order: [InvoiceSection]) -> [InvoiceSection] {
+        var seen = Set<InvoiceSection>()
+        let result = order.filter { seen.insert($0).inserted }
+        return result + defaultOrder.filter { !seen.contains($0) }
+    }
+
+    /// Zapis w bazie: identyfikatory oddzielone przecinkami.
+    public static func encode(_ order: [InvoiceSection]) -> String { order.map(\.rawValue).joined(separator: ",") }
+
+    public static func decode(_ raw: String) -> [InvoiceSection] {
+        normalized(raw.split(separator: ",").compactMap { InvoiceSection(rawValue: String($0)) })
+    }
+}
+
+/// Strona strony (lewa/prawa) dla elementów przesuwanych w poziomie: logo, kod QR.
+public enum InvoiceSide: String, CaseIterable, Codable, Sendable {
+    case leading
+    case trailing
+}
+
 /// Szablon wizualizacji faktur sprzedażowych. Faktury kosztowe mają stały, neutralny wygląd.
 public struct InvoiceTemplate: Identifiable, Hashable, Sendable {
     public var id: UUID
@@ -36,6 +76,11 @@ public struct InvoiceTemplate: Identifiable, Hashable, Sendable {
     public var footerText: String
     /// Dopisek pod sumami, np. „Dziękujemy za współpracę”.
     public var closingNote: String
+    /// Kolejność sekcji pod nagłówkiem (zawsze pełna, bez powtórzeń).
+    public var sectionOrder: [InvoiceSection] { didSet { sectionOrder = InvoiceSection.normalized(sectionOrder) } }
+    /// Strona logo w nagłówku; nil — domyślna dla układu (nowoczesny: prawa, pozostałe: lewa).
+    public var logoSide: InvoiceSide?
+    public var qrSide: InvoiceSide
     public var isDefault: Bool
     public var updatedAt: Date
     public var updatedByDevice: String
@@ -43,7 +88,8 @@ public struct InvoiceTemplate: Identifiable, Hashable, Sendable {
     public init(id: UUID = UUID(), companyID: UUID, name: String, layout: InvoiceLayout = .classic,
                 accentColor: String = InvoiceTemplate.accentPresets[0], language: InvoiceLanguage = .pl, logoPNG: Data? = nil,
                 showQRCode: Bool = true, showAmountInWords: Bool = true, showSignatureFields: Bool = false,
-                footerText: String = "", closingNote: String = "", isDefault: Bool = false,
+                footerText: String = "", closingNote: String = "", sectionOrder: [InvoiceSection] = InvoiceSection.defaultOrder,
+                logoSide: InvoiceSide? = nil, qrSide: InvoiceSide = .trailing, isDefault: Bool = false,
                 updatedAt: Date = Date(), updatedByDevice: String = "") {
         self.id = id
         self.companyID = companyID
@@ -57,9 +103,42 @@ public struct InvoiceTemplate: Identifiable, Hashable, Sendable {
         self.showSignatureFields = showSignatureFields
         self.footerText = footerText
         self.closingNote = closingNote
+        self.sectionOrder = InvoiceSection.normalized(sectionOrder)
+        self.logoSide = logoSide
+        self.qrSide = qrSide
         self.isDefault = isDefault
         self.updatedAt = updatedAt
         self.updatedByDevice = updatedByDevice
+    }
+
+    public var resolvedLogoSide: InvoiceSide { logoSide ?? (layout == .modern ? .trailing : .leading) }
+
+    /// Czy układ strony różni się od domyślnego (przycisk „Przywróć”).
+    public var hasCustomArrangement: Bool {
+        sectionOrder != InvoiceSection.defaultOrder || logoSide != nil || qrSide != .trailing
+    }
+
+    public mutating func resetArrangement() {
+        sectionOrder = InvoiceSection.defaultOrder
+        logoSide = nil
+        qrSide = .trailing
+    }
+
+    /// Przeniesienie sekcji na miejsce innej (przeciąganie w edytorze układu).
+    public mutating func move(_ section: InvoiceSection, to target: InvoiceSection) {
+        guard section != target, let from = sectionOrder.firstIndex(of: section),
+              let to = sectionOrder.firstIndex(of: target) else { return }
+        var order = sectionOrder
+        order.remove(at: from)
+        order.insert(section, at: to)
+        sectionOrder = order
+    }
+
+    public mutating func move(_ section: InvoiceSection, by offset: Int) {
+        guard let from = sectionOrder.firstIndex(of: section) else { return }
+        let to = from + offset
+        guard sectionOrder.indices.contains(to) else { return }
+        move(section, to: sectionOrder[to])
     }
 
     public static let accentPresets = ["#1A56DB", "#0F766E", "#B91C1C", "#7C3AED", "#C2410C", "#111827"]

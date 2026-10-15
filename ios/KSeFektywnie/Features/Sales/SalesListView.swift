@@ -6,7 +6,9 @@ import Persistence
 struct SalesListView: View {
     @Environment(AppModel.self) private var model
     @State private var invoices: [OutgoingInvoice] = []
+    @State private var period: DatePeriod = .all
     @State private var editing: OutgoingInvoice?
+    @State private var previewing: OutgoingInvoice?
     @State private var openedFromLaunch = false
 
     var body: some View {
@@ -18,9 +20,26 @@ struct SalesListView: View {
                             .font(.footnote).foregroundStyle(.orange)
                     }
                 }
-                ForEach(invoices) { invoice in
+                if !invoices.isEmpty {
+                    DatePeriodSection(period: $period)
+                }
+                if visible.isEmpty && !invoices.isEmpty {
+                    NoResultsSection { period = .all }
+                }
+                ForEach(visible) { invoice in
                     Button { editing = invoice } label: { SalesRow(invoice: invoice) }
                         .tint(.primary)
+                        .swipeActions(edge: .leading) {
+                            Button { previewing = invoice } label: { Label("PDF", systemImage: "doc.richtext") }
+                                .tint(.indigo)
+                        }
+                        .contextMenu {
+                            Button { previewing = invoice } label: { Label("Podgląd PDF", systemImage: "doc.richtext") }
+                            Button { editing = invoice } label: {
+                                Label(invoice.canBeEdited ? "Edytuj" : "Szczegóły",
+                                      systemImage: invoice.canBeEdited ? "pencil" : "info.circle")
+                            }
+                        }
                 }
                 .onDelete(perform: delete)
             }
@@ -49,10 +68,22 @@ struct SalesListView: View {
                     SalesInvoiceDetail(invoiceID: invoice.id)
                 }
             }
+            .sheet(item: $previewing) { invoice in
+                NavigationStack {
+                    InvoicePDFPreview(source: model.salesVisualization(invoice), templates: model.salesTemplates)
+                        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Zamknij") { previewing = nil } } }
+                }
+            }
             .refreshable { await model.refreshSalesSubmissions() }
             .task { await observe() }
             .task { await model.refreshSalesSubmissions() }
         }
+    }
+
+    /// Faktury z wybranego okresu (po dacie wystawienia).
+    private var visible: [OutgoingInvoice] {
+        guard let bounds = period.bounds() else { return invoices }
+        return invoices.filter { bounds.contains($0.issueDate) }
     }
 
     private func observe() async {
@@ -70,8 +101,8 @@ struct SalesListView: View {
     }
 
     private func delete(_ offsets: IndexSet) {
-        for index in offsets where invoices[index].status == .draft {
-            try? model.sales?.deleteDraft(invoices[index].id)
+        for index in offsets where visible[index].status == .draft {
+            try? model.sales?.deleteDraft(visible[index].id)
         }
     }
 }

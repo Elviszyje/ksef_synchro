@@ -361,6 +361,10 @@ struct TemplateDTO: Codable {
     var show_signature_fields: Bool
     var footer_text: String
     var closing_note: String
+    /// Układ strony (od wersji z edytorem przeciągania; starsze kopie go nie mają).
+    var section_order: String?
+    var logo_side: String?
+    var qr_side: String?
     var is_default: Bool
     var updated_at: Date
     var updated_by_device: String
@@ -372,6 +376,7 @@ struct TemplateDTO: Codable {
         logo_file = t.logoPNG == nil ? nil : Self.logoPath(t.id)
         show_qr_code = t.showQRCode; show_amount_in_words = t.showAmountInWords; show_signature_fields = t.showSignatureFields
         footer_text = t.footerText; closing_note = t.closingNote; is_default = t.isDefault
+        section_order = InvoiceSection.encode(t.sectionOrder); logo_side = t.logoSide?.rawValue; qr_side = t.qrSide.rawValue
         updated_at = t.updatedAt; updated_by_device = t.updatedByDevice
     }
 
@@ -379,7 +384,9 @@ struct TemplateDTO: Codable {
         InvoiceTemplate(id: id, companyID: companyID, name: name, layout: InvoiceLayout(rawValue: layout) ?? .classic,
                         accentColor: accent_color, language: InvoiceLanguage(rawValue: language) ?? .pl, logoPNG: logo,
                         showQRCode: show_qr_code, showAmountInWords: show_amount_in_words, showSignatureFields: show_signature_fields,
-                        footerText: footer_text, closingNote: closing_note, isDefault: is_default,
+                        footerText: footer_text, closingNote: closing_note,
+                        sectionOrder: InvoiceSection.decode(section_order ?? ""), logoSide: logo_side.flatMap(InvoiceSide.init(rawValue:)),
+                        qrSide: qr_side.flatMap(InvoiceSide.init(rawValue:)) ?? .trailing, isDefault: is_default,
                         updatedAt: updated_at, updatedByDevice: updated_by_device)
     }
 }
