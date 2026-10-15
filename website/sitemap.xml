@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://ksefektywnie.ikolek.pl/</loc>
+    <lastmod>2026-10-15</lastmod>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://ksefektywnie.ikolek.pl/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ksefektywnie.ikolek.pl/en/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ksefektywnie.ikolek.pl/"/>
+  </url>
+  <url>
+    <loc>https://ksefektywnie.ikolek.pl/en/</loc>
+    <lastmod>2026-10-15</lastmod>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://ksefektywnie.ikolek.pl/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ksefektywnie.ikolek.pl/en/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ksefektywnie.ikolek.pl/"/>
+  </url>
+  <url>
+    <loc>https://ksefektywnie.ikolek.pl/polityka-prywatnosci.html</loc>
+    <lastmod>2026-10-15</lastmod>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://ksefektywnie.ikolek.pl/polityka-prywatnosci.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ksefektywnie.ikolek.pl/en/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ksefektywnie.ikolek.pl/polityka-prywatnosci.html"/>
+  </url>
+  <url>
+    <loc>https://ksefektywnie.ikolek.pl/en/privacy.html</loc>
+    <lastmod>2026-10-15</lastmod>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://ksefektywnie.ikolek.pl/polityka-prywatnosci.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ksefektywnie.ikolek.pl/en/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ksefektywnie.ikolek.pl/polityka-prywatnosci.html"/>
+  </url>
+  <url>
+    <loc>https://ksefektywnie.ikolek.pl/wsparcie.html</loc>
+    <lastmod>2026-10-15</lastmod>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://ksefektywnie.ikolek.pl/wsparcie.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ksefektywnie.ikolek.pl/en/support.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ksefektywnie.ikolek.pl/wsparcie.html"/>
+  </url>
+  <url>
+    <loc>https://ksefektywnie.ikolek.pl/en/support.html</loc>
+    <lastmod>2026-10-15</lastmod>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://ksefektywnie.ikolek.pl/wsparcie.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ksefektywnie.ikolek.pl/en/support.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ksefektywnie.ikolek.pl/wsparcie.html"/>
+  </url>
+</urlset>

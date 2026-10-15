@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Support — KS-eFektywnie</title>
+  <meta name="description" content="Help for KS-eFektywnie users: contact the developer and answers to common questions about KSeF, banks, iCloud and the KSeF test environment.">
+  <link rel="canonical" href="https://ksefektywnie.ikolek.pl/en/support.html">
+  <link rel="alternate" hreflang="pl" href="https://ksefektywnie.ikolek.pl/wsparcie.html">
+  <link rel="alternate" hreflang="en" href="https://ksefektywnie.ikolek.pl/en/support.html">
+  <link rel="alternate" hreflang="x-default" href="https://ksefektywnie.ikolek.pl/wsparcie.html">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="KS-eFektywnie">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="pl_PL">
+  <meta property="og:title" content="Support — KS-eFektywnie">
+  <meta property="og:description" content="Contact the developer and answers to common questions.">
+  <meta property="og:url" content="https://ksefektywnie.ikolek.pl/en/support.html">
+  <meta property="og:image" content="https://ksefektywnie.ikolek.pl/assets/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+  <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="./" aria-label="KS-eFektywnie — home">
+        <img src="../assets/apple-touch-icon.png" alt="" width="28" height="28">
+        <span><span class="nowrap">KS-eFektywnie</span></span>
+      </a>
+      <nav class="site-nav" aria-label="Main navigation">
+        <a class="nav-optional" href="./#features">Features</a>
+        <a class="nav-optional" href="privacy.html">Privacy</a>
+        <a href="support.html" aria-current="page">Support</a>
+        <div class="lang-switch" role="group" aria-label="Language">
+          <a href="../wsparcie.html" hreflang="pl" lang="pl" aria-label="Polski">PL</a>
+          <span aria-current="true" lang="en">EN</span>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="wrap narrow">
+      <header class="page-head">
+        <p class="eyebrow"><span class="nowrap">KS-eFektywnie</span></p>
+        <h1>Support</h1>
+        <p class="lead">Something not working, or an idea for an improvement? Get in touch — the developer of the app replies personally.</p>
+      </header>
+
+      <section class="contact-card" aria-labelledby="contact-title">
+        <h2 id="contact-title">Contact</h2>
+        <p>Email: <a href="mailto:bartosz@ikolek.pl">bartosz@ikolek.pl</a></p>
+        <p>The quickest way: in the app, open <strong>Settings</strong> and tap <strong>“Report a problem”</strong>. The message automatically includes the app version and the iOS version, which makes it easier to find the cause.</p>
+        <a class="button" href="mailto:bartosz@ikolek.pl?subject=KS-eFektywnie%20%E2%80%94%20support%20request">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg>
+          Send an email
+        </a>
+      </section>
+
+      <section class="prose" aria-labelledby="faq-title">
+        <h2 id="faq-title">Frequently asked questions</h2>
+        <div class="faq">
+          <details>
+            <summary><span>How do I connect the app to KSeF?</span></summary>
+            <div class="answer">
+              <p>You need a KSeF token. Generate it in the KSeF Taxpayer Application (ksef.podatki.gov.pl) after signing in for your company’s tax ID (NIP). Then, in the app, open Settings → KSeF connection, paste the token, save it and test the connection.</p>
+              <p>The app includes a step-by-step guide that shows how to generate the token and connect the app.</p>
+            </div>
+          </details>
+          <details>
+            <summary><span>Does my data go to the developer’s server?</span></summary>
+            <div class="answer">
+              <p>No. The app has no accounts and no developer server. Invoices, payment files and statements are only on your iPhone and — if you have iCloud Drive turned on — in your private iCloud. See the <a href="privacy.html">privacy policy</a> for details.</p>
+            </div>
+          </details>
+          <details>
+            <summary><span>I’m switching phones. What happens to my data?</span></summary>
+            <div class="answer">
+              <p>If you have iCloud Drive turned on, once you sign in with the same Apple Account, the iCloud copy restores the app’s data on your new phone.</p>
+              <p>The KSeF token never leaves the device, so on the new phone you need to generate it again in the KSeF Taxpayer Application and paste it in Settings.</p>
+            </div>
+          </details>
+          <details>
+            <summary><span>Which banks does the app work with?</span></summary>
+            <div class="answer">
+              <p><strong>Payment files:</strong> Erste Bank, mBank, and the <span class="nowrap">Elixir-0</span> format for other banks that accept it (including split payment, MPP).</p>
+              <p><strong>Statements:</strong> MT940 (a format offered by most banks) and CSV from Erste Bank and VeloBank.</p>
+              <p>Your bank is missing? Let me know — a sample file (with the data replaced by fictitious values) helps a lot.</p>
+            </div>
+          </details>
+          <details>
+            <summary><span>Is the app paid?</span></summary>
+            <div class="answer">
+              <p>No. <span class="nowrap">KS-eFektywnie</span> is free, with no ads and no subscription. You can leave a tip to support further development — it doesn’t unlock anything; all features are available from the start.</p>
+            </div>
+          </details>
+          <details>
+            <summary><span>Can I try the app on the KSeF test environment first?</span></summary>
+            <div class="answer">
+              <p>Yes. In Settings → KSeF connection, choose the test environment. It has separate data and separate tokens — a production token does not work on the test environment and vice versa. Invoices issued on the test environment have no legal effect.</p>
+              <p>To work with real invoices, switch to the production environment and save a production token.</p>
+            </div>
+          </details>
+          <details>
+            <summary><span>Is <span class="nowrap">KS-eFektywnie</span> an app of the Polish Ministry of Finance?</span></summary>
+            <div class="answer">
+              <p>No. It is an independent app. “KSeF” is the name of the National <span class="nowrap">e-Invoice</span> System operated by the Ministry of Finance; the app uses its public API.</p>
+            </div>
+          </details>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <ul class="footer-links">
+        <li><a href="./">Home</a></li>
+        <li><a href="privacy.html">Privacy policy</a></li>
+        <li><a href="support.html" aria-current="page">Support</a></li>
+        <li><a href="mailto:bartosz@ikolek.pl">bartosz@ikolek.pl</a></li>
+      </ul>
+      <p><span class="nowrap">KS-eFektywnie</span> is not a product of the Polish Ministry of Finance. “KSeF” is the name of the National <span class="nowrap">e-Invoice</span> System operated by the Ministry of Finance.</p>
+      <p>© 2026 Bartosz Kołek</p>
+    </div>
+  </footer>
+</body>
+</html>

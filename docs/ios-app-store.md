@@ -341,7 +341,7 @@ KS-eFektywnie не є застосунком Міністерства фінан
 
 ## 10. Polityka prywatności
 
-Pełny tekst jest opublikowany na stronie (`website/polityka-prywatnosci.html`, `website/en/privacy.html`) i dostępny w aplikacji: Ustawienia → Pomoc → Polityka prywatności. Obowiązuje od 15 października 2026. Najważniejsze punkty: brak zbierania danych, dane na urządzeniu i w iCloud użytkownika, token KSeF tylko w pęku kluczy, połączenia wyłącznie z API KSeF, Białą Listą MF (tylko NIP nabywcy, na żądanie) i App Store, zgłoszenia przez Mail na bartosz@ikolek.pl.
+Pełny tekst jest opublikowany na stronie (`website/polityka-prywatnosci.html`, `website/en/privacy.html`) i dostępny w aplikacji: Ustawienia → Pomoc → Polityka prywatności. Obowiązuje od 15 października 2026. Najważniejsze punkty: brak zbierania danych, dane na urządzeniu i w iCloud użytkownika, token KSeF tylko w pęku kluczy, połączenia wyłącznie z API KSeF, Białą Listą MF (tylko wpisany NIP nabywcy lub własnej firmy i data) i App Store, zgłoszenia przez Mail na bartosz@ikolek.pl.
 
 ---
 
