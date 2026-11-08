@@ -21,7 +21,11 @@ final class AppModel {
     var openTarget: ReminderTarget?
 
     var syncInProgress = false
+    /// Wynik ostatniej synchronizacji — w Ustawieniach zostaje przy przycisku „Synchronizuj teraz”.
     var syncMessage: String?
+    /// Ten sam komunikat nad listami faktur — znika po kilku sekundach.
+    private(set) var syncBanner: String?
+    private var syncBannerTask: Task<Void, Never>?
 
     init(database: AppDatabase, deviceID: String) {
         self.database = database
@@ -198,10 +202,22 @@ final class AppModel {
         do {
             let service = KSeFSyncService(company: company, source: try makeClient(), db: database, device: deviceID)
             let result = try await service.run()
-            syncMessage = SyncSummary.text(result)
+            showSyncResult(SyncSummary.text(result), for: .seconds(4))
             reload()
         } catch {
-            syncMessage = error.userMessage
+            // Błąd zostaje dłużej, żeby dało się go przeczytać.
+            showSyncResult(error.userMessage, for: .seconds(8))
+        }
+    }
+
+    private func showSyncResult(_ message: String, for duration: Duration) {
+        syncMessage = message
+        syncBanner = message
+        syncBannerTask?.cancel()
+        syncBannerTask = Task {
+            try? await Task.sleep(for: duration)
+            guard !Task.isCancelled else { return }
+            syncBanner = nil
         }
     }
 

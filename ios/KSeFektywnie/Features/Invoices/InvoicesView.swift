@@ -25,7 +25,7 @@ struct InvoicesView: View {
                 if model.isDemo {
                     Section { Label("Tryb demo — dane przykładowe", systemImage: "theatermasks").font(.footnote) }
                 }
-                if let message = model.syncMessage {
+                if let message = model.syncBanner {
                     Section { Label(message, systemImage: "arrow.triangle.2.circlepath").font(.footnote) }
                 }
                 if !invoices.isEmpty || isNarrowed {
@@ -95,6 +95,7 @@ struct InvoicesView: View {
                 ToolbarItem(placement: .topBarTrailing) { filterMenu }
             }
             .navigationTitle("Faktury")
+            .animation(.snappy, value: model.syncBanner)
             .navigationDestination(for: UUID.self) { InvoiceDetailView(invoiceID: $0) }
             .navigationDestination(isPresented: $showDashboard) { CostDashboardView() }
             .task(id: filter) { await observe() }

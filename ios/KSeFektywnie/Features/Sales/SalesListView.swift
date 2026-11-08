@@ -20,7 +20,7 @@ struct SalesListView: View {
                             .font(.footnote).foregroundStyle(.orange)
                     }
                 }
-                if let message = model.syncMessage {
+                if let message = model.syncBanner {
                     Section { Label(message, systemImage: "arrow.triangle.2.circlepath").font(.footnote) }
                 }
                 if !invoices.isEmpty {
@@ -64,6 +64,7 @@ struct SalesListView: View {
                 }
             }
             .navigationTitle("Sprzedaż")
+            .animation(.snappy, value: model.syncBanner)
             .sheet(item: $editing) { invoice in
                 if invoice.canBeEdited {
                     SalesInvoiceForm(initial: invoice)
