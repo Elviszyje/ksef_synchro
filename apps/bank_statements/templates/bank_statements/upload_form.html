@@ -14,16 +14,17 @@
           <i class="bi bi-info-circle me-1"></i>
           Akceptowane formaty:
           <strong>MT940 (.sta, .mt940, .txt)</strong> oraz
-          <strong>CSV z VeloBank, Erste Bank</strong> (.csv).
+          <strong>CSV z VeloBank, Erste Bank</strong> (.csv) oraz
+          <strong>historię transakcji z Banku Millennium</strong> (.csv, .xls, .html — bez PDF).
           System automatycznie wykryje format na podstawie Twoich rachunków firmowych.
           Po wgraniu wyciągu system automatycznie dopasuje transakcje do faktur ze statusem "Przekazano do opłacenia".
         </div>
         <form method="post" enctype="multipart/form-data">
           {% csrf_token %}
           <div class="mb-4">
-            <label class="form-label fw-medium">Plik wyciągu bankowego (MT940 lub CSV)</label>
+            <label class="form-label fw-medium">Plik wyciągu bankowego (MT940, CSV, XLS lub HTML)</label>
             <input type="file" name="mt940_file" class="form-control"
-                   accept=".sta,.mt940,.txt,.940,.csv" required>
+                   accept=".sta,.mt940,.txt,.940,.csv,.xls,.html,.htm" required>
           </div>
           <button type="submit" class="btn btn-primary w-100">
             <i class="bi bi-upload me-1"></i>Wgraj i analizuj

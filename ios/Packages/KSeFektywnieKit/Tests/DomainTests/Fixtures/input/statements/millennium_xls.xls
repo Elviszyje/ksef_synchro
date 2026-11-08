@@ -1,0 +1,107 @@
+﻿<html>
+  <head>
+    <META http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title></title>
+    <style>
+					 .theTable tr td
+					 {
+					  width: 60pt;
+					  height: 25.5pt
+					  }
+					.header
+					{
+					  color:white;
+					  background:black;
+					  align:right;
+					}
+					br
+					{mso-data-placement:same-cell;}
+				</style>
+  </head>
+  <body>
+    <table border="1" class="theTable">
+      <thead>
+        <tr>
+          <td class="header" style="height:31.5pt;width:120pt">Numer rachunku/karty</td>
+          <td class="header" style="width:70pt">Data transakcji</td>
+          <td class="header" style="width:66pt">Data rozliczenia</td>
+          <td class="header" style="width:86pt">Rodzaj transakcji</td>
+          <td class="header" style="width:145pt">Na konto/Z konta</td>
+          <td class="header" style="width:68pt">Odbiorca/Zleceniodawca</td>
+          <td class="headerleft" style="width:187pt">Opis</td>
+          <td class="header" style="width:73pt">Obciążenia</td>
+          <td class="header" style="width:73pt">Uznania</td>
+          <td class="header" style="width:73pt">Saldo</td>
+          <td class="header" style="width:60pt">Waluta</td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td align="right">PL61 1160 2202 0000 0001 2345 6789</td>
+          <td align="right">2026-11-04</td>
+          <td align="right">2026-11-05</td>
+          <td align="right">OPŁATA</td>
+          <td align="right">67 11 6022 0200 0000 0000 0000 01</td>
+          <td align="right">Bank Millennium SA</td>
+          <td align="left">OPŁ. MIES. KARTA VISA
+4988XXXXXXXX0000
+ZA 10/2026<br></td>
+          <td align="right">-7.00</td>
+          <td align="right">&nbsp;</td>
+          <td align="right">10574.68</td>
+          <td align="right">
+          </td>
+        </tr>
+        <tr>
+          <td align="right">PL61 1160 2202 0000 0001 2345 6789</td>
+          <td align="right">2026-10-30</td>
+          <td align="right">2026-10-30</td>
+          <td align="right">PRZELEW WYCHODZĄCY</td>
+          <td align="right">61 1090 1014 0000 0712 1981 2874</td>
+          <td align="right">HURTOWNIA ŁÓDZKA SP. Z O.O.
+UL. KWIATOWA 1
+90-001 ŁÓDŹ</td>
+          <td align="left">Faktura FV/0030/09/2026<br></td>
+          <td align="right">-1446.00</td>
+          <td align="right">&nbsp;</td>
+          <td align="right">10581.68</td>
+          <td align="right">
+          </td>
+        </tr>
+        <tr>
+          <td align="right">PL61 1160 2202 0000 0001 2345 6789</td>
+          <td align="right">2026-10-29</td>
+          <td align="right">2026-10-29</td>
+          <td align="right">PRZELEW PRZYCHODZĄCY</td>
+          <td align="right">27 11 4020 0400 0000 3456 7890 12</td>
+          <td align="right">PRZYKŁADOWY KLIENT SPÓŁKA Z OGRANICZONĄ ODPOW
+IEDZIALNOŚCIĄ
+UL.POLNA 5
+00-001 WARSZAWA</td>
+          <td align="left">FV/2026/0001<br></td>
+          <td align="right">&nbsp;</td>
+          <td align="right">4920.00</td>
+          <td align="right">12027.68</td>
+          <td align="right">
+          </td>
+        </tr>
+        <tr>
+          <td align="right">PL61 1160 2202 0000 0001 2345 6789</td>
+          <td align="right">2026-10-15</td>
+          <td align="right">2026-10-15</td>
+          <td align="right">OPERACJE SO NA KREDYTACH</td>
+          <td align="right"></td>
+          <td align="right"></td>
+          <td align="left">11602202-000000001 W PLN
+SPŁ.RATY-REGULARNA
+KAPITAŁ: 786.28PLN
+ODSETKI: 448.17PLN<br></td>
+          <td align="right">-1234.45</td>
+          <td align="right">&nbsp;</td>
+          <td align="right">7107.68</td>
+          <td align="right">
+          </td>
+        </tr>
+      </tbody>
+    </table><br></body>
+</html>

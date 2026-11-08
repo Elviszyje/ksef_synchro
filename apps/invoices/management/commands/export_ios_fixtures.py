@@ -124,17 +124,18 @@ class Command(BaseCommand):
 
     # ── Wyciągi bankowe ──────────────────────────────────────────────────
     def _statements(self):
-        from apps.bank_statements.parsers import erste_csv, mt940, velobank_csv
-        from apps.bank_statements.parsers.detect import detect_and_parse
+        from apps.bank_statements.parsers import erste_csv, millennium, mt940, velobank_csv
+        from apps.bank_statements.parsers.detect import decode_statement, detect_and_parse
 
         for path in sorted((self.inp / 'statements').iterdir()):
-            content = path.read_bytes().decode('utf-8')
+            content = decode_statement(path.read_bytes())
             stmt = detect_and_parse(content)
             _write_json(self.out / 'statements' / f'{path.stem}.json', {
                 'detect': {
                     'mt940': mt940.detect(content),
                     'erste': erste_csv.detect(content),
                     'velobank': velobank_csv.detect(content),
+                    'millennium': millennium.detect(content),
                 },
                 'bank_key': stmt.bank_key,
                 'account_number': stmt.account_number,

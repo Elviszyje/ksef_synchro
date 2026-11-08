@@ -8,7 +8,7 @@ Kolejność prób:
 3. Pozostałe parsery CSV
 """
 from .base import ParsedStatement
-from . import velobank_csv, erste_csv
+from . import velobank_csv, erste_csv, millennium
 
 # Kolejność kodowań przy odczycie wyciągu. ISO-8859-1 dekoduje każdy ciąg bajtów,
 # więc musi być ostatnie — inaczej pliki Windows-1250 tracą polskie znaki
@@ -27,10 +27,21 @@ def decode_statement(data: bytes) -> str | None:
 
 
 # Rejestr parserów CSV: bank_key → moduł parsera
+# Millennium jest pierwszy: jego nagłówek jest jednoznaczny, a parser obsługuje też HTML/XLS.
 _CSV_PARSERS: dict[str, object] = {
+    'millennium': millennium,
     'velobank': velobank_csv,
     'erste':    erste_csv,
 }
+
+UNSUPPORTED_PDF_MESSAGE = (
+    'Pliki PDF nie są obsługiwane — to wydruk, a nie wyciąg do importu. '
+    'W bankowości wybierz eksport CSV, XLS albo HTML (Millennium) lub MT940.'
+)
+
+
+def is_pdf(data: bytes) -> bool:
+    return data.lstrip()[:5] == b'%PDF-'
 
 
 def detect_and_parse(content: str, preferred_bank_keys: list[str] | None = None) -> ParsedStatement:
@@ -76,5 +87,6 @@ def detect_and_parse(content: str, preferred_bank_keys: list[str] | None = None)
 
     raise ValueError(
         'Nie rozpoznano formatu pliku. Obsługiwane formaty: MT940 (SWIFT), '
-        'CSV VeloBank, CSV Erste Bank. Sprawdź czy plik pochodzi z obsługiwanego banku.'
+        'CSV VeloBank, CSV Erste Bank, Millennium (CSV, XLS, HTML). '
+        'Sprawdź czy plik pochodzi z obsługiwanego banku.'
     )

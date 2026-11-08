@@ -3,6 +3,7 @@
   "bank_key": "velobank",
   "detect": {
     "erste": false,
+    "millennium": false,
     "mt940": false,
     "velobank": true
   },

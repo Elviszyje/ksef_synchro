@@ -1850,6 +1850,28 @@
         }
       }
     },
+    "Faktura wystawiona poza aplikacją, pobrana z KSeF. Można ją przeglądać, ale nie edytować.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invoice issued outside the app, downloaded from KSeF. You can view it but not edit it."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Factura emitida fuera de la aplicación, descargada de KSeF. Puedes consultarla, pero no editarla."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Рахунок-фактуру виставлено поза застосунком і завантажено з KSeF. Його можна переглядати, але не редагувати."
+          }
+        }
+      }
+    },
     "Faktura zawiera pozycje ze stawką ZW. KSeF wymaga wskazania podstawy prawnej zwolnienia: przepisu ustawy o VAT (lub aktu wykonawczego), dyrektywy 2006/112/WE albo innej podstawy. Wcześniej użyte podstawy są zapamiętywane.": {
       "localizations": {
         "en": {
@@ -4024,24 +4046,24 @@
         }
       }
     },
-    "Nie rozpoznano formatu pliku. Obsługiwane formaty: MT940 (SWIFT), CSV VeloBank, CSV Erste Bank.": {
+    "Nie rozpoznano formatu pliku. Obsługiwane formaty: MT940 (SWIFT), CSV VeloBank, CSV Erste Bank, Millennium (CSV, XLS, HTML).": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unrecognized file format. Supported formats: MT940 (SWIFT), VeloBank CSV, Erste Bank CSV."
+            "value": "Unrecognized file format. Supported formats: MT940 (SWIFT), VeloBank CSV, Erste Bank CSV, Millennium (CSV, XLS, HTML)."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Formato de archivo no reconocido. Formatos admitidos: MT940 (SWIFT), CSV de VeloBank, CSV de Erste Bank."
+            "value": "Formato de archivo no reconocido. Formatos admitidos: MT940 (SWIFT), CSV de VeloBank, CSV de Erste Bank, Millennium (CSV, XLS, HTML)."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Формат файлу не розпізнано. Підтримувані формати: MT940 (SWIFT), CSV VeloBank, CSV Erste Bank."
+            "value": "Формат файлу не розпізнано. Підтримувані формати: MT940 (SWIFT), CSV VeloBank, CSV Erste Bank, Millennium (CSV, XLS, HTML)."
           }
         }
       }
@@ -4064,6 +4086,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Не налаштовано"
+          }
+        }
+      }
+    },
+    "Nie udało się pobrać faktur sprzedażowych: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not download sales invoices: %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudieron descargar las facturas de venta: %@"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не вдалося завантажити рахунки-фактури продажу: %@"
           }
         }
       }
@@ -4376,6 +4420,28 @@
         }
       }
     },
+    "Nowe faktury sprzedażowe z KSeF: %lld.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New sales invoices from KSeF: %lld."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuevas facturas de venta de KSeF: %lld."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нові рахунки-фактури продажу з KSeF: %lld."
+          }
+        }
+      }
+    },
     "Nowe faktury w KSeF": {
       "localizations": {
         "en": {
@@ -4614,6 +4680,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Номер, продавець, NIP"
+          }
+        }
+      }
+    },
+    "Numery szkiców zajęte już w KSeF zostały zmienione: %@.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft numbers already used in KSeF have been changed: %@."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se han cambiado los números de borradores ya usados en KSeF: %@."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Номери чернеток, уже використані в KSeF, змінено: %@."
           }
         }
       }
@@ -5296,6 +5384,28 @@
         }
       }
     },
+    "Pliki PDF nie są obsługiwane — to wydruk, a nie wyciąg do importu. W bankowości wybierz eksport CSV, XLS albo HTML (Millennium) lub MT940.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PDF files are not supported — they are printouts, not statements for import. In your online banking choose a CSV, XLS or HTML export (Millennium) or MT940."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los archivos PDF no son compatibles: son documentos para imprimir, no extractos para importar. En tu banca elige la exportación CSV, XLS o HTML (Millennium) o MT940."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Файли PDF не підтримуються — це версія для друку, а не виписка для імпорту. В інтернет-банкінгу виберіть експорт CSV, XLS або HTML (Millennium) чи MT940."
+          }
+        }
+      }
+    },
     "Po lewej": {
       "localizations": {
         "en": {
@@ -5428,24 +5538,24 @@
         }
       }
     },
-    "Pobierz wyciąg z bankowości (MT940, CSV Erste lub VeloBank) i zaimportuj go, aby rozliczyć przekazane do opłacenia faktury.": {
+    "Pobierz wyciąg z bankowości (MT940, CSV Erste lub VeloBank, historia transakcji Millennium w CSV, XLS lub HTML) i zaimportuj go, aby rozliczyć przekazane do opłacenia faktury.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Download a statement from your online banking (MT940, Erste or VeloBank CSV) and import it to settle invoices sent for payment."
+            "value": "Download a statement from your online banking (MT940, Erste or VeloBank CSV, Millennium transaction history as CSV, XLS or HTML) and import it to settle invoices sent for payment."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Descarga un extracto de tu banca (MT940, CSV de Erste o VeloBank) e impórtalo para conciliar las facturas enviadas para pago."
+            "value": "Descarga un extracto de tu banca (MT940, CSV de Erste o VeloBank, historial de transacciones de Millennium en CSV, XLS o HTML) e impórtalo para conciliar las facturas enviadas para pago."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Завантажте виписку з інтернет-банкінгу (MT940, CSV Erste або VeloBank) та імпортуйте її, щоб розрахувати рахунки-фактури, передані до оплати."
+            "value": "Завантажте виписку з інтернет-банкінгу (MT940, CSV Erste або VeloBank, історію транзакцій Millennium у CSV, XLS або HTML) та імпортуйте її, щоб розрахувати рахунки-фактури, передані до оплати."
           }
         }
       }
@@ -9306,24 +9416,24 @@
         }
       }
     },
-    "Wystaw pierwszą fakturę. Wpisane pozycje i nabywcy zostaną zapamiętani do kolejnych faktur.": {
+    "Wystaw pierwszą fakturę. Wpisane pozycje i nabywcy zostaną zapamiętani do kolejnych faktur. Faktury wystawione w innych programach pojawią się tu po synchronizacji z KSeF.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Issue your first invoice. Items and buyers you enter will be remembered for future invoices."
+            "value": "Issue your first invoice. Items and buyers you enter will be remembered for future invoices. Invoices issued in other software will appear here after syncing with KSeF."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Emite tu primera factura. Las líneas y compradores que introduzcas se recordarán para próximas facturas."
+            "value": "Emite tu primera factura. Las líneas y compradores que introduzcas se recordarán para próximas facturas. Las facturas emitidas en otros programas aparecerán aquí tras sincronizar con KSeF."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Виставте перший рахунок-фактуру. Введені позиції та покупці запам'ятаються для наступних рахунків."
+            "value": "Виставте перший рахунок-фактуру. Введені позиції та покупці запам'ятаються для наступних рахунків. Рахунки-фактури, виставлені в інших програмах, з'являться тут після синхронізації з KSeF."
           }
         }
       }
@@ -9484,6 +9594,50 @@
     },
     "XML FA(3)": {
       "shouldTranslate": false
+    },
+    "XML faktury": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invoice XML"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "XML de la factura"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "XML рахунку-фактури"
+          }
+        }
+      }
+    },
+    "Z KSeF": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From KSeF"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De KSeF"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "З KSeF"
+          }
+        }
+      }
     },
     "Z katalogu": {
       "localizations": {

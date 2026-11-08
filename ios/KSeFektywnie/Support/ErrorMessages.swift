@@ -34,7 +34,8 @@ extension Error {
             }
         case let e as StatementError:
             switch e {
-            case .unrecognizedFormat: return String(localized: "Nie rozpoznano formatu pliku. Obsługiwane formaty: MT940 (SWIFT), CSV VeloBank, CSV Erste Bank.")
+            case .unrecognizedFormat: return String(localized: "Nie rozpoznano formatu pliku. Obsługiwane formaty: MT940 (SWIFT), CSV VeloBank, CSV Erste Bank, Millennium (CSV, XLS, HTML).")
+            case .pdfNotSupported: return String(localized: "Pliki PDF nie są obsługiwane — to wydruk, a nie wyciąg do importu. W bankowości wybierz eksport CSV, XLS albo HTML (Millennium) lub MT940.")
             case .unreadableEncoding: return String(localized: "Nie można odczytać pliku. Sprawdź kodowanie (UTF-8 lub Windows-1250).")
             case .emptyFile: return String(localized: "Pusty plik.")
             case .missingAmountColumn: return String(localized: "Nie znaleziono kolumny \"Kwota\" w pliku CSV.")

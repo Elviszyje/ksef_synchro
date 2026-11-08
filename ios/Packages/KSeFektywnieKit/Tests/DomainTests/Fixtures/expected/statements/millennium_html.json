@@ -1,0 +1,53 @@
+{
+  "account_number": "61116022020000000123456789",
+  "bank_key": "millennium",
+  "detect": {
+    "erste": false,
+    "millennium": true,
+    "mt940": false,
+    "velobank": false
+  },
+  "statement_date": "2026-11-04",
+  "transactions": [
+    {
+      "amount": "7.00",
+      "counterparty": "Bank Millennium SA",
+      "currency": "PLN",
+      "description": "OPŁ. MIES. KARTA VISA 4988XXXXXXXX0000 ZA 10/2026",
+      "is_credit": false,
+      "reference": "67116022020000000000000001",
+      "transaction_date": "2026-11-04",
+      "value_date": "2026-11-05"
+    },
+    {
+      "amount": "1446.00",
+      "counterparty": "HURTOWNIA ŁÓDZKA SP. Z O.O. UL. KWIATOWA 1 90-001 ŁÓDŹ",
+      "currency": "PLN",
+      "description": "Faktura FV/0030/09/2026",
+      "is_credit": false,
+      "reference": "61109010140000071219812874",
+      "transaction_date": "2026-10-30",
+      "value_date": "2026-10-30"
+    },
+    {
+      "amount": "4920.00",
+      "counterparty": "PRZYKŁADOWY KLIENT SPÓŁKA Z OGRANICZONĄ ODPOW IEDZIALNOŚCIĄ UL.POLNA 5 00-001 WARSZAWA",
+      "currency": "PLN",
+      "description": "FV/2026/0001",
+      "is_credit": true,
+      "reference": "27114020040000003456789012",
+      "transaction_date": "2026-10-29",
+      "value_date": "2026-10-29"
+    },
+    {
+      "amount": "1234.45",
+      "counterparty": "",
+      "currency": "PLN",
+      "description": "11602202-000000001 W PLN SPŁ.RATY-REGULARNA KAPITAŁ: 786.28PLN ODSETKI: 448.17PLN",
+      "is_credit": false,
+      "reference": "",
+      "transaction_date": "2026-10-15",
+      "value_date": "2026-10-15"
+    }
+  ]
+}

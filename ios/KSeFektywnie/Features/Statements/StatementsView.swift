@@ -36,7 +36,7 @@ struct StatementsView: View {
                     ContentUnavailableView {
                         Label("Brak wyciągów", systemImage: "tray.and.arrow.down")
                     } description: {
-                        Text("Pobierz wyciąg z bankowości (MT940, CSV Erste lub VeloBank) i zaimportuj go, aby rozliczyć przekazane do opłacenia faktury.")
+                        Text("Pobierz wyciąg z bankowości (MT940, CSV Erste lub VeloBank, historia transakcji Millennium w CSV, XLS lub HTML) i zaimportuj go, aby rozliczyć przekazane do opłacenia faktury.")
                     } actions: {
                         Button("Importuj wyciąg") { importing = true }.buttonStyle(.glassProminent)
                     }

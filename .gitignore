@@ -40,3 +40,6 @@ db.sqlite3
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Prywatne pliki (np. prawdziwe wyciągi bankowe) — nie trafiają do repozytorium
+niedogit/

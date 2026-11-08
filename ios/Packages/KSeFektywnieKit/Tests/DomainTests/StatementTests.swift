@@ -16,6 +16,7 @@ struct StatementTests {
         #expect(MT940Parser.detect(content) == detect["mt940"])
         #expect(ErsteCSVParser.detect(content) == detect["erste"])
         #expect(VeloBankCSVParser.detect(content) == detect["velobank"])
+        #expect(MillenniumParser.detect(content) == detect["millennium"])
 
         let stmt = try StatementImporter.parse(content)
         expectString(stmt.bankKey, expected["bank_key"], "bank_key")
@@ -77,5 +78,27 @@ struct StatementTests {
             #expect(a.type.rawValue == e["match_type"] as? String)
             #expect(a.confidence.rawValue == e["confidence"] as? String)
         }
+    }
+}
+
+@Suite("Millennium: HTML/XLS i PDF")
+struct MillenniumStatementTests {
+    @Test("PDF jest odrzucany z czytelnym komunikatem")
+    func pdfRejected() {
+        #expect(throws: StatementError.pdfNotSupported) { try StatementImporter.decode(Data("%PDF-1.4\n%âãÏÓ".utf8)) }
+        #expect(throws: StatementError.pdfNotSupported) { try StatementImporter.decode(Data("\n%PDF-1.7".utf8)) }
+    }
+
+    @Test("Komórki HTML: znaczniki, encje i białe znaki jak text_content() w lxml")
+    func htmlCells() {
+        let html = "<table><tr><TD class=\"x\">A &amp; B&nbsp;\r\n  C<br></TD><td>&#322;&#x105;&quot;</td><td></td></tr></table>"
+        #expect(HTMLTable.rows(html) == [["A & B C", "łą\"", ""]])
+        #expect(HTMLTable.decodeEntities("R&D &unknown; 5 & 6") == "R&D &unknown; 5 & 6")
+    }
+
+    @Test("Rachunek Millennium w firmie kieruje najpierw do parsera Millennium")
+    func preferredKey() throws {
+        let csv = try Fixtures.data("input/statements/millennium_csv.csv")
+        #expect(try StatementImporter.parse(data: csv, preferredBankKeys: ["millennium"]).bankKey == "millennium")
     }
 }

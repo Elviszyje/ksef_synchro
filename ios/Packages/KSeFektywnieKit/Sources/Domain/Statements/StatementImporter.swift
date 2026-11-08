@@ -8,17 +8,24 @@ public enum StatementImporter {
     /// ciąg bajtów, więc Windows-1250 nigdy nie jest używane, a polskie znaki
     /// z plików CP1250 zamieniają się w krzaki. Tu kolejność jest poprawiona.
     public static func decode(_ data: Data) throws -> String {
+        if isPDF(data) { throw StatementError.pdfNotSupported }
         if let utf8 = String(data: data, encoding: .utf8) { return utf8 }
         if let cp1250 = CP1250.decode(data) { return cp1250 }
         throw StatementError.unreadableEncoding
     }
 
-    /// Parsery CSV w kolejności rejestru z Django.
+    /// PDF to wydruk (np. „Historia transakcji” Millennium), nie wyciąg do importu — jak `is_pdf` w Django.
+    static func isPDF(_ data: Data) -> Bool {
+        data.drop(while: { [0x20, 0x09, 0x0A, 0x0D].contains($0) }).prefix(5).elementsEqual("%PDF-".utf8)
+    }
+
+    /// Parsery CSV w kolejności rejestru z Django (Millennium obsługuje też HTML/XLS).
     enum CSVFormat: String, CaseIterable {
-        case velobank, erste
+        case millennium, velobank, erste
 
         func detect(_ content: String) -> Bool {
             switch self {
+            case .millennium: MillenniumParser.detect(content)
             case .velobank: VeloBankCSVParser.detect(content)
             case .erste: ErsteCSVParser.detect(content)
             }
@@ -26,6 +33,7 @@ public enum StatementImporter {
 
         func parse(_ content: String) throws -> ParsedStatement {
             switch self {
+            case .millennium: try MillenniumParser.parse(content)
             case .velobank: try VeloBankCSVParser.parse(content)
             case .erste: try ErsteCSVParser.parse(content)
             }

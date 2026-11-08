@@ -14,7 +14,7 @@
 | `apps.invoices` | Model Invoice, statusy, filtrowanie, export Excel |
 | `apps.ksef` | KSeFConfig, klient API KSeF 2.0, parser FA(2) XML, Celery sync |
 | `apps.payments` | Generatory plików Erste TXT i Elixir-0 PLI, historia plików |
-| `apps.bank_statements` | Upload MT940, matcher transakcji do faktur, zatwierdzanie |
+| `apps.bank_statements` | Upload MT940 / CSV (Erste, VeloBank) / Millennium (CSV, XLS=HTML, HTML; PDF odrzucany), matcher transakcji do faktur, zatwierdzanie |
 | `core` | Uprawnienia (RoleRequiredMixin), templatetagi |
 
 ## Role użytkowników
@@ -47,6 +47,7 @@ docker compose exec web python manage.py test apps   # bez bazy (SimpleTestCase)
 - Prod: `https://api.ksef.mf.gov.pl`
 - Konfiguracja: `/ksef/config/` (rola admin)
 - Sync manualny: `/ksef/sync/` (POST)
+- Sync importuje też faktury sprzedażowe wystawione poza aplikacją (`Subject1`) jako `OutgoingInvoice` ze statusem `imported` (tylko odczyt, kwoty z XML, osobny kursor `last_sales_sync_at`). Parser jest zduplikowany: `apps/ksef/sales_parser.py` ↔ `ios/.../Domain/KSeF/SalesImport.swift` — zmieniaj oba.
 
 ## Format pliku bankowego
 - **Erste TXT**: `4120414|1` header, separator `|`, Windows-1250

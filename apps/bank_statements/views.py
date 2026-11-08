@@ -11,7 +11,7 @@ from apps.invoices.models import Invoice, InvoiceStatusLog
 from apps.accounts.models import CompanyBankAccount
 from .models import BankStatement, BankTransaction, TransactionMatch
 from .parsers.mt940 import InvoiceMatcher
-from .parsers.detect import decode_statement, detect_and_parse
+from .parsers.detect import UNSUPPORTED_PDF_MESSAGE, decode_statement, detect_and_parse, is_pdf
 
 
 class BankStatementListView(RoleRequiredMixin, CompanyAccessMixin, ListView):
@@ -35,7 +35,11 @@ class BankStatementUploadView(RoleRequiredMixin, View):
             messages.error(request, 'Nie wybrano pliku.')
             return TemplateResponse(request, self.template_name, {})
 
-        raw = decode_statement(uploaded_file.read())
+        data = uploaded_file.read()
+        if is_pdf(data):
+            messages.error(request, UNSUPPORTED_PDF_MESSAGE)
+            return TemplateResponse(request, self.template_name, {})
+        raw = decode_statement(data)
         if not raw:
             messages.error(request, 'Nie można odczytać pliku. Sprawdź kodowanie (UTF-8, Windows-1250, ISO-8859-1).')
             return TemplateResponse(request, self.template_name, {})
