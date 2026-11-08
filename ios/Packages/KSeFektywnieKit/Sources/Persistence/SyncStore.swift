@@ -50,6 +50,21 @@ public struct SyncLogEntry: Identifiable, Hashable, Sendable, FetchableRecord, P
     }
 }
 
+/// Wpis kolejki pobierania XML.
+public struct QueuedXML: Hashable, Sendable {
+    public enum Kind: String, Sendable {
+        case purchase, sale
+    }
+
+    public var ksefNumber: String
+    public var kind: Kind
+
+    public init(ksefNumber: String, kind: Kind) {
+        self.ksefNumber = ksefNumber
+        self.kind = kind
+    }
+}
+
 /// Kolejka pobierania XML i logi synchronizacji.
 public struct SyncStore: Sendable {
     let db: AppDatabase
@@ -80,18 +95,57 @@ public struct SyncStore: Sendable {
         }
     }
 
-    public func pendingXML(now: Date, limit: Int) throws -> [String] {
-        try db.reader.read { db in
-            try String.fetchAll(db, sql: """
-                SELECT ksefNumber FROM ksefXmlQueue
-                WHERE companyId = ? AND (notBefore IS NULL OR notBefore <= ?)
-                ORDER BY enqueuedAt, ksefNumber LIMIT ?
-                """, arguments: [companyID, now, limit])
+    /// Faktury sprzedażowe do pobrania (treść XML jest potrzebna, żeby odtworzyć pozycje).
+    public func enqueueSales(_ ksefNumbers: [String], now: Date) throws {
+        guard !ksefNumbers.isEmpty else { return }
+        try db.writer.write { db in
+            for ksefNumber in ksefNumbers {
+                try db.execute(sql: """
+                    INSERT OR IGNORE INTO ksefXmlQueue (companyId, ksefNumber, enqueuedAt, attempts, kind)
+                    VALUES (?, ?, ?, 0, ?)
+                    """, arguments: [companyID, ksefNumber, now, QueuedXML.Kind.sale.rawValue])
+            }
         }
     }
 
-    public func pendingXMLCount() throws -> Int {
-        try db.reader.read { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM ksefXmlQueue WHERE companyId = ?", arguments: [companyID]) ?? 0 }
+    /// Najpierw faktury zakupowe (płatności), potem sprzedażowe — duży import historii
+    /// sprzedaży nie opóźnia pobierania nowych faktur kosztowych.
+    public func pendingXML(now: Date, limit: Int) throws -> [QueuedXML] {
+        try db.reader.read { db in
+            try Row.fetchAll(db, sql: """
+                SELECT ksefNumber, kind FROM ksefXmlQueue
+                WHERE companyId = ? AND (notBefore IS NULL OR notBefore <= ?)
+                ORDER BY kind = 'sale', enqueuedAt, ksefNumber LIMIT ?
+                """, arguments: [companyID, now, limit]).map {
+                QueuedXML(ksefNumber: $0["ksefNumber"], kind: QueuedXML.Kind(rawValue: $0["kind"]) ?? .purchase)
+            }
+        }
+    }
+
+    public func pendingXMLCount(kind: QueuedXML.Kind? = nil) throws -> Int {
+        try db.reader.read {
+            if let kind {
+                return try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM ksefXmlQueue WHERE companyId = ? AND kind = ?",
+                                        arguments: [companyID, kind.rawValue]) ?? 0
+            }
+            return try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM ksefXmlQueue WHERE companyId = ?", arguments: [companyID]) ?? 0
+        }
+    }
+
+    /// Kursor synchronizacji faktur sprzedażowych (osobny od zakupów).
+    public func lastSalesSync() throws -> Date? {
+        try db.reader.read {
+            try Date.fetchOne($0, sql: "SELECT lastSyncAt FROM ksefSalesSync WHERE companyId = ?", arguments: [companyID])
+        }
+    }
+
+    public func markSalesSynced(at date: Date) throws {
+        try db.writer.write {
+            try $0.execute(sql: """
+                INSERT INTO ksefSalesSync (companyId, lastSyncAt) VALUES (?, ?)
+                ON CONFLICT(companyId) DO UPDATE SET lastSyncAt = excluded.lastSyncAt
+                """, arguments: [companyID, date])
+        }
     }
 
     public func dequeue(_ ksefNumber: String) throws {

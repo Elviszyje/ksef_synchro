@@ -116,4 +116,64 @@ struct SalesRepositoryTests {
         #expect(invoice.exemptionType == .act)
         #expect(invoice.exemptionBasis == "")
     }
+
+    // MARK: - Import z KSeF
+
+    func imported(_ number: String = "FV/2026/0001", ksef: String = "K1") -> OutgoingInvoice {
+        var invoice = draft(number, items: [
+            OutgoingInvoiceItem(name: "Śruby", quantity: 3, unitPriceNet: Decimal(string: "0.10")!,
+                                fixedAmounts: FixedItemAmounts(net: Decimal(string: "0.30")!, vat: Decimal(string: "0.07")!)),
+        ])
+        invoice.status = .imported
+        invoice.ksefNumber = ksef
+        invoice.environment = .test
+        invoice.generatedXML = "<Faktura/>"
+        return invoice
+    }
+
+    @Test("Import zachowuje kwoty z XML i tworzy nabywcę; ponowny import jest pomijany")
+    func importKeepsAmounts() throws {
+        #expect(try sales.importFromKSeF(imported(), numberPattern: company.invoiceNumberPattern) == .imported)
+        let loaded = try #require(try sales.invoices().first)
+        #expect(loaded.status == .imported && !loaded.canBeEdited)
+        #expect(loaded.amountVAT == Decimal(string: "0.07"))  // bez przeliczenia byłoby 0,06
+        #expect(loaded.amountGross == Decimal(string: "0.37"))
+        #expect(try sales.buyers().map(\.nip) == ["6260181591"])
+        #expect(try catalog.items().isEmpty)
+
+        #expect(try sales.isKnown(ksefNumber: "K1", invoiceNumber: "", environment: .test))
+        #expect(try sales.importFromKSeF(imported(), numberPattern: company.invoiceNumberPattern) == .alreadyKnown)
+        #expect(try sales.invoices().count == 1)
+    }
+
+    @Test("Faktura wysłana z aplikacji (bez numeru KSeF) nie jest importowana drugi raz")
+    func sentInvoiceIsKnown() throws {
+        var sent = try sales.saveDraft(draft(items: [OutgoingInvoiceItem(name: "A", unitPriceNet: 1)]), saveBuyer: false)
+        sent = try #require(try sales.updateSubmission(sent.id) { $0.status = .sending })
+        #expect(try sales.isKnown(ksefNumber: "K9", invoiceNumber: sent.invoiceNumber, environment: sent.environment))
+        #expect(try !sales.isKnown(ksefNumber: "K9", invoiceNumber: sent.invoiceNumber, environment: .production))
+    }
+
+    @Test("Szkic z numerem zajętym w KSeF dostaje kolejny numer")
+    func conflictingDraftIsRenumbered() throws {
+        let saved = try sales.saveDraft(draft("FV/2026/0001", items: [OutgoingInvoiceItem(name: "A", unitPriceNet: 1)]), saveBuyer: false)
+        let outcome = try sales.importFromKSeF(imported("FV/2026/0001"), numberPattern: company.invoiceNumberPattern)
+        #expect(outcome == .importedRenumberingDraft(from: "FV/2026/0001", to: "FV/2026/0002"))
+        let renumbered = try #require(try sales.find(saved.id))
+        #expect(renumbered.invoiceNumber == "FV/2026/0002" && renumbered.status == .draft)
+        #expect(renumbered.errorMessage.contains("FV/2026/0001"))
+        #expect(try sales.nextNumber(pattern: company.invoiceNumberPattern, year: 2026, environment: .test) == "FV/2026/0003")
+
+        // Zapis szkicu czyści informację o zmianie numeru.
+        #expect(try sales.saveDraft(renumbered, saveBuyer: false).errorMessage == "")
+    }
+
+    @Test("Istniejący nabywca nie jest nadpisywany danymi z importu")
+    func existingBuyerKept() throws {
+        try sales.saveDraft(draft(items: [OutgoingInvoiceItem(name: "A", unitPriceNet: 1)]), saveBuyer: true)
+        var incoming = imported("FV/2026/0100")
+        incoming.buyerName = "Inna nazwa"
+        try sales.importFromKSeF(incoming, numberPattern: company.invoiceNumberPattern)
+        #expect(try sales.buyers().map(\.name) == ["Klient"])
+    }
 }

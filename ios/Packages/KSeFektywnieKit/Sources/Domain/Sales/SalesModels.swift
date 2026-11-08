@@ -42,6 +42,19 @@ public enum PaymentForm: String, CaseIterable, Codable, Sendable {
 
 public enum OutgoingInvoiceStatus: String, CaseIterable, Codable, Sendable {
     case draft, queued, sending, accepted, rejected
+    /// Faktura wystawiona poza aplikacją, pobrana z KSeF (tylko do odczytu).
+    case imported
+}
+
+/// Kwoty pozycji przepisane z XML faktury (import z KSeF) zamiast liczonych z ceny i ilości.
+public struct FixedItemAmounts: Hashable, Sendable {
+    public var net: Decimal
+    public var vat: Decimal
+
+    public init(net: Decimal, vat: Decimal) {
+        self.net = net
+        self.vat = vat
+    }
 }
 
 /// Pozycja faktury sprzedażowej — kwoty liczone jak `InvoiceItem.calculate_amounts`.
@@ -52,21 +65,25 @@ public struct OutgoingInvoiceItem: Hashable, Sendable, Identifiable {
     public var quantity: Decimal
     public var unitPriceNet: Decimal
     public var vatRate: VATRate
+    /// Tylko faktury zaimportowane z KSeF: kwoty z XML, zgodne z fakturą co do grosza.
+    public var fixedAmounts: FixedItemAmounts?
 
     public init(id: UUID = UUID(), name: String, unit: String = "szt.", quantity: Decimal = 1,
-                unitPriceNet: Decimal = 0, vatRate: VATRate = .standard) {
+                unitPriceNet: Decimal = 0, vatRate: VATRate = .standard, fixedAmounts: FixedItemAmounts? = nil) {
         self.id = id
         self.name = name
         self.unit = unit
         self.quantity = quantity
         self.unitPriceNet = unitPriceNet
         self.vatRate = vatRate
+        self.fixedAmounts = fixedAmounts
     }
 
     /// Netto = ilość × cena, zaokrąglone ROUND_HALF_UP do groszy.
-    public var amountNet: Decimal { (quantity * unitPriceNet).rounded(scale: 2, mode: .plain) }
+    public var amountNet: Decimal { fixedAmounts?.net ?? (quantity * unitPriceNet).rounded(scale: 2, mode: .plain) }
 
     public var amountVAT: Decimal {
+        if let fixedAmounts { return fixedAmounts.vat }
         guard let percent = vatRate.percent else { return 0 }
         return (amountNet * percent / 100).rounded(scale: 2, mode: .plain)
     }
@@ -144,6 +161,8 @@ public struct OutgoingInvoice: Identifiable, Hashable, Sendable {
     public var hasExemptItems: Bool { items.contains { $0.vatRate == .exempt } }
     /// Szkic albo faktura odrzucona przez KSeF (do poprawy i ponownej wysyłki), jak `can_be_queued` w Django.
     public var canBeEdited: Bool { status == .draft || status == .rejected }
+    /// Faktura, której jeszcze nie ma w KSeF — jej numer można zmienić, gdy okaże się zajęty.
+    public var isNotInKSeF: Bool { status == .draft || status == .rejected || status == .queued }
 
     /// Problemy blokujące zapis (komunikaty po polsku; UI tłumaczy je przez klucze).
     public var validationIssues: [SalesValidationIssue] {

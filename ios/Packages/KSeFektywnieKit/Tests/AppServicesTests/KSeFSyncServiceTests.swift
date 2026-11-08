@@ -9,14 +9,23 @@ import Persistence
 /// Atrapa KSeF: metadane, XML dla wybranych numerów, opcjonalny limit 429 po N pobraniach.
 final class FakeKSeF: KSeFInvoiceSource {
     let headers: [JSONValue]
+    let salesHeaders: [JSONValue]
     let xml: [String: Data]
     let rateLimitAfter: Int?
     let downloads = Mutex(0)
+    let downloaded = Mutex<[String]>([])
+    let salesQueries = Mutex<[Date]>([])
 
-    init(headers: [JSONValue], xml: [String: Data], rateLimitAfter: Int? = nil) {
+    init(headers: [JSONValue], salesHeaders: [JSONValue] = [], xml: [String: Data], rateLimitAfter: Int? = nil) {
         self.headers = headers
+        self.salesHeaders = salesHeaders
         self.xml = xml
         self.rateLimitAfter = rateLimitAfter
+    }
+
+    func salesInvoiceMetadata(from: Date, to: Date, pageSize: Int) async throws -> [JSONValue] {
+        salesQueries.withLock { $0.append(from) }
+        return salesHeaders
     }
 
     func authenticate() async throws -> KSeFClient.AccessToken { .init(token: "T", validUntil: nil) }
@@ -26,6 +35,7 @@ final class FakeKSeF: KSeFInvoiceSource {
     func invoiceXML(ksefNumber: String) async throws -> Data? {
         let n = downloads.withLock { $0 += 1; return $0 }
         if let limit = rateLimitAfter, n > limit { throw KSeFError.rateLimited(retryAfter: 600) }
+        downloaded.withLock { $0.append(ksefNumber) }
         return xml[ksefNumber]
     }
 }
@@ -106,5 +116,63 @@ struct KSeFSyncServiceTests {
         let log = try #require(try SyncStore(db: db, companyID: company.id).logs().first)
         #expect(log.status == .error)
         #expect(log.errorMessage.contains("401"))
+    }
+
+    // MARK: - Faktury sprzedażowe
+
+    static func saleXML(_ number: String) -> Data {
+        Data("""
+            <Faktura xmlns="http://crd.gov.pl/wzor/2025/06/25/13775/"><Podmiot1><DaneIdentyfikacyjne><NIP>1132854320</NIP>
+            <Nazwa>Moja Firma</Nazwa></DaneIdentyfikacyjne></Podmiot1><Podmiot2><DaneIdentyfikacyjne><NIP>6260181591</NIP>
+            <Nazwa>Klient</Nazwa></DaneIdentyfikacyjne></Podmiot2><Fa><KodWaluty>PLN</KodWaluty><P_1>2026-10-01</P_1><P_2>\(number)</P_2>
+            <P_13_1>100</P_13_1><P_14_1>23</P_14_1><P_15>123</P_15><FaWiersz><P_7>Usługa</P_7><P_8B>1</P_8B><P_9A>100</P_9A>
+            <P_11>100</P_11><P_12>23</P_12></FaWiersz></Fa></Faktura>
+            """.utf8)
+    }
+
+    static func saleHeader(_ ref: String, number: String) -> JSONValue {
+        .object(["ksefNumber": .string(ref), "invoiceNumber": .string(number)])
+    }
+
+    @Test("Faktury sprzedażowe: import z XML po fakturach zakupowych, kursor i brak duplikatów")
+    func salesImport() async throws {
+        let now = Date(timeIntervalSince1970: 1_790_000_000)
+        let source = FakeKSeF(headers: [Self.header("A", gross: "123")],
+                              salesHeaders: [Self.saleHeader("S1", number: "FV/2026/0001"), Self.saleHeader("S2", number: "FV/2026/0002")],
+                              xml: ["A": Self.xml, "S1": Self.saleXML("FV/2026/0001"), "S2": Self.saleXML("FV/2026/0002")])
+        let service = KSeFSyncService(company: company, source: source, db: db, device: "d")
+        let result = try await service.run(now: now)
+        #expect(source.downloaded.withLock { $0 } == ["A", "S1", "S2"])
+        #expect(result.salesNew == 2 && result.salesPending == 0 && result.salesError == nil)
+        #expect(source.salesQueries.withLock { $0 } == [KSeFSyncService.initialSalesFrom(now)])
+
+        let sales = try SalesRepository(db: db, companyID: company.id, device: "d").invoices()
+        #expect(sales.map(\.ksefNumber).sorted() == ["S1", "S2"])
+        #expect(sales.allSatisfy { $0.status == .imported && $0.amountGross == 123 })
+
+        // Drugi przebieg: kursor od poprzedniej synchronizacji, znane faktury nie są pobierane ponownie.
+        let later = now.addingTimeInterval(3600)
+        let again = try await service.run(now: later)
+        #expect(source.salesQueries.withLock { $0.last } == now)
+        #expect(again.salesNew == 0)
+        #expect(source.downloaded.withLock { $0 } == ["A", "S1", "S2"])
+    }
+
+    @Test("Błąd zapytania o sprzedaż nie przerywa synchronizacji zakupów")
+    func salesErrorIsReported() async throws {
+        struct SalesFailing: KSeFInvoiceSource {
+            func authenticate() async throws -> KSeFClient.AccessToken { .init(token: "T", validUntil: nil) }
+            func purchaseInvoiceMetadata(from: Date, to: Date, pageSize: Int) async throws -> [JSONValue] { [] }
+            func salesInvoiceMetadata(from: Date, to: Date, pageSize: Int) async throws -> [JSONValue] {
+                throw KSeFError.api(status: 403, message: "brak uprawnień")
+            }
+            func invoiceXML(ksefNumber: String) async throws -> Data? { nil }
+        }
+        let service = KSeFSyncService(company: company, source: SalesFailing(), db: db, device: "d")
+        let result = try await service.run()
+        #expect(result.salesError != nil)
+        let store = SyncStore(db: db, companyID: company.id)
+        #expect(try store.logs().first?.status == .success)
+        #expect(try store.lastSalesSync() == nil)
     }
 }

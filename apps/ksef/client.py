@@ -220,6 +220,10 @@ class KSeFClient:
         # KSeF 2.0: sesja wygasa automatycznie, zakończenie nie jest wymagane
         logger.debug('KSeF 2.0: terminate_session (brak akcji)')
 
+    # subjectType w zapytaniu o metadane: Subject1 = firma jest sprzedawcą, Subject2 = nabywcą.
+    SUBJECT_SELLER = 'Subject1'
+    SUBJECT_BUYER = 'Subject2'
+
     def iter_purchase_invoices(
         self,
         session_token: str,
@@ -231,11 +235,25 @@ class KSeFClient:
         Iteruje po fakturach zakupowych (nabywca = nasza firma NIP).
         Automatycznie dzieli zakresy > 89 dni na chunki (limit API: 3 miesiące).
         """
+        yield from self._iter_invoices(self.SUBJECT_BUYER, session_token, date_from, date_to, page_size)
+
+    def iter_sales_invoices(
+        self,
+        session_token: str,
+        date_from: datetime,
+        date_to: datetime,
+        page_size: int = 250,
+    ) -> Iterator[dict]:
+        """Iteruje po fakturach sprzedażowych (sprzedawca = nasza firma NIP), także wystawionych poza aplikacją."""
+        yield from self._iter_invoices(self.SUBJECT_SELLER, session_token, date_from, date_to, page_size)
+
+    def _iter_invoices(self, subject_type: str, session_token: str, date_from: datetime,
+                       date_to: datetime, page_size: int) -> Iterator[dict]:
         _MAX_CHUNK = timedelta(days=89)
         chunk_from = date_from
         while chunk_from < date_to:
             chunk_to = min(chunk_from + _MAX_CHUNK, date_to)
-            yield from self._query_chunk(session_token, chunk_from, chunk_to, page_size)
+            yield from self._query_chunk(session_token, chunk_from, chunk_to, page_size, subject_type)
             chunk_from = chunk_to
 
     def _query_chunk(
@@ -244,13 +262,14 @@ class KSeFClient:
         date_from: datetime,
         date_to: datetime,
         page_size: int,
+        subject_type: str = SUBJECT_BUYER,
     ) -> Iterator[dict]:
         headers = {'Authorization': f'Bearer {session_token}'}
         page_offset = 0
 
         while True:
             payload = {
-                'subjectType': 'Subject2',
+                'subjectType': subject_type,
                 'dateRange': {
                     'dateType': 'PermanentStorage',
                     'from': date_from.strftime('%Y-%m-%dT%H:%M:%SZ'),

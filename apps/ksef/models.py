@@ -33,6 +33,10 @@ class KSeFConfig(models.Model):
     sync_window_start = models.TimeField(null=True, blank=True, verbose_name='Okno sync — od')
     sync_window_end = models.TimeField(null=True, blank=True, verbose_name='Okno sync — do')
     last_sync_at = models.DateTimeField(null=True, blank=True, verbose_name='Ostatnia synchronizacja')
+    last_sales_sync_at = models.DateTimeField(
+        null=True, blank=True,
+        verbose_name='Ostatnia synchronizacja faktur sprzedażowych',
+    )
     last_sync_reference_number = models.CharField(
         max_length=255, blank=True,
         verbose_name='Ostatni numer referencyjny (kursor)',

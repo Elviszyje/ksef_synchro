@@ -245,6 +245,15 @@ extension Column {
 enum SyncSummary {
     static func text(_ r: KSeFSyncService.Result) -> String {
         var parts = [String(localized: "Pobrano \(r.fetched) faktur, nowych: \(r.new).")]
+        if r.salesNew > 0 {
+            parts.append(String(localized: "Nowe faktury sprzedażowe z KSeF: \(r.salesNew)."))
+        }
+        if !r.salesRenumbered.isEmpty {
+            parts.append(String(localized: "Numery szkiców zajęte już w KSeF zostały zmienione: \(r.salesRenumbered.joined(separator: ", "))."))
+        }
+        if let error = r.salesError {
+            parts.append(String(localized: "Nie udało się pobrać faktur sprzedażowych: \(error)"))
+        }
         if r.xmlPending > 0 {
             if let resume = r.xmlResumesAt {
                 parts.append(String(localized: "Treść \(r.xmlPending) faktur zostanie pobrana po \(resume.formatted(date: .omitted, time: .shortened)) (limit KSeF)."))

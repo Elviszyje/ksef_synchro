@@ -181,6 +181,8 @@ public struct SalesRepository: Sendable {
             invoice.companyID = companyID
             // Poprawiona faktura odrzucona przez KSeF wraca do szkicu.
             if invoice.status == .rejected { invoice.status = .draft }
+            // Powód odrzucenia albo informacja o zmianie numeru przestają być aktualne po zapisie.
+            invoice.errorMessage = ""
             invoice.updatedAt = now
             invoice.updatedByDevice = device
             if let existing = try OutgoingInvoiceRecord.filter(key: invoice.id).fetchOne(db), !existing.invoice.canBeEdited {
@@ -212,6 +214,78 @@ public struct SalesRepository: Sendable {
             invoice.updatedByDevice = device
             try OutgoingInvoiceRecord(invoice).update(db)
             return invoice
+        }
+    }
+
+    // MARK: - Import z KSeF
+
+    public enum ImportOutcome: Equatable, Sendable {
+        case imported
+        /// Szkic miał numer zajęty już w KSeF i dostał nowy.
+        case importedRenumberingDraft(from: String, to: String)
+        case alreadyKnown
+    }
+
+    /// Reguły 1 i 2 z `apps/ksef/sales_import.py`, sprawdzane przed pobraniem XML (limit KSeF):
+    /// faktura o tym numerze KSeF już jest, albo faktura o tym numerze została wysłana z aplikacji.
+    public func isKnown(ksefNumber: String, invoiceNumber: String, environment: KSeFEnvironment) throws -> Bool {
+        try db.reader.read { try isKnown(ksefNumber: ksefNumber, invoiceNumber: invoiceNumber, environment: environment, $0) }
+    }
+
+    private func isKnown(ksefNumber: String, invoiceNumber: String, environment: KSeFEnvironment, _ db: Database) throws -> Bool {
+        let count = try Int.fetchOne(db, sql: """
+            SELECT COUNT(*) FROM outgoingInvoice WHERE companyId = ? AND (ksefNumber = ?
+              OR (? != '' AND environment = ? AND invoiceNumber = ? AND status IN ('sending', 'accepted', 'imported')))
+            """, arguments: [companyID, ksefNumber, invoiceNumber, environment.rawValue, invoiceNumber]) ?? 0
+        return count > 0
+    }
+
+    /// Zapis faktury wystawionej poza aplikacją (status `.imported`, tylko do odczytu).
+    /// Szkic z tym samym numerem dostaje kolejny wolny numer według wzoru firmy, a nabywca
+    /// z prawidłowym NIP-em trafia do listy nabywców, jeśli jeszcze go nie ma.
+    @discardableResult
+    public func importFromKSeF(_ incoming: OutgoingInvoice, numberPattern: String, now: Date = Date()) throws -> ImportOutcome {
+        try db.writer.write { db in
+            var invoice = incoming
+            invoice.companyID = companyID
+            invoice.status = .imported
+            invoice.updatedAt = now
+            invoice.updatedByDevice = device
+            if try isKnown(ksefNumber: invoice.ksefNumber, invoiceNumber: invoice.invoiceNumber, environment: invoice.environment, db) {
+                return .alreadyKnown
+            }
+
+            var outcome = ImportOutcome.imported
+            if let record = try OutgoingInvoiceRecord.filter(Column("companyId") == companyID)
+                .filter(Column("environment") == invoice.environment.rawValue)
+                .filter(Column("invoiceNumber") == invoice.invoiceNumber).fetchOne(db) {
+                // Po isKnown zostają tylko faktury, których nie ma w KSeF (szkic, kolejka, odrzucona).
+                var draft = record.invoice
+                let existing = try String.fetchAll(db, sql: "SELECT invoiceNumber FROM outgoingInvoice WHERE companyId = ? AND environment = ?",
+                                                   arguments: [companyID, invoice.environment.rawValue])
+                let newNumber = InvoiceNumbering.next(pattern: numberPattern, year: draft.issueDate.year, existing: existing)
+                guard newNumber != draft.invoiceNumber, !existing.contains(newNumber) else { return .alreadyKnown }
+                draft.errorMessage = "Numer \(draft.invoiceNumber) jest już użyty w KSeF przez fakturę \(invoice.ksefNumber) — nadano nowy numer \(newNumber)."
+                outcome = .importedRenumberingDraft(from: draft.invoiceNumber, to: newNumber)
+                draft.invoiceNumber = newNumber
+                draft.updatedAt = now
+                draft.updatedByDevice = device
+                try OutgoingInvoiceRecord(draft).update(db)
+            }
+
+            if Validation.isValidNIP(invoice.buyerNIP) {
+                if let buyer = try Buyer.filter(Column("companyId") == companyID).filter(Column("nip") == invoice.buyerNIP).fetchOne(db) {
+                    invoice.buyerID = buyer.id
+                } else {
+                    let buyer = Buyer(companyID: companyID, nip: invoice.buyerNIP, name: invoice.buyerName,
+                                      address: invoice.buyerAddress, updatedAt: now, updatedByDevice: device)
+                    try buyer.insert(db)
+                    invoice.buyerID = buyer.id
+                }
+            }
+            try OutgoingInvoiceRecord(invoice).insert(db)
+            try insertSalesItems(invoice, db)
+            return outcome
         }
     }
 

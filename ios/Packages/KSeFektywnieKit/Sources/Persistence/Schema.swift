@@ -291,4 +291,17 @@ enum Schema {
             t.add(column: "qrSide", .text).notNull().defaults(to: "trailing")
         }
     }
+
+    /// v6: import faktur sprzedażowych wystawionych poza aplikacją. Kolejka XML rozróżnia
+    /// faktury zakupowe i sprzedażowe, a sprzedaż ma własny kursor synchronizacji
+    /// (pierwszy import sięga dalej wstecz niż bieżąca synchronizacja zakupów).
+    static func v6(_ db: Database) throws {
+        try db.alter(table: "ksefXmlQueue") { t in
+            t.add(column: "kind", .text).notNull().defaults(to: "purchase")
+        }
+        try db.create(table: "ksefSalesSync") { t in
+            t.column("companyId", .text).notNull().primaryKey().references("company", onDelete: .cascade)
+            t.column("lastSyncAt", .datetime)
+        }
+    }
 }

@@ -37,6 +37,12 @@ struct SalesInvoiceForm: View {
                     } footer: {
                         Text("Popraw fakturę i wyślij ją ponownie.")
                     }
+                } else if draft.status == .draft && !draft.errorMessage.isEmpty {
+                    // Synchronizacja zmieniła numer szkicu, bo był już użyty w KSeF.
+                    Section {
+                        Label { Text(draft.errorMessage) } icon: { Image(systemName: "number") }
+                            .foregroundStyle(.orange)
+                    }
                 }
                 buyerSection
                 itemsSection

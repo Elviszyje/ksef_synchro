@@ -37,6 +37,8 @@ class OutgoingInvoice(models.Model):
     STATUS_SENDING  = 'sending'
     STATUS_ACCEPTED = 'accepted'
     STATUS_REJECTED = 'rejected'
+    # Faktura wystawiona poza aplikacją, pobrana z KSeF (tylko do odczytu).
+    STATUS_IMPORTED = 'imported'
 
     STATUS_CHOICES = [
         (STATUS_DRAFT,    'Szkic'),
@@ -44,7 +46,11 @@ class OutgoingInvoice(models.Model):
         (STATUS_SENDING,  'Wysyłanie'),
         (STATUS_ACCEPTED, 'Zaakceptowana przez KSeF'),
         (STATUS_REJECTED, 'Odrzucona przez KSeF'),
+        (STATUS_IMPORTED, 'Zaimportowana z KSeF'),
     ]
+
+    # Faktury, które są (albo zaraz będą) w KSeF — widoczne w zakładce „KSeF”.
+    KSEF_STATUSES = [STATUS_QUEUED, STATUS_SENDING, STATUS_ACCEPTED, STATUS_REJECTED, STATUS_IMPORTED]
 
     STATUS_COLORS = {
         STATUS_DRAFT:    'secondary',
@@ -52,6 +58,7 @@ class OutgoingInvoice(models.Model):
         STATUS_SENDING:  'warning',
         STATUS_ACCEPTED: 'success',
         STATUS_REJECTED: 'danger',
+        STATUS_IMPORTED: 'primary',
     }
 
     PAYMENT_FORM_TRANSFER = 'przelew'

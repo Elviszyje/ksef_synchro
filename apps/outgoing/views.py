@@ -41,34 +41,25 @@ class OutgoingInvoiceListView(RoleRequiredMixin, View):
         status_filter = request.GET.get('status', '')
 
         if tab == 'ksef':
-            qs = base_qs.filter(status__in=[
-                OutgoingInvoice.STATUS_QUEUED,
-                OutgoingInvoice.STATUS_SENDING,
-                OutgoingInvoice.STATUS_ACCEPTED,
-                OutgoingInvoice.STATUS_REJECTED,
-            ])
+            qs = base_qs.filter(status__in=OutgoingInvoice.KSEF_STATUSES)
             if status_filter:
                 qs = qs.filter(status=status_filter)
+            # Import z KSeF dodaje stare faktury z bieżącą datą utworzenia — sortujemy po dacie wystawienia.
+            qs = qs.order_by('-issue_date', '-created_at')
         else:
-            qs = base_qs.filter(status=OutgoingInvoice.STATUS_DRAFT)
-
-        qs = qs.order_by('-created_at')
+            qs = base_qs.filter(status=OutgoingInvoice.STATUS_DRAFT).order_by('-created_at')
         paginator = Paginator(qs, self.paginate_by)
         page_obj = paginator.get_page(request.GET.get('page', 1))
 
         drafts_count = base_qs.filter(status=OutgoingInvoice.STATUS_DRAFT).count()
-        ksef_count = base_qs.filter(status__in=[
-            OutgoingInvoice.STATUS_QUEUED,
-            OutgoingInvoice.STATUS_SENDING,
-            OutgoingInvoice.STATUS_ACCEPTED,
-            OutgoingInvoice.STATUS_REJECTED,
-        ]).count()
+        ksef_count = base_qs.filter(status__in=OutgoingInvoice.KSEF_STATUSES).count()
 
         ksef_status_choices = [
             (OutgoingInvoice.STATUS_QUEUED,   'Oczekuje na wysyłkę'),
             (OutgoingInvoice.STATUS_SENDING,  'Wysyłanie'),
             (OutgoingInvoice.STATUS_ACCEPTED, 'Zaakceptowana przez KSeF'),
             (OutgoingInvoice.STATUS_REJECTED, 'Odrzucona przez KSeF'),
+            (OutgoingInvoice.STATUS_IMPORTED, 'Zaimportowana z KSeF'),
         ]
 
         return TemplateResponse(request, self.template_name, {

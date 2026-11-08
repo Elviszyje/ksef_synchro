@@ -125,6 +125,17 @@ public actor KSeFClient {
     /// Metadane faktur, w których firma jest nabywcą (`Subject2`).
     /// Zakresy dłuższe niż 89 dni są dzielone, strony pobierane do `hasMore == false`.
     public func purchaseInvoiceMetadata(from: Date, to: Date, pageSize: Int = 250) async throws -> [JSONValue] {
+        try await invoiceMetadata(subjectType: "Subject2", from: from, to: to, pageSize: pageSize)
+    }
+
+    // MARK: - Faktury sprzedażowe
+
+    /// Metadane faktur, w których firma jest sprzedawcą (`Subject1`) — także wystawionych poza aplikacją.
+    public func salesInvoiceMetadata(from: Date, to: Date, pageSize: Int = 250) async throws -> [JSONValue] {
+        try await invoiceMetadata(subjectType: "Subject1", from: from, to: to, pageSize: pageSize)
+    }
+
+    func invoiceMetadata(subjectType: String, from: Date, to: Date, pageSize: Int) async throws -> [JSONValue] {
         var all: [JSONValue] = []
         var chunkStart = from
         while chunkStart < to {
@@ -132,7 +143,7 @@ public actor KSeFClient {
             var offset = 0
             while true {
                 let body: [String: Any] = [
-                    "subjectType": "Subject2",
+                    "subjectType": subjectType,
                     "dateRange": [
                         "dateType": "PermanentStorage",
                         "from": ISO8601DateFormatter.ksefQuery.string(from: chunkStart),

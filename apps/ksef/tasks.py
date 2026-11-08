@@ -86,6 +86,7 @@ def sync_ksef_invoices(self, force=False, date_from_override: str | None = None,
         new_count = 0
         new_refs = []
         cancelled = False
+        sales_result = None
 
         KSeFSyncLog.objects.filter(pk=log.pk).update(current_stage='Autoryzacja...')
 
@@ -157,6 +158,10 @@ def sync_ksef_invoices(self, force=False, date_from_override: str | None = None,
                             cancelled = True
                             break
 
+                if not cancelled:
+                    KSeFSyncLog.objects.filter(pk=log.pk).update(current_stage='Pobieranie faktur sprzedażowych...')
+                    sales_result = _sync_sales_invoices(client, session_token, config, date_to, date_from_override)
+
             finally:
                 client.terminate_session(session_token)
 
@@ -193,8 +198,11 @@ def sync_ksef_invoices(self, force=False, date_from_override: str | None = None,
 
         from core.audit import log_event
         from core.models import AuditLog
-        log_event(None, AuditLog.ACTION_KSEF_SYNC,
-                  detail={'triggered_by': 'celery', 'fetched': fetched, 'new': new_count})
+        detail = {'triggered_by': 'celery', 'fetched': fetched, 'new': new_count}
+        if sales_result is not None:
+            detail.update(sales_fetched=sales_result.fetched, sales_new=sales_result.new,
+                          sales_skipped=sales_result.skipped, sales_renumbered=sales_result.renumbered)
+        log_event(None, AuditLog.ACTION_KSEF_SYNC, detail=detail)
 
         if new_refs:
             from .notifications import maybe_notify
@@ -228,6 +236,38 @@ def sync_ksef_invoices(self, force=False, date_from_override: str | None = None,
         log.save()
         logger.error('KSeF sync błąd: %s', exc)
         raise self.retry(exc=exc)
+
+
+def _sync_sales_invoices(client, session_token, config, date_to, date_from_override=None):
+    """
+    Import faktur sprzedażowych wystawionych poza aplikacją. Błąd tego etapu
+    nie przerywa synchronizacji zakupów — kursor sprzedaży przesuwa się tylko
+    po pełnym przebiegu, a kolejny przebieg pomija już zaimportowane faktury.
+    """
+    from apps.ksef.client import KSeFAPIError, KSeFRateLimitError
+    from apps.ksef.sales_import import import_sales_invoices, initial_sales_date_from
+
+    if config.company is None:
+        return None
+    if date_from_override:
+        date_from = datetime.fromisoformat(date_from_override).replace(tzinfo=timezone.utc)
+    elif config.last_sales_sync_at:
+        date_from = config.last_sales_sync_at
+    else:
+        date_from = initial_sales_date_from(date_to)
+    try:
+        result = import_sales_invoices(client, session_token, config.company, date_from, date_to)
+    except KSeFRateLimitError as exc:
+        logger.warning('KSeF sync sprzedaży wstrzymany limitem API (dokończy kolejny przebieg): %s', exc)
+        return None
+    except KSeFAPIError as exc:
+        logger.error('KSeF sync sprzedaży: błąd API: %s', exc)
+        return None
+    config.last_sales_sync_at = date_to
+    config.save(update_fields=['last_sales_sync_at'])
+    logger.info('KSeF sync sprzedaży: %d w KSeF, %d nowych, %d pominiętych, %d przenumerowanych szkiców',
+                result.fetched, result.new, result.skipped, result.renumbered)
+    return result
 
 
 @shared_task(queue='ksef_sync')

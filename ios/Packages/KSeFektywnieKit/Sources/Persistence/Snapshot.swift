@@ -123,7 +123,11 @@ func salesWithItems(_ invoice: OutgoingInvoice, _ db: Database) throws -> Outgoi
         OutgoingInvoiceItem(name: row["name"], unit: row["unit"],
                             quantity: DecimalText.parse(row["quantity"]) ?? 0,
                             unitPriceNet: Money.decimal(row["unitPriceNet"] as Int64),
-                            vatRate: VATRate(rawValue: row["vatRate"]) ?? .standard)
+                            vatRate: VATRate(rawValue: row["vatRate"]) ?? .standard,
+                            // Faktura z KSeF: kwoty z XML zapisane przy imporcie, bez przeliczania.
+                            fixedAmounts: invoice.status == .imported
+                                ? FixedItemAmounts(net: Money.decimal(row["amountNet"] as Int64), vat: Money.decimal(row["amountVat"] as Int64))
+                                : nil)
     }
     return result
 }

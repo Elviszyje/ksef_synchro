@@ -20,6 +20,9 @@ struct SalesListView: View {
                             .font(.footnote).foregroundStyle(.orange)
                     }
                 }
+                if let message = model.syncMessage {
+                    Section { Label(message, systemImage: "arrow.triangle.2.circlepath").font(.footnote) }
+                }
                 if !invoices.isEmpty {
                     DatePeriodSection(period: $period)
                 }
@@ -48,7 +51,7 @@ struct SalesListView: View {
                     ContentUnavailableView {
                         Label("Brak faktur sprzedażowych", systemImage: "square.and.pencil")
                     } description: {
-                        Text("Wystaw pierwszą fakturę. Wpisane pozycje i nabywcy zostaną zapamiętani do kolejnych faktur.")
+                        Text("Wystaw pierwszą fakturę. Wpisane pozycje i nabywcy zostaną zapamiętani do kolejnych faktur. Faktury wystawione w innych programach pojawią się tu po synchronizacji z KSeF.")
                     } actions: {
                         Button("Nowa faktura") { editing = model.newSalesDraft() }
                             .buttonStyle(.glassProminent)
@@ -74,7 +77,11 @@ struct SalesListView: View {
                         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Zamknij") { previewing = nil } } }
                 }
             }
-            .refreshable { await model.refreshSalesSubmissions() }
+            .refreshable {
+                await model.refreshSalesSubmissions()
+                // Pobiera też faktury sprzedażowe wystawione poza aplikacją.
+                if model.ksefToken != nil { await model.sync() }
+            }
             .task { await observe() }
             .task { await model.refreshSalesSubmissions() }
         }
@@ -136,6 +143,7 @@ extension OutgoingInvoiceStatus {
         case .sending: "Wysyłanie"
         case .accepted: "Przyjęta przez KSeF"
         case .rejected: "Odrzucona przez KSeF"
+        case .imported: "Z KSeF"
         }
     }
 }

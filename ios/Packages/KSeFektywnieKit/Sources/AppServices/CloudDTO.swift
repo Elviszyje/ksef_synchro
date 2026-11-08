@@ -289,7 +289,11 @@ struct SalesDTO: Codable {
             environment: KSeFEnvironment(rawValue: environment) ?? .test,
             items: items.sorted { $0.lp < $1.lp }.map {
                 OutgoingInvoiceItem(name: $0.name, unit: $0.unit, quantity: DecimalText.parse($0.quantity) ?? 0,
-                                    unitPriceNet: CloudFormat.amount($0.unit_price_net), vatRate: VATRate(rawValue: $0.vat_rate) ?? .standard)
+                                    unitPriceNet: CloudFormat.amount($0.unit_price_net), vatRate: VATRate(rawValue: $0.vat_rate) ?? .standard,
+                                    // Faktura z KSeF: kwoty z XML, bez przeliczania z ceny i ilości.
+                                    fixedAmounts: status == OutgoingInvoiceStatus.imported.rawValue
+                                        ? FixedItemAmounts(net: CloudFormat.amount($0.amount_net), vat: CloudFormat.amount($0.amount_vat))
+                                        : nil)
             },
             createdAt: created_at, updatedAt: updated_at, updatedByDevice: updated_by_device)
         s.ksefSessionReference = ksef_session_reference

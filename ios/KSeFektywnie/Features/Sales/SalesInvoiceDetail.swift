@@ -27,6 +27,10 @@ struct SalesInvoiceDetail: View {
                                 Text(invoice.ksefNumber).font(.caption.monospaced()).textSelection(.enabled)
                             }
                         }
+                        if invoice.status == .imported {
+                            Text("Faktura wystawiona poza aplikacją, pobrana z KSeF. Można ją przeglądać, ale nie edytować.")
+                                .font(.footnote).foregroundStyle(.secondary)
+                        }
                         if invoice.environment == .test {
                             Label("Środowisko testowe", systemImage: "testtube.2").foregroundStyle(.orange)
                         }
@@ -57,6 +61,9 @@ struct SalesInvoiceDetail: View {
                         LabeledContent("NIP", value: invoice.buyerNIP)
                         LabeledContent("Data wystawienia", value: invoice.issueDate.formatted)
                         LabeledContent("Brutto") { Text(invoice.amountGross.money(invoice.currency)).bold() }
+                        if !invoice.notes.isEmpty {
+                            Text(invoice.notes).font(.footnote).foregroundStyle(.secondary)
+                        }
                     }
 
                     Section("Pozycje") {
@@ -72,15 +79,18 @@ struct SalesInvoiceDetail: View {
                         .accessibilityIdentifier("invoice-visualization")
                         if !invoice.generatedXML.isEmpty {
                             ShareLink(item: invoice.generatedXML, preview: SharePreview("\(invoice.invoiceNumber).xml")) {
-                                Label("XML FA(3)", systemImage: "doc.text")
+                                Label(invoice.status == .imported ? "XML faktury" : "XML FA(3)", systemImage: "doc.text")
                             }
                         }
-                        if invoice.upoXML.isEmpty {
-                            Label("UPO pojawi się po przetworzeniu faktury przez KSeF.", systemImage: "clock")
-                                .foregroundStyle(.secondary)
-                        } else {
-                            ShareLink(item: invoice.upoXML, preview: SharePreview("UPO \(invoice.invoiceNumber).xml")) {
-                                Label("UPO (urzędowe potwierdzenie odbioru)", systemImage: "checkmark.seal")
+                        // UPO dostaje tylko wysyłający — faktura wystawiona poza aplikacją go nie ma.
+                        if invoice.status != .imported {
+                            if invoice.upoXML.isEmpty {
+                                Label("UPO pojawi się po przetworzeniu faktury przez KSeF.", systemImage: "clock")
+                                    .foregroundStyle(.secondary)
+                            } else {
+                                ShareLink(item: invoice.upoXML, preview: SharePreview("UPO \(invoice.invoiceNumber).xml")) {
+                                    Label("UPO (urzędowe potwierdzenie odbioru)", systemImage: "checkmark.seal")
+                                }
                             }
                         }
                     }
@@ -120,6 +130,7 @@ extension OutgoingInvoiceStatus {
         case .queued, .sending: .orange
         case .accepted: .green
         case .rejected: .red
+        case .imported: .blue
         }
     }
 }

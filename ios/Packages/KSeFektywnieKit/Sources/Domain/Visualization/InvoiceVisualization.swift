@@ -34,11 +34,13 @@ public enum InvoiceVisualization {
 
     /// Faktura sprzedażowa: XML wysłany do KSeF, a dla szkicu — wygenerowany teraz (bez zapisu).
     /// Kod QR tylko dla faktury przyjętej przez KSeF.
+    /// Faktura zaimportowana z KSeF ma wyłącznie oryginalny XML (nie generujemy go od nowa).
     public static func sales(_ invoice: OutgoingInvoice, seller: FA3Seller, now: Date = Date()) throws -> PreparedInvoiceDocument {
-        let inKSeF = invoice.status == .accepted || invoice.status == .sending || invoice.status == .queued
+        let inKSeF = [.accepted, .sending, .queued, .imported].contains(invoice.status)
+        if invoice.status == .imported && invoice.generatedXML.isEmpty { throw InvoiceVisualizationError.missingXML }
         let xml = inKSeF && !invoice.generatedXML.isEmpty ? invoice.generatedXML : try FA3Generator.generate(invoice, seller: seller, now: now)
         guard var document = InvoiceDocument.parse(xml: xml) else { throw InvoiceVisualizationError.unreadableXML }
-        if invoice.status == .accepted {
+        if invoice.status == .accepted || invoice.status == .imported {
             document.attachKSeF(number: invoice.ksefNumber, environment: invoice.environment, xml: xml)
         }
         return PreparedInvoiceDocument(document: document, isDraft: !inKSeF)
