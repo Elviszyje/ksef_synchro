@@ -5,10 +5,14 @@ struct RootView: View {
     @Environment(AppModel.self) private var model
     @Environment(AppLock.self) private var lock
     @Environment(\.scenePhase) private var scenePhase
+    /// Ponowne otwarcie bazy, gdy przy starcie była niedostępna.
+    var retryStartup: () -> Void = {}
 
     var body: some View {
         Group {
-            if model.company == nil {
+            if model.databaseUnavailable {
+                DatabaseUnavailableView(details: model.startupError, retry: retryStartup)
+            } else if model.company == nil {
                 OnboardingView()
             } else {
                 MainTabView()
@@ -23,9 +27,36 @@ struct RootView: View {
         .onChange(of: scenePhase) { _, phase in
             switch phase {
             case .background: lock.didEnterBackground()
-            case .active: lock.didBecomeActive()
+            case .active:
+                lock.didBecomeActive()
+                model.refreshTokenState()
             default: break
             }
+        }
+    }
+}
+
+/// Baza nie dała się otworzyć przy starcie (zwykle: aplikacja uruchomiona w tle, zanim telefon
+/// został odblokowany). Dane są na dysku — nie pokazujemy ekranu powitalnego, tylko ponawiamy.
+struct DatabaseUnavailableView: View {
+    @Environment(\.scenePhase) private var scenePhase
+    let details: String?
+    let retry: () -> Void
+
+    var body: some View {
+        ContentUnavailableView {
+            Label("Dane są chwilowo niedostępne", systemImage: "lock.doc")
+        } description: {
+            Text("Nie udało się otworzyć bazy aplikacji. Twoje dane są bezpieczne — odblokuj telefon i spróbuj ponownie.")
+            if let details { Text(details).font(.caption) }
+        } actions: {
+            Button("Spróbuj ponownie", action: retry)
+                .buttonStyle(.glassProminent)
+        }
+        // Powrót na pierwszy plan oznacza odblokowany telefon. Bez próby przy samym pojawieniu się
+        // widoku: przy trwałym błędzie każda nieudana próba odtwarza widok i zapętliłaby się.
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { retry() }
         }
     }
 }

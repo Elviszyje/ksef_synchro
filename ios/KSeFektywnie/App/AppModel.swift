@@ -14,6 +14,9 @@ final class AppModel {
     private(set) var company: Company?
     private(set) var bankAccounts: [CompanyBankAccount] = []
     private(set) var startupError: String?
+    /// Nie udało się otworzyć bazy na dysku — model działa na pustej atrapie i nie wolno
+    /// traktować go jak świeżej instalacji (ekran powitalny, lustro iCloud, synchronizacja).
+    private(set) var databaseUnavailable = false
 
     let cloud: CloudSync
     let reminders = RemindersService()
@@ -54,20 +57,36 @@ final class AppModel {
             return model
         }
         #endif
+        Keychain.migrateAccessibility()
         do {
             return AppModel(database: try AppDatabase.open(at: try databaseURL()), deviceID: deviceID)
         } catch {
+            // Baza nieczytelna (np. start w tle przed pierwszym odblokowaniem telefonu). Model z pustą
+            // bazą w pamięci jest tylko atrapą: interfejs pokazuje błąd zamiast ekranu powitalnego,
+            // a po powrocie na pierwszy plan aplikacja otwiera bazę ponownie.
             let model = AppModel(database: try! AppDatabase.inMemory(), deviceID: deviceID)
             model.startupError = error.userMessage
+            model.databaseUnavailable = true
             return model
         }
     }
 
-    /// Baza w Application Support z ochroną plików "complete": nieczytelna, gdy telefon jest zablokowany.
+    /// Ochrona plików bazy: zaszyfrowane do pierwszego odblokowania telefonu po uruchomieniu.
+    /// Pełna ochrona („complete”) odcinała bazę przy zablokowanym ekranie, czyli wtedy,
+    /// gdy iOS uruchamia synchronizację w tle.
+    static let databaseProtection = FileProtectionType.completeUntilFirstUserAuthentication
+
     static func databaseURL() throws -> URL {
+        let fm = FileManager.default
         let dir = URL.applicationSupportDirectory.appending(path: "Database", directoryHint: .isDirectory)
-        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true,
-                                                attributes: [.protectionKey: FileProtectionType.complete])
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true,
+                               attributes: [.protectionKey: databaseProtection])
+        // Katalog i pliki utworzone przez starsze wersje mają jeszcze ochronę "complete".
+        // Zmiana klasy udaje się tylko przy odblokowanym telefonie — ponawiana przy każdym starcie.
+        let existing = (try? fm.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil)) ?? []
+        for url in [dir] + existing {
+            try? fm.setAttributes([.protectionKey: databaseProtection], ofItemAtPath: url.path)
+        }
         return dir.appending(path: "ksefektywnie.sqlite")
     }
 
@@ -167,13 +186,25 @@ final class AppModel {
 
     // MARK: - KSeF
 
+    /// Pęk kluczy nie jest obserwowalny. Licznik sprawia, że widoki czytające token odświeżają się
+    /// po jego zapisie i po powrocie aplikacji na pierwszy plan — inaczej zostawał na ekranie stan
+    /// z chwili ostatniego rysowania (np. „Nie skonfigurowano” narysowane przy zablokowanym telefonie).
+    private var tokenRevision = 0
+
     var ksefToken: String? {
-        get { company.flatMap { Keychain.ksefToken(for: $0.id) } }
+        get {
+            _ = tokenRevision
+            return company.flatMap { Keychain.ksefToken(for: $0.id) }
+        }
         set {
             guard let company else { return }
             Keychain.setKSeFToken(newValue, for: company.id)
+            tokenRevision += 1
         }
     }
+
+    /// Wymusza ponowne odczytanie tokenu przez widoki (wywoływane po powrocie na pierwszy plan).
+    func refreshTokenState() { tokenRevision += 1 }
 
     func makeClient() throws -> KSeFClient {
         guard let company, let token = ksefToken, !token.isEmpty else { throw KSeFError.missingToken }

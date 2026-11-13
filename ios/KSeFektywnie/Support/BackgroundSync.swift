@@ -38,8 +38,14 @@ enum BackgroundSync {
 extension AppModel {
     /// Wywoływane przez system w tle: krótka synchronizacja (mały budżet XML) i powiadomienie.
     func backgroundRefresh() async {
-        defer { if let hours = company?.syncIntervalHours { BackgroundSync.schedule(afterHours: hours) } }
-        guard let company, ksefToken != nil, let client = try? makeClient() else { return }
+        // Bez dostępu do bazy (telefon jeszcze nieodblokowany po restarcie) nie znamy interwału —
+        // i tak prosimy o kolejne uruchomienie, żeby łańcuch odświeżeń się nie urwał.
+        defer {
+            if let hours = company?.syncIntervalHours ?? (databaseUnavailable ? 6 : nil) {
+                BackgroundSync.schedule(afterHours: hours)
+            }
+        }
+        guard !databaseUnavailable, let company, ksefToken != nil, let client = try? makeClient() else { return }
         let service = KSeFSyncService(company: company, source: client, db: database, device: deviceID)
         guard let result = try? await service.run(xmlBudget: 5) else { return }
         await BackgroundSync.notifyNewInvoices(result.new)

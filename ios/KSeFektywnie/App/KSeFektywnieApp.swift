@@ -10,12 +10,18 @@ struct KSeFektywnieApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView()
+            // Po ponownym otwarciu bazy powstaje nowy model — `id` odtwarza widoki i zadania na nim.
+            RootView(retryStartup: { model = AppModel.live() })
+                .id(ObjectIdentifier(model))
                 .environment(model)
                 .environment(lock)
                 .task { await TipJar.finishPendingTransactions() }
-                .task { await model.cloud.start() }
-                .task { model.reminders.start(database: model.database) { [model] in model.reminderLinks } }
+                .task(id: ObjectIdentifier(model)) {
+                    // Atrapa bez bazy nie może dotykać lustra iCloud ani Przypomnień.
+                    guard !model.databaseUnavailable else { return }
+                    model.reminders.start(database: model.database) { [model] in model.reminderLinks }
+                    await model.cloud.start()
+                }
                 .onOpenURL { url in model.openTarget = ReminderTarget(deepLink: url) }
         }
         .onChange(of: scenePhase) { _, phase in

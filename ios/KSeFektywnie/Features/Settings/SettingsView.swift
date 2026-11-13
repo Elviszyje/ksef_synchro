@@ -227,7 +227,8 @@ struct KSeFSettingsView: View {
                     token = ""
                     testState = .idle
                 }
-                .disabled(token.isEmpty)
+                // Sam odstęp po przycięciu byłby pustym tokenem, a pusty token kasuje zapisany.
+                .disabled(token.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 if model.ksefToken != nil {
                     Button("Usuń token", role: .destructive) { model.ksefToken = nil }
                 }

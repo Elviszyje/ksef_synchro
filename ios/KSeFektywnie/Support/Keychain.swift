@@ -1,10 +1,15 @@
 import Foundation
 import Security
 
-/// Token KSeF w pęku kluczy: tylko to urządzenie, dostępny po odblokowaniu,
-/// nie trafia do kopii zapasowej ani do katalogu iCloud. Klucz per firma.
+/// Token KSeF w pęku kluczy: tylko to urządzenie, nie trafia do kopii zapasowej
+/// ani do katalogu iCloud. Klucz per firma.
+///
+/// Dostępność „po pierwszym odblokowaniu”: synchronizacja w tle działa zwykle przy
+/// zablokowanym telefonie, a wpis „tylko po odblokowaniu” jest wtedy nieczytelny —
+/// aplikacja widziała to jako brak tokenu.
 enum Keychain {
     static let service = "pl.ksefektywnie.ksef-token"
+    private static let accessibility = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
 
     static func ksefToken(for companyID: UUID) -> String? {
         var query = baseQuery(companyID)
@@ -15,13 +20,28 @@ enum Keychain {
         return String(data: data, encoding: .utf8)
     }
 
-    static func setKSeFToken(_ token: String?, for companyID: UUID) {
-        SecItemDelete(baseQuery(companyID) as CFDictionary)
-        guard let token, !token.isEmpty else { return }
-        var query = baseQuery(companyID)
-        query[kSecValueData as String] = Data(token.utf8)
-        query[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
-        SecItemAdd(query as CFDictionary, nil)
+    /// Zapisuje token (albo usuwa, gdy pusty). Istniejący wpis jest podmieniany w miejscu,
+    /// więc nieudany zapis nie kasuje poprzedniego tokenu. Zwraca `false`, gdy pęk kluczy odmówił.
+    @discardableResult
+    static func setKSeFToken(_ token: String?, for companyID: UUID) -> Bool {
+        let query = baseQuery(companyID)
+        guard let token, !token.isEmpty else {
+            let status = SecItemDelete(query as CFDictionary)
+            return status == errSecSuccess || status == errSecItemNotFound
+        }
+        let attributes: [String: Any] = [kSecValueData as String: Data(token.utf8),
+                                         kSecAttrAccessible as String: accessibility]
+        let updated = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
+        guard updated == errSecItemNotFound else { return updated == errSecSuccess }
+        return SecItemAdd(query.merging(attributes) { $1 } as CFDictionary, nil) == errSecSuccess
+    }
+
+    /// Przenosi tokeny zapisane przez starsze wersje („tylko po odblokowaniu”) na bieżącą dostępność.
+    /// Udaje się tylko przy odblokowanym telefonie; w innym razie zostanie powtórzone przy kolejnym starcie.
+    static func migrateAccessibility() {
+        let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
+                                    kSecAttrService as String: service]
+        SecItemUpdate(query as CFDictionary, [kSecAttrAccessible as String: accessibility] as CFDictionary)
     }
 
     private static func baseQuery(_ companyID: UUID) -> [String: Any] {

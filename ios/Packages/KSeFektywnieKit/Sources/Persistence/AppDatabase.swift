@@ -14,8 +14,8 @@ public final class AppDatabase: Sendable {
 
     public var reader: any DatabaseReader { writer }
 
-    /// Baza w pliku. Katalog powinien mieć ochronę `NSFileProtectionComplete`
-    /// (ustawia ją aplikacja przy tworzeniu katalogu).
+    /// Baza w pliku. Ochronę plików katalogu ustawia aplikacja (`AppModel.databaseProtection`):
+    /// „do pierwszego odblokowania”, żeby synchronizacja w tle miała dostęp przy zablokowanym ekranie.
     public static func open(at url: URL) throws -> AppDatabase {
         var config = Configuration()
         config.foreignKeysEnabled = true

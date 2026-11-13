@@ -581,6 +581,12 @@ T = {
  "Nazwa szablonu": ("Template name", "Nombre de la plantilla", "Назва шаблону"),
  "Nie można przygotować wizualizacji": ("Cannot prepare the PDF", "No se puede preparar el PDF", "Не вдалося підготувати PDF"),
  "Nie udało się wczytać obrazu.": ("Could not load the image.", "No se pudo cargar la imagen.", "Не вдалося завантажити зображення."),
+ "Dane są chwilowo niedostępne": ("Data temporarily unavailable", "Datos no disponibles temporalmente", "Дані тимчасово недоступні"),
+ "Nie udało się otworzyć bazy aplikacji. Twoje dane są bezpieczne — odblokuj telefon i spróbuj ponownie.":
+   ("The app database could not be opened. Your data is safe — unlock your phone and try again.",
+    "No se pudo abrir la base de datos de la aplicación. Tus datos están a salvo: desbloquea el teléfono e inténtalo de nuevo.",
+    "Не вдалося відкрити базу даних застосунку. Ваші дані в безпеці — розблокуйте телефон і спробуйте ще раз."),
+ "Spróbuj ponownie": ("Try again", "Reintentar", "Спробувати ще раз"),
  "Nowoczesny": ("Modern", "Moderna", "Сучасний"),
  "Nowy szablon": ("New template", "Nueva plantilla", "Новий шаблон"),
  "Podgląd PDF": ("PDF preview", "Vista previa PDF", "Перегляд PDF"),

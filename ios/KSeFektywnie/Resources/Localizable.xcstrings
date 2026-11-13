@@ -1187,6 +1187,28 @@
         }
       }
     },
+    "Dane są chwilowo niedostępne": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data temporarily unavailable"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datos no disponibles temporalmente"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дані тимчасово недоступні"
+          }
+        }
+      }
+    },
     "Data dostawy": {
       "localizations": {
         "en": {
@@ -4086,6 +4108,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Не налаштовано"
+          }
+        }
+      }
+    },
+    "Nie udało się otworzyć bazy aplikacji. Twoje dane są bezpieczne — odblokuj telefon i spróbuj ponownie.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The app database could not be opened. Your data is safe — unlock your phone and try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo abrir la base de datos de la aplicación. Tus datos están a salvo: desbloquea el teléfono e inténtalo de nuevo."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не вдалося відкрити базу даних застосунку. Ваші дані в безпеці — розблокуйте телефон і спробуйте ще раз."
           }
         }
       }
@@ -7272,6 +7316,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Продажі"
+          }
+        }
+      }
+    },
+    "Spróbuj ponownie": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try again"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reintentar"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Спробувати ще раз"
           }
         }
       }
