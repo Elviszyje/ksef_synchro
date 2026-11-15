@@ -417,28 +417,6 @@
         }
       }
     },
-    "Aplikacja sprawdza KSeF w tle mniej więcej co tyle godzin, ile wynosi interwał synchronizacji. Moment uruchomienia wybiera iOS, więc nie jest to gwarantowane — po otwarciu aplikacji przeciągnij listę faktur, aby zsynchronizować od razu.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The app checks KSeF in the background roughly every sync interval. iOS chooses when it runs, so it is not guaranteed — after opening the app, pull down the invoice list to sync right away."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La aplicación consulta KSeF en segundo plano aproximadamente según el intervalo de sincronización. iOS decide cuándo se ejecuta, así que no está garantizado: al abrir la aplicación, desliza la lista de facturas para sincronizar al momento."
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Застосунок перевіряє KSeF у фоні приблизно з інтервалом синхронізації. Момент запуску обирає iOS, тож це не гарантовано — після відкриття застосунку потягніть список рахунків-фактур, щоб синхронізувати одразу."
-          }
-        }
-      }
-    },
     "Bank": {
       "localizations": {
         "en": {
@@ -457,6 +435,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Банк"
+          }
+        }
+      }
+    },
+    "Baza danych była niedostępna (telefon nie został jeszcze odblokowany po uruchomieniu).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The database was unavailable (the phone had not been unlocked since it started)."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La base de datos no estaba disponible (el teléfono aún no se había desbloqueado tras el inicio)."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "База даних була недоступна (телефон ще не розблоковували після запуску)."
           }
         }
       }
@@ -3446,6 +3446,28 @@
         }
       }
     },
+    "Moment synchronizacji w tle wybiera iOS i nie da się go wymusić, dlatego nie jest ona gwarantowana. Po otwarciu aplikacja sama pobiera nowe faktury, jeśli od ostatniej synchronizacji minął ustawiony interwał.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS decides when background sync runs and it cannot be forced, so it is not guaranteed. When you open the app, it downloads new invoices by itself if the sync interval has passed since the last sync."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS decide cuándo se ejecuta la sincronización en segundo plano y no se puede forzar, por lo que no está garantizada. Al abrir la aplicación, esta descarga las facturas nuevas por sí sola si ha pasado el intervalo desde la última sincronización."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Момент фонової синхронізації обирає iOS, і його неможливо примусити, тому вона не гарантована. Після відкриття застосунок сам завантажує нові рахунки-фактури, якщо від останньої синхронізації минув заданий інтервал."
+          }
+        }
+      }
+    },
     "NIP": {
       "shouldTranslate": false
     },
@@ -5149,6 +5171,28 @@
         }
       }
     },
+    "Ostatnie uruchomienie w tle: %@. %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last background run: %@. %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Última ejecución en segundo plano: %@. %@"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Останній фоновий запуск: %@. %@"
+          }
+        }
+      }
+    },
     "Otwórz Ustawienia → Połączenie z KSeF. Wybierz środowisko Produkcyjne, sprawdź NIP, wklej token, naciśnij „Zapisz token”, a potem „Testuj połączenie”. Token zostaje tylko w pęku kluczy tego iPhone'a.": {
       "localizations": {
         "en": {
@@ -6022,7 +6066,7 @@
         }
       }
     },
-    "Poprzedni miesiąc": {
+    "Poprzedni": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -6033,13 +6077,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mes anterior"
+            "value": "Anterior"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Попередній місяць"
+            "value": "Попередній"
           }
         }
       }
@@ -7558,6 +7602,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Синхронізувати зараз"
+          }
+        }
+      }
+    },
+    "System nie uruchomił jeszcze synchronizacji w tle.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The system has not run background sync yet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El sistema aún no ha ejecutado la sincronización en segundo plano."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Система ще не запускала фонову синхронізацію."
           }
         }
       }
@@ -10502,6 +10568,28 @@
     },
     "iCloud Drive → KS-eFektywnie": {
       "shouldTranslate": false
+    },
+    "iOS zgłasza, że odświeżanie w tle jest dla tej aplikacji wyłączone. Włącz je w Ustawieniach systemu (Ogólne → Odświeżanie w tle); wstrzymuje je też tryb niskiego zużycia energii.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS reports that Background App Refresh is off for this app. Turn it on in system Settings (General → Background App Refresh); Low Power Mode pauses it too."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS indica que la actualización en segundo plano está desactivada para esta aplicación. Actívala en Ajustes del sistema (General → Actualización en segundo plano); el modo de bajo consumo también la pausa."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS повідомляє, що фонове оновлення для цього застосунку вимкнено. Увімкніть його в системних Параметрах (Загальні → Фонове оновлення); режим енергозбереження також його призупиняє."
+          }
+        }
+      }
     },
     "kod urządzenia": {
       "localizations": {

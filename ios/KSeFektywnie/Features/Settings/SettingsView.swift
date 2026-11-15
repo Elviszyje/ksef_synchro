@@ -280,7 +280,18 @@ struct KSeFSettingsView: View {
             Section {
                 NotificationsToggle()
             } footer: {
-                Text("Aplikacja sprawdza KSeF w tle mniej więcej co tyle godzin, ile wynosi interwał synchronizacji. Moment uruchomienia wybiera iOS, więc nie jest to gwarantowane — po otwarciu aplikacji przeciągnij listę faktur, aby zsynchronizować od razu.")
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Moment synchronizacji w tle wybiera iOS i nie da się go wymusić, dlatego nie jest ona gwarantowana. Po otwarciu aplikacja sama pobiera nowe faktury, jeśli od ostatniej synchronizacji minął ustawiony interwał.")
+                    if !BackgroundSync.isAllowedBySystem {
+                        Text("iOS zgłasza, że odświeżanie w tle jest dla tej aplikacji wyłączone. Włącz je w Ustawieniach systemu (Ogólne → Odświeżanie w tle); wstrzymuje je też tryb niskiego zużycia energii.")
+                            .foregroundStyle(.orange)
+                    }
+                    if let run = BackgroundSync.lastRun {
+                        Text("Ostatnie uruchomienie w tle: \(run.date.formatted(date: .abbreviated, time: .shortened)). \(run.outcome)")
+                    } else {
+                        Text("System nie uruchomił jeszcze synchronizacji w tle.")
+                    }
+                }
             }
 
             Section {

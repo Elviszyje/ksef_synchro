@@ -2,63 +2,66 @@ import SwiftUI
 import Domain
 
 /// Pasek okresu nad listą: cały okres, ten miesiąc, poprzedni miesiąc albo własny zakres dat.
+/// Kontrolka segmentowa na całą szerokość — segmenty dzielą się miejscem po równo, więc pasek
+/// mieści się na każdym ekranie i w każdym języku (wcześniejsze „pigułki” wychodziły poza ekran).
 struct DatePeriodBar: View {
     @Binding var period: DatePeriod
     @State private var editingRange = false
-    private static let customID = "custom"
 
-    var body: some View {
-        ScrollViewReader { proxy in
-        ScrollView(.horizontal, showsIndicators: false) {
-            GlassEffectContainer(spacing: 8) {
-                HStack(spacing: 8) {
-                    chip("Wszystkie", selected: period == .all) { period = .all }
-                    chip("Ten miesiąc", selected: period == .thisMonth) { period = .thisMonth }
-                    chip("Poprzedni miesiąc", selected: period == .previousMonth) { period = .previousMonth }
-                    chip(customLabel, systemImage: "calendar", selected: period.isCustom) { editingRange = true }
-                        .accessibilityIdentifier("period-custom")
-                        .id(Self.customID)
-                }
-                .padding(.horizontal)
-                .padding(.vertical, 6)
+    private enum Segment: Hashable { case all, thisMonth, previousMonth, custom }
+
+    /// Segment z kalendarzem nie wybiera okresu od razu, tylko otwiera arkusz zakresu dat.
+    private var segment: Binding<Segment> {
+        Binding {
+            switch period {
+            case .all: .all
+            case .thisMonth: .thisMonth
+            case .previousMonth: .previousMonth
+            case .custom: .custom
+            }
+        } set: { segment in
+            switch segment {
+            case .all: period = .all
+            case .thisMonth: period = .thisMonth
+            case .previousMonth: period = .previousMonth
+            case .custom: editingRange = true
             }
         }
-        .scrollClipDisabled()
-        // Wybrany zakres dat (najdłuższa etykieta, ostatnia w rzędzie) ma być widoczny.
-        .onChange(of: period, initial: true) { _, period in
-            if period.isCustom { withAnimation(.snappy) { proxy.scrollTo(Self.customID, anchor: .trailing) } }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Picker("Okres", selection: segment) {
+                Text("Wszystkie").tag(Segment.all)
+                Text("Ten miesiąc").tag(Segment.thisMonth)
+                Text("Poprzedni").tag(Segment.previousMonth)
+                Image(systemName: "calendar").accessibilityLabel(Text("Zakres dat")).tag(Segment.custom)
+            }
+            .pickerStyle(.segmented)
+            .controlSize(.large)
+            .labelsHidden()
+
+            // Wybrany zakres dat pod paskiem; dotknięcie pozwala go zmienić
+            // (ponowne dotknięcie zaznaczonego segmentu nic nie zgłasza).
+            if case .custom(let from, let to) = period {
+                Button { editingRange = true } label: {
+                    Label("\(from.short) – \(to.short)", systemImage: "calendar")
+                        .font(.subheadline.weight(.medium))
+                }
+                .buttonStyle(.glass)
+                .controlSize(.small)
+                .accessibilityIdentifier("period-custom")
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
         }
-        }
+        .padding(.horizontal)
+        .padding(.vertical, 6)
+        .animation(.snappy, value: period.isCustom)
         .sensoryFeedback(.selection, trigger: period)
         .sheet(isPresented: $editingRange) {
             DateRangeSheet(initial: period.bounds() ?? DatePeriod.thisMonth.bounds()!) { range in
                 period = .custom(from: range.lowerBound, to: range.upperBound)
             }
-        }
-    }
-
-    private var customLabel: LocalizedStringResource {
-        guard case .custom(let from, let to) = period else { return "Zakres dat" }
-        return "\(from.short) – \(to.short)"
-    }
-
-    @ViewBuilder
-    private func chip(_ title: LocalizedStringResource, systemImage: String? = nil, selected: Bool,
-                      action: @escaping () -> Void) -> some View {
-        let button = Button(action: action) {
-            if let systemImage {
-                Label { Text(title) } icon: { Image(systemName: systemImage) }
-            } else {
-                Text(title)
-            }
-        }
-        .font(.subheadline.weight(selected ? .semibold : .regular))
-        .controlSize(.small)
-        .accessibilityAddTraits(selected ? .isSelected : [])
-        if selected {
-            button.buttonStyle(.glassProminent)
-        } else {
-            button.buttonStyle(.glass)
         }
     }
 }

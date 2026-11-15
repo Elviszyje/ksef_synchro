@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 import BackgroundTasks
 import UserNotifications
 import AppServices
@@ -12,6 +13,25 @@ enum BackgroundSync {
         get { UserDefaults.standard.bool(forKey: "newInvoiceNotifications") }
         set { UserDefaults.standard.set(newValue, forKey: "newInvoiceNotifications") }
     }
+
+    /// Ostatnie uruchomienie synchronizacji przez system i jego wynik. iOS sam wybiera moment
+    /// (albo nie uruchamia jej wcale), więc bez tego zapisu nie da się odróżnić „system nie
+    /// uruchomił” od „uruchomił, ale się nie udało”.
+    static var lastRun: (date: Date, outcome: String)? {
+        get {
+            let defaults = UserDefaults.standard
+            guard let date = defaults.object(forKey: "backgroundSyncLastRunAt") as? Date else { return nil }
+            return (date, defaults.string(forKey: "backgroundSyncLastOutcome") ?? "")
+        }
+        set {
+            UserDefaults.standard.set(newValue?.date, forKey: "backgroundSyncLastRunAt")
+            UserDefaults.standard.set(newValue?.outcome, forKey: "backgroundSyncLastOutcome")
+        }
+    }
+
+    /// Czy system w ogóle pozwala tej aplikacji odświeżać się w tle (ustawienie użytkownika,
+    /// tryb niskiego zużycia energii).
+    static var isAllowedBySystem: Bool { UIApplication.shared.backgroundRefreshStatus == .available }
 
     /// Prosi system o kolejne uruchomienie po upływie interwału synchronizacji firmy.
     static func schedule(afterHours hours: Int) {
@@ -45,11 +65,21 @@ extension AppModel {
                 BackgroundSync.schedule(afterHours: hours)
             }
         }
-        guard !databaseUnavailable, let company, ksefToken != nil, let client = try? makeClient() else { return }
-        let service = KSeFSyncService(company: company, source: client, db: database, device: deviceID)
-        guard let result = try? await service.run(xmlBudget: 5) else { return }
-        await BackgroundSync.notifyNewInvoices(result.new)
-        await refreshSalesSubmissions()
-        reload()
+        func record(_ outcome: String) { BackgroundSync.lastRun = (Date(), outcome) }
+        guard !databaseUnavailable else {
+            record(String(localized: "Baza danych była niedostępna (telefon nie został jeszcze odblokowany po uruchomieniu)."))
+            return
+        }
+        guard let company else { return }
+        do {
+            let service = KSeFSyncService(company: company, source: try makeClient(), db: database, device: deviceID)
+            let result = try await service.run(xmlBudget: 5)
+            record(SyncSummary.text(result))
+            await BackgroundSync.notifyNewInvoices(result.new)
+            await refreshSalesSubmissions()
+            reload()
+        } catch {
+            record(error.userMessage)
+        }
     }
 }

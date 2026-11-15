@@ -241,6 +241,20 @@ final class AppModel {
         }
     }
 
+    private var lastAutoSyncAttempt: Date?
+
+    /// Synchronizacja po wejściu do aplikacji, gdy od ostatniej minął interwał firmy. Synchronizacji
+    /// w tle iOS nie gwarantuje, więc to jedyny pewny moment na pobranie nowych faktur bez gestu.
+    /// Nieudana próba nie jest ponawiana przez kwadrans, żeby błąd nie wracał przy każdym powrocie.
+    func syncIfStale(now: Date = Date()) async {
+        guard let company, !databaseUnavailable, !isDemo, !syncInProgress, ksefToken != nil else { return }
+        let interval = TimeInterval(max(1, company.syncIntervalHours) * 3600)
+        if let last = company.lastSyncAt, now.timeIntervalSince(last) < interval { return }
+        if let attempt = lastAutoSyncAttempt, now.timeIntervalSince(attempt) < 15 * 60 { return }
+        lastAutoSyncAttempt = now
+        await sync()
+    }
+
     private func showSyncResult(_ message: String, for duration: Duration) {
         syncMessage = message
         syncBanner = message

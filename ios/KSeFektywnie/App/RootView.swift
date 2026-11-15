@@ -30,6 +30,7 @@ struct RootView: View {
             case .active:
                 lock.didBecomeActive()
                 model.refreshTokenState()
+                Task { await model.syncIfStale() }
             default: break
             }
         }
@@ -96,6 +97,7 @@ struct MainTabView: View {
             }
         }
         .task { await observePayable() }
+        .task { await model.syncIfStale() }
     }
 
     /// Licznik faktur „Do zapłaty” na zakładce Przelewy. Gdy leci miniaturka,
