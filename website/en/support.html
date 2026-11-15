@@ -77,6 +77,13 @@
             </div>
           </details>
           <details>
+            <summary><span>When does the app download new invoices?</span></summary>
+            <div class="answer">
+              <p>When you open the app, it downloads new invoices from KSeF by itself if the sync interval (6 hours by default) has passed since the last sync. You can also pull down the invoice list at any time.</p>
+              <p>The app also asks iOS for background sync, but the system decides when to run it and it cannot be forced — so it is not guaranteed. It helps to keep Background App Refresh on (iOS Settings → General → Background App Refresh) and not to swipe the app away in the app switcher. Settings → KSeF connection shows when the system last ran background sync.</p>
+            </div>
+          </details>
+          <details>
             <summary><span>Does my data go to the developer’s server?</span></summary>
             <div class="answer">
               <p>No. The app has no accounts and no developer server. Invoices, payment files and statements are only on your iPhone and — if you have iCloud Drive turned on — in your private iCloud. See the <a href="privacy.html">privacy policy</a> for details.</p>
@@ -93,7 +100,7 @@
             <summary><span>Which banks does the app work with?</span></summary>
             <div class="answer">
               <p><strong>Payment files:</strong> Erste Bank, mBank, and the <span class="nowrap">Elixir-0</span> format for other banks that accept it (including split payment, MPP).</p>
-              <p><strong>Statements:</strong> MT940 (a format offered by most banks) and CSV from Erste Bank and VeloBank.</p>
+              <p><strong>Statements:</strong> MT940 (a format offered by most banks), CSV from Erste Bank and VeloBank, and Bank Millennium transaction history (CSV, XLS or HTML; PDF is not supported).</p>
               <p>Your bank is missing? Let me know — a sample file (with the data replaced by fictitious values) helps a lot.</p>
             </div>
           </details>

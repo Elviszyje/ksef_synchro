@@ -77,6 +77,13 @@
             </div>
           </details>
           <details>
+            <summary><span>Kiedy aplikacja pobiera nowe faktury?</span></summary>
+            <div class="answer">
+              <p>Po otwarciu aplikacja sama pobiera nowe faktury z KSeF, jeśli od ostatniej synchronizacji minął ustawiony interwał (domyślnie 6 godzin). W każdej chwili możesz też przeciągnąć listę faktur w dół.</p>
+              <p>Aplikacja prosi również iOS o synchronizację w tle, ale moment jej uruchomienia wybiera system i nie da się go wymusić — nie jest więc gwarantowana. Pomaga włączone odświeżanie w tle (Ustawienia iOS → Ogólne → Odświeżanie w tle) i niezamykanie aplikacji gestem w przełączniku aplikacji. W Ustawieniach → Połączenie z KSeF zobaczysz, kiedy system ostatnio uruchomił synchronizację w tle.</p>
+            </div>
+          </details>
+          <details>
             <summary><span>Czy moje dane trafiają na serwer autora?</span></summary>
             <div class="answer">
               <p>Nie. Aplikacja nie ma kont ani serwera autora. Faktury, pliki przelewów i wyciągi są tylko na Twoim iPhonie oraz — jeśli masz włączony iCloud Drive — w Twoim prywatnym iCloud. Szczegóły w <a href="polityka-prywatnosci.html">polityce prywatności</a>.</p>
@@ -93,7 +100,7 @@
             <summary><span>Z jakimi bankami działa aplikacja?</span></summary>
             <div class="answer">
               <p><strong>Pliki przelewów:</strong> Erste Bank, mBank oraz format <span class="nowrap">Elixir-0</span> dla pozostałych banków, które go przyjmują (także z podzieloną płatnością MPP).</p>
-              <p><strong>Wyciągi:</strong> MT940 (format udostępniany przez większość banków) oraz CSV z Erste Banku i VeloBanku.</p>
+              <p><strong>Wyciągi:</strong> MT940 (format udostępniany przez większość banków), CSV z Erste Banku i VeloBanku oraz historia transakcji Banku Millennium (CSV, XLS lub HTML; PDF nie jest obsługiwany).</p>
               <p>Brakuje Twojego banku? Napisz — przykładowy plik (z danymi zamienionymi na fikcyjne) bardzo pomoże.</p>
             </div>
           </details>
