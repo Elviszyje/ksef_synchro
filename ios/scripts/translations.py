@@ -587,10 +587,10 @@ T = {
     "No se pudo abrir la base de datos de la aplicación. Tus datos están a salvo: desbloquea el teléfono e inténtalo de nuevo.",
     "Не вдалося відкрити базу даних застосунку. Ваші дані в безпеці — розблокуйте телефон і спробуйте ще раз."),
  "Spróbuj ponownie": ("Try again", "Reintentar", "Спробувати ще раз"),
- "Moment synchronizacji w tle wybiera iOS i nie da się go wymusić, dlatego nie jest ona gwarantowana. Po otwarciu aplikacja sama pobiera nowe faktury, jeśli od ostatniej synchronizacji minął ustawiony interwał.":
-   ("iOS decides when background sync runs and it cannot be forced, so it is not guaranteed. When you open the app, it downloads new invoices by itself if the sync interval has passed since the last sync.",
-    "iOS decide cuándo se ejecuta la sincronización en segundo plano y no se puede forzar, por lo que no está garantizada. Al abrir la aplicación, esta descarga las facturas nuevas por sí sola si ha pasado el intervalo desde la última sincronización.",
-    "Момент фонової синхронізації обирає iOS, і його неможливо примусити, тому вона не гарантована. Після відкриття застосунок сам завантажує нові рахунки-фактури, якщо від останньої синхронізації минув заданий інтервал."),
+ "Moment synchronizacji w tle wybiera iOS i nie da się go wymusić, dlatego nie jest ona gwarantowana. Po otwarciu aplikacja sama pobiera nowe faktury, jeśli od ostatniej synchronizacji minęła co najmniej godzina.":
+   ("iOS decides when background sync runs and it cannot be forced, so it is not guaranteed. When you open the app, it downloads new invoices by itself if at least an hour has passed since the last sync.",
+    "iOS decide cuándo se ejecuta la sincronización en segundo plano y no se puede forzar, por lo que no está garantizada. Al abrir la aplicación, esta descarga las facturas nuevas por sí sola si ha pasado al menos una hora desde la última sincronización.",
+    "Момент фонової синхронізації обирає iOS, і його неможливо примусити, тому вона не гарантована. Після відкриття застосунок сам завантажує нові рахунки-фактури, якщо від останньої синхронізації минула щонайменше година."),
  "iOS zgłasza, że odświeżanie w tle jest dla tej aplikacji wyłączone. Włącz je w Ustawieniach systemu (Ogólne → Odświeżanie w tle); wstrzymuje je też tryb niskiego zużycia energii.":
    ("iOS reports that Background App Refresh is off for this app. Turn it on in system Settings (General → Background App Refresh); Low Power Mode pauses it too.",
     "iOS indica que la actualización en segundo plano está desactivada para esta aplicación. Actívala en Ajustes del sistema (General → Actualización en segundo plano); el modo de bajo consumo también la pausa.",

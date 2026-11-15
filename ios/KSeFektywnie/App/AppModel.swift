@@ -243,13 +243,16 @@ final class AppModel {
 
     private var lastAutoSyncAttempt: Date?
 
-    /// Synchronizacja po wejściu do aplikacji, gdy od ostatniej minął interwał firmy. Synchronizacji
+    /// Najkrótszy odstęp między synchronizacjami uruchamianymi samoczynnie po wejściu do aplikacji.
+    /// Krótszy niż interwał synchronizacji w tle (6 godzin), bo ten jest tylko prośbą do systemu.
+    static let autoSyncMinInterval: TimeInterval = 3600
+
+    /// Synchronizacja po wejściu do aplikacji, gdy od ostatniej minęła co najmniej godzina. Synchronizacji
     /// w tle iOS nie gwarantuje, więc to jedyny pewny moment na pobranie nowych faktur bez gestu.
     /// Nieudana próba nie jest ponawiana przez kwadrans, żeby błąd nie wracał przy każdym powrocie.
     func syncIfStale(now: Date = Date()) async {
         guard let company, !databaseUnavailable, !isDemo, !syncInProgress, ksefToken != nil else { return }
-        let interval = TimeInterval(max(1, company.syncIntervalHours) * 3600)
-        if let last = company.lastSyncAt, now.timeIntervalSince(last) < interval { return }
+        if let last = company.lastSyncAt, now.timeIntervalSince(last) < Self.autoSyncMinInterval { return }
         if let attempt = lastAutoSyncAttempt, now.timeIntervalSince(attempt) < 15 * 60 { return }
         lastAutoSyncAttempt = now
         await sync()

@@ -281,7 +281,7 @@ struct KSeFSettingsView: View {
                 NotificationsToggle()
             } footer: {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Moment synchronizacji w tle wybiera iOS i nie da się go wymusić, dlatego nie jest ona gwarantowana. Po otwarciu aplikacja sama pobiera nowe faktury, jeśli od ostatniej synchronizacji minął ustawiony interwał.")
+                    Text("Moment synchronizacji w tle wybiera iOS i nie da się go wymusić, dlatego nie jest ona gwarantowana. Po otwarciu aplikacja sama pobiera nowe faktury, jeśli od ostatniej synchronizacji minęła co najmniej godzina.")
                     if !BackgroundSync.isAllowedBySystem {
                         Text("iOS zgłasza, że odświeżanie w tle jest dla tej aplikacji wyłączone. Włącz je w Ustawieniach systemu (Ogólne → Odświeżanie w tle); wstrzymuje je też tryb niskiego zużycia energii.")
                             .foregroundStyle(.orange)
