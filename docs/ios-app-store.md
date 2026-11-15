@@ -10,7 +10,7 @@ Języki karty w sklepie: **polski (główny)**, angielski (U.K. lub U.S.), hiszp
 
 | Pole | Wartość |
 |---|---|
-| Nazwa (30) | lokalizowana — tabela niżej |
+| Nazwa (30) | `KS-eFektywnie` — ta sama we wszystkich językach |
 | Język główny | Polski |
 | Bundle ID | `pl.ksefektywnie.app` |
 | SKU | `ksefektywnie-ios` (dowolny, niewidoczny dla użytkowników) |
@@ -25,11 +25,13 @@ Języki karty w sklepie: **polski (główny)**, angielski (U.K. lub U.S.), hiszp
 | Język | Nazwa | Podtytuł |
 |---|---|---|
 | pl | KS-eFektywnie | Faktury z KSeF i przelewy |
-| en | KS-eFektywnie: KSeF invoices | Bank transfers & statements |
+| en | KS-eFektywnie | KSeF invoices & bank transfers |
 | es | KS-eFektywnie | Facturas KSeF y transferencias |
-| uk | KS-eFektywnie: рахунки KSeF | Перекази та банківські виписки |
+| uk | KS-eFektywnie | Рахунки KSeF і перекази |
 
-Sama nazwa „KS-eFektywnie” jest w językach angielskim (U.S.) i ukraińskim zajęta przez inną aplikację w App Store, dlatego ma tam dopisek. Podtytuły w tych językach nie powtarzają słów z nazwy. Wartości zapisane w ASC 2026-11-15. Pod ikoną na telefonie nazwa wszędzie brzmi „KS-eFektywnie”.
+Sama nazwa jest ta sama we wszystkich językach. Wartości zapisane w ASC 2026-11-15.
+
+**Uwaga do zapisywania w ASC:** po każdym udanym „Save” odśwież stronę przed kolejną edycją. Bez tego formularz próbuje jeszcze raz założyć dodane wcześniej języki i zgłasza „The app name you entered is already being used” — nazwę „zajmuje” wtedy ta sama aplikacja, a nie cudza.
 
 ---
 
@@ -125,7 +127,7 @@ Product ID muszą być dokładnie takie — aplikacja szuka ich po tych identyfi
 | big | uk | Величезна подяка | Великі чайові. Нічого не відкривають. |
 
 ### Informacje do recenzji każdego zakupu
-- **Screenshot**: zrzut ekranu Ustawienia → „Tip for developer” (ten sam dla wszystkich trzech; min. 640×920, najprościej zrzut z iPhone'a).
+- **Screenshot**: zrzut ekranu Ustawienia → „Napiwek dla autora” z widocznymi trzema napiwkami (ten sam dla wszystkich trzech; min. 640×920, najprościej zrzut z iPhone'a).
 - **Review Notes** (en):
   > Consumable tip for the developer. It unlocks no features or content; the app is fully functional without it. Available in Settings → “Tip for developer”.
 - **Family Sharing**: wyłączone (dla consumable i tak niedostępne).
