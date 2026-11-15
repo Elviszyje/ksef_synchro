@@ -146,7 +146,7 @@ Adresy (pola lokalizowane):
 | Support URL | `https://ksefektywnie.ikolek.pl/wsparcie.html` | `https://ksefektywnie.ikolek.pl/en/support.html` |
 | Marketing URL | `https://ksefektywnie.ikolek.pl/` | `https://ksefektywnie.ikolek.pl/en/` |
 
-Copyright: `2026 Bartosz Kołek`
+Copyright: `2026 Bartosz Kolek`
 
 ### Tekst promocyjny (170, można zmieniać bez nowej wersji)
 
@@ -319,7 +319,7 @@ KS-eFektywnie не є застосунком Міністерства фінан
 | Pole | Wartość |
 |---|---|
 | Sign-in required | **No** (aplikacja nie ma kont; tryb demo nie wymaga niczego) |
-| Contact — imię i nazwisko | Bartosz Kołek |
+| Contact — imię i nazwisko | Bartosz Kolek |
 | Contact — e-mail | bartosz@ikolek.pl |
 | Contact — telefon | *(uzupełnij — wymagany, format międzynarodowy, np. +48 …)* |
 | Attachment | niepotrzebny |
