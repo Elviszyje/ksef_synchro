@@ -1,6 +1,6 @@
 # KS-eFektywnie — App Store Connect: wszystkie teksty i ustawienia
 
-Stan: 2026-10-15 (wersja 0.2.1, przed pierwszym zgłoszeniem do recenzji). Teksty do wklejenia w App Store Connect (ASC), pole po polu, z limitami znaków. Długości pól z limitem sprawdzone skryptem.
+Stan: 2026-11-15 (wersja 0.2.7, przed pierwszym zgłoszeniem do recenzji). Wersja do czytania i kopiowania pole po polu: `docs/ios-app-store.html`. Teksty do wklejenia w App Store Connect (ASC), pole po polu, z limitami znaków. Długości pól z limitem sprawdzone skryptem.
 
 Języki karty w sklepie: **polski (główny)**, angielski (U.K. lub U.S.), hiszpański (Spain), ukraiński. Tłumaczenia es/uk do przeglądu przez native speakera.
 
@@ -10,7 +10,7 @@ Języki karty w sklepie: **polski (główny)**, angielski (U.K. lub U.S.), hiszp
 
 | Pole | Wartość |
 |---|---|
-| Nazwa (30) | `KS-eFektywnie` — ta sama we wszystkich językach |
+| Nazwa (30) | lokalizowana — tabela niżej |
 | Język główny | Polski |
 | Bundle ID | `pl.ksefektywnie.app` |
 | SKU | `ksefektywnie-ios` (dowolny, niewidoczny dla użytkowników) |
@@ -20,14 +20,16 @@ Języki karty w sklepie: **polski (główny)**, angielski (U.K. lub U.S.), hiszp
 | Adres polityki prywatności | pl: `https://ksefektywnie.ikolek.pl/polityka-prywatnosci.html` · en/es/uk: `https://ksefektywnie.ikolek.pl/en/privacy.html` (pole jest lokalizowane) |
 | Kategoria wiekowa | 4+ (odpowiedzi w sekcji 4) |
 
-### Podtytuł (30 znaków, lokalizowany)
+### Nazwa i podtytuł (po 30 znaków, lokalizowane)
 
-| Język | Podtytuł | Znaki |
+| Język | Nazwa | Podtytuł |
 |---|---|---|
-| pl | Faktury z KSeF i przelewy | 25 |
-| en | KSeF invoices & bank transfers | 30 |
-| es | Facturas KSeF y transferencias | 30 |
-| uk | Рахунки KSeF і перекази | 23 |
+| pl | KS-eFektywnie | Faktury z KSeF i przelewy |
+| en | KS-eFektywnie: KSeF invoices | Bank transfers & statements |
+| es | KS-eFektywnie | Facturas KSeF y transferencias |
+| uk | KS-eFektywnie: рахунки KSeF | Перекази та банківські виписки |
+
+Sama nazwa „KS-eFektywnie” jest w językach angielskim (U.S.) i ukraińskim zajęta przez inną aplikację w App Store, dlatego ma tam dopisek. Podtytuły w tych językach nie powtarzają słów z nazwy. Wartości zapisane w ASC 2026-11-15. Pod ikoną na telefonie nazwa wszędzie brzmi „KS-eFektywnie”.
 
 ---
 
@@ -169,17 +171,19 @@ FAKTURY KOSZTOWE
 • Statusy płatności: nowa, sporna, do zapłaty, przelew przygotowany, opłacona — z notatkami i historią zmian.
 • Szybkie gesty na liście, wyszukiwanie, filtry (ten miesiąc, poprzedni miesiąc, własny zakres dat, przeterminowane, MPP).
 • Eksport listy do Excela (.xlsx) i PDF oraz podsumowanie kosztów.
+• Nowe faktury pobierają się same po otwarciu aplikacji; opcjonalne powiadomienia o nowych fakturach.
 
 PRZELEWY
 • Plik dla banku z zatwierdzonych faktur: Erste Bank, mBank albo Elixir-0 dla pozostałych banków.
 • Obsługa podzielonej płatności (MPP) i historia wygenerowanych paczek.
 
 WYCIĄGI
-• Import MT940 oraz CSV (Erste, VeloBank).
+• Import MT940, CSV (Erste, VeloBank) oraz historii transakcji Banku Millennium (CSV, XLS, HTML).
 • Automatyczne dopasowanie przelewów do faktur; po zatwierdzeniu faktury oznaczają się jako opłacone.
 
 FAKTURY SPRZEDAŻOWE
 • Wystawianie faktur FA(3), wysyłka do KSeF i pobranie UPO.
+• Faktury wystawione poza aplikacją pobierają się z KSeF (tylko do odczytu).
 • Dane nabywcy po NIP z Białej Listy podatników VAT.
 • Katalog pozycji i nabywców — wpisujesz raz, wybierasz przy kolejnych fakturach.
 • Własne szablony PDF: układ, kolor, logo, język etykiet (także dwujęzyczny), a układ strony ustawiasz, przeciągając sekcje.
@@ -204,17 +208,19 @@ PURCHASE INVOICES
 • Payment statuses: new, disputed, to pay, transfer prepared, paid — with notes and history.
 • Quick swipe actions, search and filters (this month, last month, custom date range, overdue, split payment).
 • Export the list to Excel (.xlsx) and PDF, plus a cost summary.
+• New invoices are downloaded when you open the app; optional notifications about new invoices.
 
 BANK TRANSFERS
 • Payment files from approved invoices: Erste Bank, mBank or Elixir-0 for other banks.
 • Split payment (MPP) support and a history of generated batches.
 
 STATEMENTS
-• Import MT940 and CSV (Erste, VeloBank).
+• Import MT940, CSV (Erste, VeloBank) and Bank Millennium transaction history (CSV, XLS, HTML).
 • Automatic matching of payments to invoices; confirmed invoices are marked as paid.
 
 SALES INVOICES
 • Issue FA(3) invoices, send them to KSeF and download the UPO receipt.
+• Sales invoices issued outside the app are downloaded from KSeF (read-only).
 • Buyer details by tax ID from the Polish VAT White List.
 • A catalog of items and buyers — enter them once, reuse them later.
 • Custom PDF templates: layout, color, logo, label language (including bilingual); arrange the page by dragging sections.
@@ -239,17 +245,19 @@ FACTURAS DE COMPRA
 • Estados de pago: nueva, en disputa, por pagar, transferencia preparada, pagada, con notas e historial.
 • Gestos rápidos, búsqueda y filtros (este mes, mes anterior, rango de fechas, vencidas, pago dividido).
 • Exportación de la lista a Excel (.xlsx) y PDF, y resumen de costes.
+• Las facturas nuevas se descargan al abrir la app; notificaciones opcionales de facturas nuevas.
 
 TRANSFERENCIAS
 • Archivo de pagos de las facturas aprobadas: Erste Bank, mBank o Elixir-0 para otros bancos.
 • Pago dividido (MPP) e historial de lotes generados.
 
 EXTRACTOS
-• Importación de MT940 y CSV (Erste, VeloBank).
+• Importación de MT940, CSV (Erste, VeloBank) e historial de transacciones de Bank Millennium (CSV, XLS, HTML).
 • Conciliación automática de pagos con facturas; al confirmar, las facturas quedan pagadas.
 
 FACTURAS DE VENTA
 • Emisión de facturas FA(3), envío a KSeF y descarga del UPO.
+• Las facturas emitidas fuera de la app se descargan de KSeF (solo lectura).
 • Datos del comprador por NIP desde la Lista Blanca de contribuyentes de IVA.
 • Catálogo de productos y compradores: se introducen una vez y se reutilizan.
 • Plantillas PDF propias: diseño, color, logotipo, idioma de las etiquetas (también bilingüe); la página se organiza arrastrando secciones.
@@ -274,17 +282,19 @@ KS-eFektywnie переносить на ваш iPhone рахунки-факту�
 • Статуси оплати: новий, спірний, до оплати, переказ підготовлено, оплачено — з нотатками та історією.
 • Швидкі жести, пошук і фільтри (цей місяць, попередній місяць, власний діапазон дат, прострочені, розділений платіж).
 • Експорт списку в Excel (.xlsx) і PDF, підсумок витрат.
+• Нові рахунки завантажуються під час відкриття застосунку; необов'язкові сповіщення про нові рахунки.
 
 ПЕРЕКАЗИ
 • Файл платежів із затверджених рахунків: Erste Bank, mBank або Elixir-0 для інших банків.
 • Розділений платіж (MPP) та історія згенерованих пакетів.
 
 ВИПИСКИ
-• Імпорт MT940 і CSV (Erste, VeloBank).
+• Імпорт MT940, CSV (Erste, VeloBank) та історії транзакцій Bank Millennium (CSV, XLS, HTML).
 • Автоматичне зіставлення платежів із рахунками; після підтвердження рахунки позначаються як оплачені.
 
 РАХУНКИ НА ПРОДАЖ
 • Виставлення рахунків FA(3), надсилання до KSeF і отримання UPO.
+• Рахунки, виставлені поза застосунком, завантажуються з KSeF (лише для читання).
 • Дані покупця за NIP з Білого списку платників ПДВ.
 • Каталог позицій і покупців — вводите один раз, використовуєте знову.
 • Власні шаблони PDF: макет, колір, логотип, мова підписів (зокрема двомовна); макет сторінки налаштовується перетягуванням розділів.
@@ -318,13 +328,17 @@ KS-eFektywnie не є застосунком Міністерства фінан
 >
 > To review all features without KSeF:
 > 1. On the first screen tap **“Try it with sample data”**. This creates a fictitious company with purchase invoices, sales invoice drafts, a bank statement and a catalog of items.
-> 2. **Invoices** tab: use the date filter (This month / Last month / Date range), swipe an invoice right to approve it for payment, open an invoice to change its status, add a note and open the PDF view. The chart button shows a cost summary; the share button exports the list to Excel (.xlsx) or PDF.
+> 2. **Invoices** tab: use the period bar above the list (All / This month / Last month / calendar icon for a custom date range), swipe an invoice right to approve it for payment, open an invoice to change its status, add a note and open the PDF view. The chart button shows a cost summary; the share button exports the list to Excel (.xlsx) or PDF.
 > 3. **Transfers** tab: select invoices and tap “Generate transfer file”; the file can be shared. “History” lists generated batches.
-> 4. **Statements** tab: open the sample statement, confirm the suggested match and tap “Confirm”.
+> 4. **Statements** tab: open the sample statement, confirm the suggested match and tap “Confirm statement”.
 > 5. **Sales** tab: open a draft, add an item from the catalog, preview the FA(3) XML or the PDF. Long-press an invoice in the list for “PDF preview”. In the buyer's tax ID field you can type 7740001454 — the buyer's name and address are fetched from the public Polish VAT White List (no login needed). Sending to KSeF requires a token and is not available in demo mode.
 > 6. **Settings → Invoice templates**: open a template, then “Page layout” — touch and hold a section to drag it up or down, drag the QR code left or right. Changes are visible immediately.
 > 7. **Settings → Help**: “Report a problem” opens a pre-filled email to the developer; links to the website and privacy policy.
 > 8. **Settings → Tip for developer**: consumable tips that unlock nothing.
+>
+> Permissions and background activity: Face ID is used only if the user turns on the app lock in Settings. Access to Reminders is requested only when the user adds a payment reminder to an invoice. Background App Refresh is used to check KSeF for new invoices and, if the user turned notifications on, to post a local notification; in demo mode there is no KSeF token, so no background network activity takes place.
+>
+> The app does not provide banking or payment services and never moves money: it only prepares a payment file that the user uploads to their own bank's website, and reads statement files exported from the bank.
 >
 > “KSeF” is the name of the Ministry of Finance system the app connects to; the app states in its description that it is not a Ministry of Finance app.
 
@@ -357,3 +371,39 @@ Pełny tekst jest opublikowany na stronie (`website/polityka-prywatnosci.html`, 
 - [ ] Telefon kontaktowy dla recenzenta.
 - [ ] Build z numerem wersji publicznej (np. 1.0.0) wybrany w wersji.
 - [ ] Wysyłka faktury na `api-test` sprawdzona na żywo (UPO, kod QR).
+
+---
+
+## 12. TestFlight — testerzy zewnętrzni (Test Information)
+
+Pierwszy build dla testerów zewnętrznych przechodzi skróconą recenzję (Beta App Review). ASC pyta wtedy o te same rzeczy co przy wersji do sklepu: kontakt, logowanie i notatki.
+
+| Pole | Wartość |
+|---|---|
+| Feedback Email | bartosz@ikolek.pl |
+| Marketing URL | `https://ksefektywnie.ikolek.pl/` |
+| Privacy Policy URL | `https://ksefektywnie.ikolek.pl/polityka-prywatnosci.html` |
+| Sign-in required | **odznaczone** — aplikacja nie ma kont |
+| Contact Information | jak w sekcji 8 |
+| Review Notes | tekst z sekcji 8 |
+
+### Beta App Description
+
+- **pl**: KS-eFektywnie to faktury z Krajowego Systemu e-Faktur na iPhonie: pobieranie faktur kosztowych, pliki przelewów dla banku, rozliczanie wyciągów i wystawianie faktur FA(3). Dane zostają na telefonie — bez konta i bez serwera. Bez tokenu KSeF możesz wypróbować aplikację na danych przykładowych.
+- **en**: KS-eFektywnie brings invoices from Poland's National e-Invoice System (KSeF) to the iPhone: download purchase invoices, prepare bank payment files, match bank statements and issue FA(3) sales invoices. Data stays on the phone — no account and no server. Without a KSeF token you can try the app with sample data.
+
+### What to Test (wersja 0.2.7)
+
+- **pl**: Token KSeF nie znika już po zablokowaniu telefonu. Nowe faktury pobierają się po otwarciu aplikacji (najwyżej raz na godzinę). Ustawienia → Połączenie z KSeF pokazują, kiedy iOS uruchomił synchronizację w tle. Nowy pasek okresu nad listami. Uwagi: Ustawienia → Zgłoś problem.
+- **en**: The KSeF token no longer disappears after the phone is locked. New invoices are downloaded when you open the app (at most once an hour). Settings → KSeF connection shows when iOS last ran background sync. New period bar above the lists. Feedback: Settings → Report a problem.
+
+---
+
+## 13. Digital Services Act (UE) — status przedsiębiorcy
+
+Żeby aplikacja była dostępna w krajach UE (w tym w Polsce), w ASC trzeba zadeklarować, czy jesteś „traderem” (przedsiębiorcą) w rozumieniu aktu o usługach cyfrowych: ASC → Business → sekcja zgodności / Digital Services Act. Bez tej deklaracji aplikacja nie jest pokazywana w sklepach UE.
+
+- **Trader**: podajesz adres, telefon i e-mail; Apple je weryfikuje i **pokazuje publicznie** na stronie aplikacji w UE.
+- **Non-trader**: nic nie jest publikowane, ale to oświadczenie, że nie działasz w ramach działalności gospodarczej lub zawodowej.
+
+To decyzja prawna po Twojej stronie. Przesłanki za statusem tradera: aplikacja ma płatne napiwki (przychód), konto jest na firmę albo aplikacja jest częścią działalności.

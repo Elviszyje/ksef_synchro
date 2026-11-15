@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>KS-eFektywnie — App Store Connect</title>
+<style>
+:root{--bg:#f6f5f2;--surface:#fffefb;--ink:#1d1c1a;--muted:#66625b;--line:#dedad2;--accent:#1f4fd8;--accent-ink:#fff;
+--soft:#eef2fd;--warn-bg:#fdf3dc;--warn-ink:#6b4a00;--ok:#1d7a4a;--code:#f0ede6;--radius:10px}
+@media (prefers-color-scheme:dark){:root{--bg:#151614;--surface:#1e1f1c;--ink:#ecebe6;--muted:#a3a097;--line:#34352f;
+--accent:#8fabff;--accent-ink:#10131c;--soft:#1f2740;--warn-bg:#3a2f12;--warn-ink:#f2d58a;--ok:#6fcf97;--code:#2a2b27}}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:16px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:40px;max-width:1180px;margin:0 auto;padding:32px 24px 80px}
+nav{position:sticky;top:24px;align-self:start;max-height:calc(100vh - 48px);overflow:auto;font-size:14px}
+nav .brand{font-weight:700;font-size:15px;margin:0 0 4px}
+nav .sub{color:var(--muted);margin:0 0 16px;font-size:13px}
+nav ol{list-style:none;margin:0;padding:0;counter-reset:n}
+nav li{counter-increment:n}
+nav a{display:flex;gap:8px;padding:5px 8px;border-radius:6px;color:var(--ink);text-decoration:none}
+nav a::before{content:counter(n);color:var(--muted);min-width:1.4em;font-variant-numeric:tabular-nums}
+nav a:hover{background:var(--soft)}
+main{min-width:0}
+header h1{font-size:30px;line-height:1.2;margin:0 0 8px;letter-spacing:-.01em;text-wrap:balance}
+header p{color:var(--muted);margin:0 0 28px;max-width:62ch}
+section{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:24px 26px;margin:0 0 20px}
+h2{font-size:21px;margin:0 0 4px;letter-spacing:-.005em;text-wrap:balance}
+h3{font-size:16px;margin:26px 0 8px}
+p,li{max-width:72ch}
+p{margin:10px 0}
+.where{color:var(--muted);font-size:14px;margin:0 0 14px}
+a{color:var(--accent)}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;overflow-wrap:anywhere}
+.answer{background:var(--soft);border-radius:8px;padding:16px 18px;margin:8px 0 14px}
+.answer p{margin:0}
+.answer p+p{margin-top:8px}
+.answer-lead{font-size:18px;line-height:1.4}
+.note{background:var(--warn-bg);color:var(--warn-ink);border-radius:8px;padding:10px 14px;font-size:15px}
+.note code{background:transparent;padding:0}
+.steps{padding-left:22px}
+.steps li{margin:6px 0}
+.table-wrap{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;vertical-align:top;padding:9px 12px;border-top:1px solid var(--line)}
+thead th{border-top:0;color:var(--muted);font-weight:600;font-size:13px}
+.fields th{width:210px;font-weight:600}
+.fields tr:first-child th,.fields tr:first-child td{border-top:0}
+.fields td p{margin:6px 0 0;color:var(--muted);font-size:14px}
+.plan td:first-child{white-space:nowrap}
+.copy{border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:6px 0 10px;background:var(--bg)}
+.copy pre{margin:0;padding:12px 14px;white-space:pre-wrap;overflow-wrap:anywhere;overflow-y:auto;font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.copy-bar{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:6px 8px 6px 14px;border-top:1px solid var(--line);background:var(--surface)}
+.count{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+button{font:inherit;cursor:pointer}
+.copy-bar button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:6px;padding:4px 12px;font-size:14px;min-width:96px}
+.copy-bar button:hover{border-color:var(--accent);color:var(--accent)}
+.copy-bar button.done{border-color:var(--ok);color:var(--ok)}
+.tab-row{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0 0}
+.tab{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:6px;padding:4px 12px;font-size:14px}
+.tab.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.pane{display:none}
+.pane.on{display:block}
+.todo{background:var(--warn-bg);color:var(--warn-ink);border-radius:4px;padding:1px 7px;font-weight:600;font-size:14px}
+.checklist{list-style:none;padding:0;margin:12px 0}
+.checklist li{display:flex;gap:10px;align-items:baseline;justify-content:space-between;padding:9px 0;border-top:1px solid var(--line);max-width:none}
+.checklist li:first-child{border-top:0}
+.checklist label{display:flex;gap:10px;align-items:baseline;cursor:pointer}
+.checklist input{width:17px;height:17px;flex:none;accent-color:var(--accent);position:relative;top:2px}
+.checklist input:checked+span{color:var(--muted);text-decoration:line-through}
+.jump{font-size:13px;white-space:nowrap}
+.progress{color:var(--muted);font-size:14px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:860px){.layout{grid-template-columns:1fr;gap:16px;padding:20px 16px 60px}nav{position:static;max-height:none}
+nav ol{display:flex;flex-wrap:wrap;gap:2px}section{padding:18px 16px}.fields th{width:auto;display:block;padding-bottom:0}
+.fields td{display:block;border-top:0;padding-top:4px}header h1{font-size:25px}}
+@media print{nav,.copy-bar button{display:none}.layout{display:block}.pane{display:block}section{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav aria-label="Spis treści">
+  <p class="brand">KS-eFektywnie</p>
+  <p class="sub">App Store Connect, pole po polu</p>
+  <ol><li><a href="#konto">Konto testowe dla Apple</a></li><li><a href="#kolejnosc">Kolejność pracy</a></li><li><a href="#konto-dev">Konto dewelopera — jednorazowo</a></li><li><a href="#app-info">Informacje o aplikacji</a></li><li><a href="#wiek">Kategoria wiekowa</a></li><li><a href="#cena">Cena i dostępność</a></li><li><a href="#prywatnosc">Prywatność aplikacji</a></li><li><a href="#napiwki">Napiwki (zakupy w aplikacji)</a></li><li><a href="#wersja">Strona wersji</a></li><li><a href="#review">Informacje dla recenzenta</a></li><li><a href="#szyfrowanie">Szyfrowanie (Export Compliance)</a></li><li><a href="#testflight">TestFlight — testerzy zewnętrzni</a></li><li><a href="#ryzyka">Na co recenzent może zwrócić uwagę</a></li><li><a href="#lista">Lista kontrolna przed „Add for Review”</a></li></ol>
+</nav>
+<main>
+<header>
+  <h1>Co uzupełnić w App Store Connect</h1>
+  <p>Wszystkie pola potrzebne do recenzji Apple, z gotowymi tekstami do skopiowania. Stan na 15 listopada 2026, wersja aplikacji 0.2.7. Źródło tekstów: <code>docs/ios-app-store.md</code>.</p>
+</header>
+<section id="konto"><h2>Konto testowe dla Apple</h2><p class="where">W App Store Connect: strona wersji → App Review Information; TestFlight → Test Information</p>
+<div class="answer">
+  <p class="answer-lead">Nie potrzebujemy konta testowego. <strong>Odznacz „Sign-in required”</strong> i zostaw oba pola puste.</p>
+  <p>To pole jest dla aplikacji, które mają logowanie do własnego serwisu. KS-eFektywnie nie ma kont ani serwera, więc nie ma do czego się logować.</p>
+</div>
+<p>Recenzent i tak musi zobaczyć wszystkie funkcje, a nie ma polskiego NIP-u ani tokenu KSeF. Po to jest tryb demo: na pierwszym ekranie przycisk <strong>„Try it with sample data”</strong> tworzy fikcyjną firmę z fakturami, wyciągiem i szkicami sprzedaży. Recenzentowi trzeba o tym napisać w polu Notes — gotowy tekst jest w sekcji <a href="#review">Informacje dla recenzenta</a>.</p>
+<ol class="steps">
+  <li>Odznacz <strong>Sign-in required</strong> — przycisk „Next” się odblokuje.</li>
+  <li>W <strong>Contact Information</strong> podaj swoje dane i telefon w formacie międzynarodowym.</li>
+  <li>W <strong>Notes</strong> wklej instrukcję dla recenzenta (po angielsku).</li>
+</ol>
+<p class="note">Nie wpisuj tam wymyślonego loginu ani swojego tokenu KSeF. Fałszywe dane logowania to częsty powód odrzucenia, a token dałby recenzentowi dostęp do prawdziwych faktur firmy.</p>
+<p>Okno z Twojego zrzutu pojawia się w dwóch miejscach: przy pierwszym buildzie dla testerów zewnętrznych w TestFlight i przy zgłoszeniu wersji do sklepu. W obu odpowiedź jest ta sama.</p>
+</section><section id="kolejnosc"><h2>Kolejność pracy</h2>
+<p>Większość pól wypełnia się raz. Kolejność poniżej omija blokady — np. napiwków nie da się zgłosić bez aktywnej umowy, a wersji bez zrzutów ekranu.</p>
+<div class="table-wrap"><table class="plan">
+<thead><tr><th>Krok</th><th>Gdzie w App Store Connect</th><th>Co robisz</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Business</td><td><a href="#konto-dev">Umowa Paid Apps, bank, podatki, deklaracja DSA</a></td></tr>
+<tr><td>2</td><td>App Information</td><td><a href="#app-info">Nazwa, podtytuł, kategorie, wiek</a></td></tr>
+<tr><td>3</td><td>Pricing and Availability</td><td><a href="#cena">Cena i kraje</a></td></tr>
+<tr><td>4</td><td>App Privacy</td><td><a href="#prywatnosc">Polityka prywatności i ankieta danych</a></td></tr>
+<tr><td>5</td><td>Monetization → In-App Purchases</td><td><a href="#napiwki">Trzy napiwki</a></td></tr>
+<tr><td>6</td><td>Strona wersji (iOS App → 1.0)</td><td><a href="#wersja">Zrzuty, opisy, słowa kluczowe, build</a></td></tr>
+<tr><td>7</td><td>Strona wersji → App Review Information</td><td><a href="#review">Kontakt i notatki dla recenzenta</a></td></tr>
+<tr><td>8</td><td>TestFlight (opcjonalnie)</td><td><a href="#testflight">Testerzy zewnętrzni</a></td></tr>
+<tr><td>9</td><td>—</td><td><a href="#lista">Lista kontrolna</a> i „Add for Review”</td></tr>
+</tbody></table></div>
+<p class="note">Nazwy pól podaję po angielsku, tak jak są w App Store Connect. Apple zmienia układ tych stron, więc pole może być w innym miejscu niż tu opisane — nazwa zostaje ta sama.</p>
+</section><section id="konto-dev"><h2>Konto dewelopera — jednorazowo</h2><p class="where">W App Store Connect: Business (dawniej Agreements, Tax, and Banking)</p>
+<h3>Umowa Paid Apps, bank i podatki</h3>
+<p>Aplikacja jest bezpłatna, ale ma napiwki, a te są zakupami w aplikacji. Bez aktywnej umowy <strong>Paid Apps</strong> z uzupełnionym kontem bankowym i formularzami podatkowymi zakupy nie przejdą recenzji.</p>
+<ul>
+  <li>Umowy są przypisane do konta dewelopera (zespół <code>X9AX9Q83H4</code>), nie do aplikacji. Jeśli masz już aktywną z innego projektu na tym koncie, obowiązuje też tutaj.</li>
+  <li>Sprawdź, czy status to <strong>Active</strong> oraz czy są dane bankowe i formularz podatkowy.</li>
+</ul>
+<h3>Digital Services Act (UE) — status przedsiębiorcy</h3>
+<p>Żeby aplikacja była widoczna w krajach UE, także w Polsce, trzeba zadeklarować, czy jesteś „traderem” (przedsiębiorcą) w rozumieniu aktu o usługach cyfrowych. Bez deklaracji Apple nie pokazuje aplikacji w sklepach UE.</p>
+<div class="table-wrap"><table class="plan">
+<thead><tr><th>Status</th><th>Co to oznacza</th></tr></thead>
+<tbody>
+<tr><td>Trader</td><td>Podajesz adres, telefon i e-mail. Apple je weryfikuje i <strong>pokazuje publicznie</strong> na stronie aplikacji w UE.</td></tr>
+<tr><td>Non-trader</td><td>Nic nie jest publikowane, ale oświadczasz, że nie działasz w ramach działalności gospodarczej ani zawodowej.</td></tr>
+</tbody></table></div>
+<p class="note">To decyzja prawna po Twojej stronie — nie rozstrzygnę jej za Ciebie. Za statusem tradera przemawia to, że aplikacja ma płatne napiwki (przychód), oraz sytuacja, w której konto jest firmowe albo aplikacja jest częścią Twojej działalności.</p>
+</section><section id="app-info"><h2>Informacje o aplikacji</h2><p class="where">W App Store Connect: App Information</p><div class="table-wrap"><table class="fields"><tbody><tr><th scope="row">Name (30)</th><td><div class="tabs"><div class="tab-row" role="tablist"><button type="button" role="tab" class="tab on" data-group="t1" data-lang="pl">Polski</button><button type="button" role="tab" class="tab" data-group="t1" data-lang="en">English</button><button type="button" role="tab" class="tab" data-group="t1" data-lang="es">Español</button><button type="button" role="tab" class="tab" data-group="t1" data-lang="uk">Українська</button></div><div class="pane on" data-group="t1" data-lang="pl" lang="pl"><div class="copy"><pre id="c2">KS-eFektywnie</pre><div class="copy-bar"><span class="count">13 / 30 znaków</span><button type="button" data-copy="c2">Kopiuj</button></div></div></div><div class="pane" data-group="t1" data-lang="en" lang="en"><div class="copy"><pre id="c3">KS-eFektywnie: KSeF invoices</pre><div class="copy-bar"><span class="count">28 / 30 znaków</span><button type="button" data-copy="c3">Kopiuj</button></div></div></div><div class="pane" data-group="t1" data-lang="es" lang="es"><div class="copy"><pre id="c4">KS-eFektywnie</pre><div class="copy-bar"><span class="count">13 / 30 znaków</span><button type="button" data-copy="c4">Kopiuj</button></div></div></div><div class="pane" data-group="t1" data-lang="uk" lang="uk"><div class="copy"><pre id="c5">KS-eFektywnie: рахунки KSeF</pre><div class="copy-bar"><span class="count">27 / 30 znaków</span><button type="button" data-copy="c5">Kopiuj</button></div></div></div></div><p>Sama nazwa „KS-eFektywnie” jest po angielsku (U.S.) i ukraińsku zajęta przez inną aplikację, dlatego ma tam dopisek. Pod ikoną na telefonie wszędzie zostaje „KS-eFektywnie”.</p></td></tr><tr><th scope="row">Subtitle (30)</th><td><div class="tabs"><div class="tab-row" role="tablist"><button type="button" role="tab" class="tab on" data-group="t6" data-lang="pl">Polski</button><button type="button" role="tab" class="tab" data-group="t6" data-lang="en">English</button><button type="button" role="tab" class="tab" data-group="t6" data-lang="es">Español</button><button type="button" role="tab" class="tab" data-group="t6" data-lang="uk">Українська</button></div><div class="pane on" data-group="t6" data-lang="pl" lang="pl"><div class="copy"><pre id="c7">Faktury z KSeF i przelewy</pre><div class="copy-bar"><span class="count">25 / 30 znaków</span><button type="button" data-copy="c7">Kopiuj</button></div></div></div><div class="pane" data-group="t6" data-lang="en" lang="en"><div class="copy"><pre id="c8">Bank transfers &amp; statements</pre><div class="copy-bar"><span class="count">27 / 30 znaków</span><button type="button" data-copy="c8">Kopiuj</button></div></div></div><div class="pane" data-group="t6" data-lang="es" lang="es"><div class="copy"><pre id="c9">Facturas KSeF y transferencias</pre><div class="copy-bar"><span class="count">30 / 30 znaków</span><button type="button" data-copy="c9">Kopiuj</button></div></div></div><div class="pane" data-group="t6" data-lang="uk" lang="uk"><div class="copy"><pre id="c10">Перекази та банківські виписки</pre><div class="copy-bar"><span class="count">30 / 30 znaków</span><button type="button" data-copy="c10">Kopiuj</button></div></div></div></div></td></tr><tr><th scope="row">Primary Language</th><td>Polish</td></tr><tr><th scope="row">Bundle ID</th><td><code>pl.ksefektywnie.app</code></td></tr><tr><th scope="row">SKU</th><td><code>ksefektywnie-ios</code> — dowolny, niewidoczny dla użytkowników</td></tr><tr><th scope="row">Primary Category</th><td>Finance</td></tr><tr><th scope="row">Secondary Category</th><td>Business</td></tr><tr><th scope="row">Content Rights</th><td><strong>No</strong> — aplikacja nie zawiera ani nie pokazuje treści stron trzecich</td></tr><tr><th scope="row">Age Rating</th><td>wynik <strong>4+</strong> — odpowiedzi w sekcji <a href="#wiek">Kategoria wiekowa</a></td></tr><tr><th scope="row">License Agreement</th><td>standardowa umowa Apple (nic nie zmieniaj)</td></tr></tbody></table></div></section><section id="wiek"><h2>Kategoria wiekowa</h2><p class="where">W App Store Connect: App Information → Age Rating</p>
+<p>Na wszystkie pytania o treści odpowiedź brzmi <strong>None</strong> albo <strong>No</strong>. Wynik: <strong>4+</strong>.</p>
+<div class="table-wrap"><table class="plan">
+<thead><tr><th>Grupa pytań</th><th>Odpowiedź</th></tr></thead>
+<tbody>
+<tr><td>Przemoc, treści seksualne, nagość, wulgaryzmy</td><td>None</td></tr>
+<tr><td>Alkohol, tytoń, narkotyki, motywy grozy, tematy medyczne</td><td>None</td></tr>
+<tr><td>Hazard (symulowany i prawdziwy), konkursy, lootboxy</td><td>None / No</td></tr>
+<tr><td>Nieograniczony dostęp do internetu (wbudowana przeglądarka)</td><td>No — linki otwierają się w Safari</td></tr>
+<tr><td>Treści tworzone przez użytkowników, czat</td><td>No</td></tr>
+<tr><td>Reklamy</td><td>No</td></tr>
+<tr><td>Kontrola rodzicielska, weryfikacja wieku</td><td>No</td></tr>
+</tbody></table></div>
+</section><section id="cena"><h2>Cena i dostępność</h2><p class="where">W App Store Connect: Pricing and Availability</p><div class="table-wrap"><table class="fields"><tbody><tr><th scope="row">Price</th><td>Free</td></tr><tr><th scope="row">Availability</th><td>Rekomendacja: wszystkie kraje. Aplikacja ma sens dla firm z polskim NIP-em, ale interfejs angielski, hiszpański i ukraiński przydaje się obcokrajowcom prowadzącym firmę w Polsce.</td></tr><tr><th scope="row">Mac (Apple Silicon), Apple Vision Pro</th><td>Wyłącz „Make this app available” — aplikacja nie była tam testowana.</td></tr><tr><th scope="row">Tax Category</th><td>domyślna (App Store software)</td></tr></tbody></table></div></section><section id="prywatnosc"><h2>Prywatność aplikacji</h2><p class="where">W App Store Connect: App Privacy</p><div class="table-wrap"><table class="fields"><tbody><tr><th scope="row">Privacy Policy URL</th><td>pl: <div class="copy"><pre id="c11">https://ksefektywnie.ikolek.pl/polityka-prywatnosci.html</pre><div class="copy-bar"><span class="count">56 znaków</span><button type="button" data-copy="c11">Kopiuj</button></div></div>en, es, uk: <div class="copy"><pre id="c12">https://ksefektywnie.ikolek.pl/en/privacy.html</pre><div class="copy-bar"><span class="count">46 znaków</span><button type="button" data-copy="c12">Kopiuj</button></div></div></td></tr><tr><th scope="row">Data Collection</th><td><strong>No, we do not collect data from this app</strong></td></tr></tbody></table></div>
+<p>Uzasadnienie, gdyby recenzent zapytał:</p>
+<ul>
+  <li>Brak kont, serwera autora, analityki, reklam i bibliotek stron trzecich poza lokalną bazą danych.</li>
+  <li>Połączenia sieciowe idą tylko do API Ministerstwa Finansów (KSeF, Biała Lista) na żądanie użytkownika oraz do App Store (napiwki).</li>
+  <li>Kopia w iCloud Drive trafia do prywatnego iCloud użytkownika — autor nie ma do niej dostępu.</li>
+  <li>„Zgłoś problem” otwiera aplikację Mail; nic nie jest wysyłane automatycznie.</li>
+</ul>
+</section><section id="napiwki"><h2>Napiwki (zakupy w aplikacji)</h2><p class="where">W App Store Connect: Monetization → In-App Purchases → „+” → Consumable</p>
+<p>Identyfikatory muszą być dokładnie takie jak poniżej — aplikacja szuka produktów po nich. Pierwsze zakupy zgłasza się <strong>razem z wersją aplikacji</strong>: na stronie wersji, w sekcji „In-App Purchases and Subscriptions”, zaznacz wszystkie trzy.</p>
+<div class="table-wrap"><table class="plan">
+<thead><tr><th>Reference Name</th><th>Product ID</th><th>Typ</th><th>Cena (Polska)</th></tr></thead>
+<tbody><tr><td>Tip — coffee</td><td><code>pl.ksefektywnie.tip.coffee</code></td><td>Consumable</td><td>4,99 zł</td></tr><tr><td>Tip — lunch</td><td><code>pl.ksefektywnie.tip.lunch</code></td><td>Consumable</td><td>14,99 zł</td></tr><tr><td>Tip — big</td><td><code>pl.ksefektywnie.tip.big</code></td><td>Consumable</td><td>49,99 zł</td></tr></tbody></table></div>
+<h3>Nazwa i opis w każdym języku</h3>
+<div class="table-wrap"><table class="plan">
+<thead><tr><th>Produkt</th><th>Język</th><th>Display Name</th><th>Description</th></tr></thead>
+<tbody><tr><td>coffee</td><td>pl</td><td>Kawa dla autora</td><td>Mały napiwek. Niczego nie odblokowuje.</td></tr><tr><td>coffee</td><td>en</td><td>Coffee for the developer</td><td>A small tip. Unlocks nothing.</td></tr><tr><td>coffee</td><td>es</td><td>Un café para el desarrollador</td><td>Una pequeña propina. No desbloquea nada.</td></tr><tr><td>coffee</td><td>uk</td><td>Кава для розробника</td><td>Невеликі чайові. Нічого не відкривають.</td></tr><tr><td>lunch</td><td>pl</td><td>Obiad dla autora</td><td>Średni napiwek. Niczego nie odblokowuje.</td></tr><tr><td>lunch</td><td>en</td><td>Lunch for the developer</td><td>A medium tip. Unlocks nothing.</td></tr><tr><td>lunch</td><td>es</td><td>Almuerzo para el desarrollador</td><td>Una propina mediana. No desbloquea nada.</td></tr><tr><td>lunch</td><td>uk</td><td>Обід для розробника</td><td>Середні чайові. Нічого не відкривають.</td></tr><tr><td>big</td><td>pl</td><td>Wielkie dzięki</td><td>Duży napiwek. Niczego nie odblokowuje.</td></tr><tr><td>big</td><td>en</td><td>Huge thanks</td><td>A big tip. Unlocks nothing.</td></tr><tr><td>big</td><td>es</td><td>Muchísimas gracias</td><td>Una gran propina. No desbloquea nada.</td></tr><tr><td>big</td><td>uk</td><td>Величезна подяка</td><td>Великі чайові. Нічого не відкривають.</td></tr></tbody></table></div>
+<h3>Informacje do recenzji każdego zakupu</h3>
+<div class="table-wrap"><table class="fields"><tbody><tr><th scope="row">Screenshot</th><td>Zrzut ekranu Ustawienia → „Tip for developer”. Ten sam dla wszystkich trzech; wystarczy zrzut z iPhone'a.</td></tr><tr><th scope="row">Review Notes</th><td><div class="copy"><pre id="c13">Consumable tip for the developer. It unlocks no features or content; the app is fully functional without it. Available in Settings → “Tip for developer”.</pre><div class="copy-bar"><span class="count">153 znaków</span><button type="button" data-copy="c13">Kopiuj</button></div></div></td></tr><tr><th scope="row">Family Sharing</th><td>wyłączone</td></tr></tbody></table></div>
+</section><section id="wersja"><h2>Strona wersji</h2><p class="where">W App Store Connect: iOS App → wersja (np. 1.0)</p>
+<h3>Zrzuty ekranu</h3>
+<ul>
+  <li>Aplikacja jest tylko na iPhone'a, więc wystarczy jeden zestaw <strong>6,9″</strong>: 1320 × 2868 px w pionie, od 3 do 10 zrzutów. Mniejsze rozmiary App Store Connect przeskaluje sam.</li>
+  <li>Najprościej: symulator „iPhone 17 Pro Max”, tryb demo, ⌘S.</li>
+  <li>Proponowana kolejność: lista faktur z paskiem okresu, faktura w PDF z kodem QR, Przelewy z wygenerowanym plikiem, wyciąg z dopasowaniami, formularz faktury sprzedażowej, edytor układu strony, podsumowanie kosztów.</li>
+  <li>Zrzuty mogą być wspólne dla wszystkich języków albo osobne po przełączeniu języka symulatora.</li>
+</ul>
+<p class="note">Zrzuty trzeba zrobić na nowo: pasek okresu nad listami zmienił się w wersji 0.2.6, więc starsze pokazują nieaktualny wygląd.</p>
+
+<h3>Promotional Text (170)</h3>
+<p>Można go zmieniać bez wysyłania nowej wersji.</p>
+<div class="tabs"><div class="tab-row" role="tablist"><button type="button" role="tab" class="tab on" data-group="t14" data-lang="pl">Polski</button><button type="button" role="tab" class="tab" data-group="t14" data-lang="en">English</button><button type="button" role="tab" class="tab" data-group="t14" data-lang="es">Español</button><button type="button" role="tab" class="tab" data-group="t14" data-lang="uk">Українська</button></div><div class="pane on" data-group="t14" data-lang="pl" lang="pl"><div class="copy"><pre id="c15">Faktury z KSeF, pliki przelewów dla banku, rozliczanie wyciągów i wystawianie faktur FA(3) — wszystko na iPhonie, bez konta i bez abonamentu.</pre><div class="copy-bar"><span class="count">141 / 170 znaków</span><button type="button" data-copy="c15">Kopiuj</button></div></div></div><div class="pane" data-group="t14" data-lang="en" lang="en"><div class="copy"><pre id="c16">KSeF invoices, bank payment files, statement matching and FA(3) sales invoices — all on your iPhone, with no account and no subscription.</pre><div class="copy-bar"><span class="count">137 / 170 znaków</span><button type="button" data-copy="c16">Kopiuj</button></div></div></div><div class="pane" data-group="t14" data-lang="es" lang="es"><div class="copy"><pre id="c17">Facturas de KSeF, archivos de pago para el banco, conciliación de extractos y facturas FA(3), todo en tu iPhone, sin cuenta ni suscripción.</pre><div class="copy-bar"><span class="count">139 / 170 znaków</span><button type="button" data-copy="c17">Kopiuj</button></div></div></div><div class="pane" data-group="t14" data-lang="uk" lang="uk"><div class="copy"><pre id="c18">Рахунки з KSeF, файли платежів для банку, звірка виписок і рахунки FA(3) — усе на iPhone, без облікового запису й підписки.</pre><div class="copy-bar"><span class="count">123 / 170 znaków</span><button type="button" data-copy="c18">Kopiuj</button></div></div></div></div>
+
+<h3>Description (4000)</h3>
+<div class="tabs"><div class="tab-row" role="tablist"><button type="button" role="tab" class="tab on" data-group="t19" data-lang="pl">Polski</button><button type="button" role="tab" class="tab" data-group="t19" data-lang="en">English</button><button type="button" role="tab" class="tab" data-group="t19" data-lang="es">Español</button><button type="button" role="tab" class="tab" data-group="t19" data-lang="uk">Українська</button></div><div class="pane on" data-group="t19" data-lang="pl" lang="pl"><div class="copy"><pre id="c20" style="max-height:27.900000000000002em">KS-eFektywnie to faktury z Krajowego Systemu e-Faktur na Twoim iPhonie — bez konta, bez serwera, bez abonamentu.
+
+FAKTURY KOSZTOWE
+• Pobieranie faktur z KSeF z pełną treścią XML i wizualizacją PDF z kodem QR KSeF.
+• Statusy płatności: nowa, sporna, do zapłaty, przelew przygotowany, opłacona — z notatkami i historią zmian.
+• Szybkie gesty na liście, wyszukiwanie, filtry (ten miesiąc, poprzedni miesiąc, własny zakres dat, przeterminowane, MPP).
+• Eksport listy do Excela (.xlsx) i PDF oraz podsumowanie kosztów.
+• Nowe faktury pobierają się same po otwarciu aplikacji; opcjonalne powiadomienia o nowych fakturach.
+
+PRZELEWY
+• Plik dla banku z zatwierdzonych faktur: Erste Bank, mBank albo Elixir-0 dla pozostałych banków.
+• Obsługa podzielonej płatności (MPP) i historia wygenerowanych paczek.
+
+WYCIĄGI
+• Import MT940, CSV (Erste, VeloBank) oraz historii transakcji Banku Millennium (CSV, XLS, HTML).
+• Automatyczne dopasowanie przelewów do faktur; po zatwierdzeniu faktury oznaczają się jako opłacone.
+
+FAKTURY SPRZEDAŻOWE
+• Wystawianie faktur FA(3), wysyłka do KSeF i pobranie UPO.
+• Faktury wystawione poza aplikacją pobierają się z KSeF (tylko do odczytu).
+• Dane nabywcy po NIP z Białej Listy podatników VAT.
+• Katalog pozycji i nabywców — wpisujesz raz, wybierasz przy kolejnych fakturach.
+• Własne szablony PDF: układ, kolor, logo, język etykiet (także dwujęzyczny), a układ strony ustawiasz, przeciągając sekcje.
+
+BEZPIECZEŃSTWO I KOPIA
+• Dane tylko na Twoim telefonie, token KSeF w pęku kluczy, blokada Face ID.
+• Kopia w Twoim iCloud Drive jako zwykłe pliki (JSON, XML, pliki bankowe) — do odtworzenia na nowym telefonie.
+• Przypomnienia o płatnościach w aplikacji Przypomnienia, odhaczane automatycznie po opłaceniu.
+
+Przewodnik krok po kroku pokazuje, jak wygenerować token w KSeF i połączyć aplikację. Możesz też najpierw wypróbować wszystko na danych przykładowych.
+
+Aplikacja jest bezpłatna i nie wyświetla reklam. Napiwek dla autora niczego nie odblokowuje.
+
+KS-eFektywnie nie jest aplikacją Ministerstwa Finansów. KSeF to system Ministerstwa Finansów.</pre><div class="copy-bar"><span class="count">2070 / 4000 znaków</span><button type="button" data-copy="c20">Kopiuj</button></div></div></div><div class="pane" data-group="t19" data-lang="en" lang="en"><div class="copy"><pre id="c21" style="max-height:27.900000000000002em">KS-eFektywnie brings invoices from Poland&#x27;s National e-Invoice System (KSeF) to your iPhone — no account, no server, no subscription.
+
+PURCHASE INVOICES
+• Download invoices from KSeF with the full XML and a PDF view with the KSeF QR code.
+• Payment statuses: new, disputed, to pay, transfer prepared, paid — with notes and history.
+• Quick swipe actions, search and filters (this month, last month, custom date range, overdue, split payment).
+• Export the list to Excel (.xlsx) and PDF, plus a cost summary.
+• New invoices are downloaded when you open the app; optional notifications about new invoices.
+
+BANK TRANSFERS
+• Payment files from approved invoices: Erste Bank, mBank or Elixir-0 for other banks.
+• Split payment (MPP) support and a history of generated batches.
+
+STATEMENTS
+• Import MT940, CSV (Erste, VeloBank) and Bank Millennium transaction history (CSV, XLS, HTML).
+• Automatic matching of payments to invoices; confirmed invoices are marked as paid.
+
+SALES INVOICES
+• Issue FA(3) invoices, send them to KSeF and download the UPO receipt.
+• Sales invoices issued outside the app are downloaded from KSeF (read-only).
+• Buyer details by tax ID from the Polish VAT White List.
+• A catalog of items and buyers — enter them once, reuse them later.
+• Custom PDF templates: layout, color, logo, label language (including bilingual); arrange the page by dragging sections.
+
+SECURITY AND BACKUP
+• Data stays on your phone, the KSeF token in the Keychain, Face ID lock.
+• A copy in your own iCloud Drive as plain files (JSON, XML, bank files) to restore on a new phone.
+• Payment reminders in the Reminders app, checked off automatically when paid.
+
+A step-by-step guide shows how to generate a KSeF token and connect the app. You can also try everything with sample data first.
+
+The app is free and has no ads. A tip for the developer unlocks nothing.
+
+KS-eFektywnie is not an app of the Polish Ministry of Finance. KSeF is a system of the Polish Ministry of Finance.</pre><div class="copy-bar"><span class="count">1974 / 4000 znaków</span><button type="button" data-copy="c21">Kopiuj</button></div></div></div><div class="pane" data-group="t19" data-lang="es" lang="es"><div class="copy"><pre id="c22" style="max-height:27.900000000000002em">KS-eFektywnie lleva a tu iPhone las facturas del Sistema Nacional de Facturas Electrónicas de Polonia (KSeF), sin cuenta, sin servidor y sin suscripción.
+
+FACTURAS DE COMPRA
+• Descarga de facturas de KSeF con el XML completo y vista en PDF con el código QR de KSeF.
+• Estados de pago: nueva, en disputa, por pagar, transferencia preparada, pagada, con notas e historial.
+• Gestos rápidos, búsqueda y filtros (este mes, mes anterior, rango de fechas, vencidas, pago dividido).
+• Exportación de la lista a Excel (.xlsx) y PDF, y resumen de costes.
+• Las facturas nuevas se descargan al abrir la app; notificaciones opcionales de facturas nuevas.
+
+TRANSFERENCIAS
+• Archivo de pagos de las facturas aprobadas: Erste Bank, mBank o Elixir-0 para otros bancos.
+• Pago dividido (MPP) e historial de lotes generados.
+
+EXTRACTOS
+• Importación de MT940, CSV (Erste, VeloBank) e historial de transacciones de Bank Millennium (CSV, XLS, HTML).
+• Conciliación automática de pagos con facturas; al confirmar, las facturas quedan pagadas.
+
+FACTURAS DE VENTA
+• Emisión de facturas FA(3), envío a KSeF y descarga del UPO.
+• Las facturas emitidas fuera de la app se descargan de KSeF (solo lectura).
+• Datos del comprador por NIP desde la Lista Blanca de contribuyentes de IVA.
+• Catálogo de productos y compradores: se introducen una vez y se reutilizan.
+• Plantillas PDF propias: diseño, color, logotipo, idioma de las etiquetas (también bilingüe); la página se organiza arrastrando secciones.
+
+SEGURIDAD Y COPIA
+• Los datos se quedan en tu teléfono, el token de KSeF en el llavero y bloqueo con Face ID.
+• Copia en tu iCloud Drive como archivos normales (JSON, XML, archivos bancarios) para restaurarla en un teléfono nuevo.
+• Recordatorios de pago en la app Recordatorios, que se marcan solos al pagar.
+
+Una guía paso a paso explica cómo generar el token de KSeF y conectar la app. También puedes probarlo todo con datos de ejemplo.
+
+La app es gratuita y no tiene anuncios. La propina para el desarrollador no desbloquea nada.
+
+KS-eFektywnie no es una aplicación del Ministerio de Finanzas de Polonia. KSeF es un sistema del Ministerio de Finanzas de Polonia.</pre><div class="copy-bar"><span class="count">2144 / 4000 znaków</span><button type="button" data-copy="c22">Kopiuj</button></div></div></div><div class="pane" data-group="t19" data-lang="uk" lang="uk"><div class="copy"><pre id="c23" style="max-height:27.900000000000002em">KS-eFektywnie переносить на ваш iPhone рахунки-фактури з Національної системи електронних рахунків Польщі (KSeF) — без облікового запису, без сервера, без підписки.
+
+ВХІДНІ РАХУНКИ
+• Завантаження рахунків із KSeF з повним XML і переглядом у PDF з QR-кодом KSeF.
+• Статуси оплати: новий, спірний, до оплати, переказ підготовлено, оплачено — з нотатками та історією.
+• Швидкі жести, пошук і фільтри (цей місяць, попередній місяць, власний діапазон дат, прострочені, розділений платіж).
+• Експорт списку в Excel (.xlsx) і PDF, підсумок витрат.
+• Нові рахунки завантажуються під час відкриття застосунку; необов&#x27;язкові сповіщення про нові рахунки.
+
+ПЕРЕКАЗИ
+• Файл платежів із затверджених рахунків: Erste Bank, mBank або Elixir-0 для інших банків.
+• Розділений платіж (MPP) та історія згенерованих пакетів.
+
+ВИПИСКИ
+• Імпорт MT940, CSV (Erste, VeloBank) та історії транзакцій Bank Millennium (CSV, XLS, HTML).
+• Автоматичне зіставлення платежів із рахунками; після підтвердження рахунки позначаються як оплачені.
+
+РАХУНКИ НА ПРОДАЖ
+• Виставлення рахунків FA(3), надсилання до KSeF і отримання UPO.
+• Рахунки, виставлені поза застосунком, завантажуються з KSeF (лише для читання).
+• Дані покупця за NIP з Білого списку платників ПДВ.
+• Каталог позицій і покупців — вводите один раз, використовуєте знову.
+• Власні шаблони PDF: макет, колір, логотип, мова підписів (зокрема двомовна); макет сторінки налаштовується перетягуванням розділів.
+
+БЕЗПЕКА ТА КОПІЯ
+• Дані лише на вашому телефоні, токен KSeF у в&#x27;язці ключів, блокування Face ID.
+• Копія у вашому iCloud Drive як звичайні файли (JSON, XML, банківські файли) для відновлення на новому телефоні.
+• Нагадування про оплату в застосунку «Нагадування», що позначаються автоматично після оплати.
+
+Покроковий посібник показує, як згенерувати токен KSeF і підключити застосунок. Також можна спершу спробувати все на прикладових даних.
+
+Застосунок безкоштовний і без реклами. Чайові для розробника нічого не відкривають.
+
+KS-eFektywnie не є застосунком Міністерства фінансів Польщі. KSeF — система Міністерства фінансів Польщі.</pre><div class="copy-bar"><span class="count">2070 / 4000 znaków</span><button type="button" data-copy="c23">Kopiuj</button></div></div></div></div>
+
+<h3>Keywords (100)</h3>
+<p>Po przecinku, bez spacji po przecinkach. Nazwy aplikacji i kategorii nie powtarzamy — Apple i tak je indeksuje.</p>
+<div class="tabs"><div class="tab-row" role="tablist"><button type="button" role="tab" class="tab on" data-group="t24" data-lang="pl">Polski</button><button type="button" role="tab" class="tab" data-group="t24" data-lang="en">English</button><button type="button" role="tab" class="tab" data-group="t24" data-lang="es">Español</button><button type="button" role="tab" class="tab" data-group="t24" data-lang="uk">Українська</button></div><div class="pane on" data-group="t24" data-lang="pl" lang="pl"><div class="copy"><pre id="c25">ksef,faktury,faktura,vat,przelew,elixir,mt940,wyciąg,mpp,księgowość,fa3,upo,nip,biała lista,pdf</pre><div class="copy-bar"><span class="count">95 / 100 znaków</span><button type="button" data-copy="c25">Kopiuj</button></div></div></div><div class="pane" data-group="t24" data-lang="en" lang="en"><div class="copy"><pre id="c26">ksef,invoice,poland,vat,bank transfer,elixir,mt940,statement,accounting,e-invoice,fa3,pdf</pre><div class="copy-bar"><span class="count">89 / 100 znaków</span><button type="button" data-copy="c26">Kopiuj</button></div></div></div><div class="pane" data-group="t24" data-lang="es" lang="es"><div class="copy"><pre id="c27">ksef,factura,polonia,iva,transferencia,elixir,mt940,extracto,contabilidad,e-factura,pdf</pre><div class="copy-bar"><span class="count">87 / 100 znaków</span><button type="button" data-copy="c27">Kopiuj</button></div></div></div><div class="pane" data-group="t24" data-lang="uk" lang="uk"><div class="copy"><pre id="c28">ksef,рахунок,фактура,польща,пдв,переказ,mt940,виписка,бухгалтерія,e-фактура,pdf</pre><div class="copy-bar"><span class="count">79 / 100 znaków</span><button type="button" data-copy="c28">Kopiuj</button></div></div></div></div>
+
+<h3>Adresy i pozostałe pola</h3>
+<div class="table-wrap"><table class="fields"><tbody><tr><th scope="row">Support URL</th><td>pl: <div class="copy"><pre id="c29">https://ksefektywnie.ikolek.pl/wsparcie.html</pre><div class="copy-bar"><span class="count">44 znaków</span><button type="button" data-copy="c29">Kopiuj</button></div></div>en, es, uk: <div class="copy"><pre id="c30">https://ksefektywnie.ikolek.pl/en/support.html</pre><div class="copy-bar"><span class="count">46 znaków</span><button type="button" data-copy="c30">Kopiuj</button></div></div></td></tr><tr><th scope="row">Marketing URL</th><td>pl: <div class="copy"><pre id="c31">https://ksefektywnie.ikolek.pl/</pre><div class="copy-bar"><span class="count">31 znaków</span><button type="button" data-copy="c31">Kopiuj</button></div></div>en, es, uk: <div class="copy"><pre id="c32">https://ksefektywnie.ikolek.pl/en/</pre><div class="copy-bar"><span class="count">34 znaków</span><button type="button" data-copy="c32">Kopiuj</button></div></div></td></tr><tr><th scope="row">Version</th><td>numer wersji publicznej, np. 1.0.0 — musi zgadzać się z wersją buildu</td></tr><tr><th scope="row">Copyright</th><td><div class="copy"><pre id="c33">2026 Bartosz Kołek</pre><div class="copy-bar"><span class="count">18 znaków</span><button type="button" data-copy="c33">Kopiuj</button></div></div></td></tr><tr><th scope="row">Build</th><td>wybierz build wysłany z numerem wersji publicznej</td></tr><tr><th scope="row">What’s New in This Version</th><td>przy pierwszej wersji tego pola nie ma</td></tr><tr><th scope="row">Version Release</th><td>„Manually release this version” da Ci kontrolę nad dniem publikacji; „Automatically” wypuści aplikację zaraz po akceptacji</td></tr></tbody></table></div>
+<p class="note">Testowe buildy mają dziś wersję 0.2.7. Przed zgłoszeniem do sklepu trzeba zdecydować o numerze publicznym (np. 1.0.0), zmienić go w projekcie i wysłać nowy build.</p>
+</section><section id="review"><h2>Informacje dla recenzenta</h2><p class="where">W App Store Connect: strona wersji → App Review Information</p><div class="table-wrap"><table class="fields"><tbody><tr><th scope="row">Sign-in required</th><td><strong>odznaczone</strong> — aplikacja nie ma kont</td></tr><tr><th scope="row">First name / Last name</th><td>Bartosz / Kołek</td></tr><tr><th scope="row">Phone number</th><td><span class="todo">do uzupełnienia</span> — wymagany, format międzynarodowy, np. +48 600 000 000</td></tr><tr><th scope="row">Email</th><td><code>bartosz@ikolek.pl</code></td></tr><tr><th scope="row">Attachment</th><td>niepotrzebny</td></tr></tbody></table></div>
+<h3>Notes (po angielsku)</h3>
+<p>Ten tekst prowadzi recenzenta przez wszystkie funkcje w trybie demo, tłumaczy uprawnienia i uprzedza trzy pytania, które przy tej aplikacji mogą paść.</p>
+<div class="copy"><pre id="c34" style="max-height:31.0em">KS-eFektywnie works with KSeF, the Polish government e-invoicing system. Access to KSeF requires a Polish tax ID and a token issued by the Ministry of Finance, which reviewers do not have. The app has no user accounts and no backend; all data stays on the device and, optionally, in the user&#x27;s own iCloud Drive.
+
+To review all features without KSeF:
+1. On the first screen tap “Try it with sample data”. This creates a fictitious company with purchase invoices, sales invoice drafts, a bank statement and a catalog of items.
+2. Invoices tab: use the period bar above the list (All / This month / Last month / calendar icon for a custom date range), swipe an invoice right to approve it for payment, open an invoice to change its status, add a note and open the PDF view. The chart button shows a cost summary; the share button exports the list to Excel (.xlsx) or PDF.
+3. Transfers tab: select invoices and tap “Generate transfer file”; the file can be shared. “History” lists generated batches.
+4. Statements tab: open the sample statement, confirm the suggested match and tap “Confirm statement”.
+5. Sales tab: open a draft, add an item from the catalog, preview the FA(3) XML or the PDF. Long-press an invoice in the list for “PDF preview”. In the buyer&#x27;s tax ID field you can type 7740001454 — the buyer&#x27;s name and address are fetched from the public Polish VAT White List (no login needed). Sending to KSeF requires a token and is not available in demo mode.
+6. Settings → Invoice templates: open a template, then “Page layout” — touch and hold a section to drag it up or down, drag the QR code left or right. Changes are visible immediately.
+7. Settings → Help: “Report a problem” opens a pre-filled email to the developer; links to the website and privacy policy.
+8. Settings → Tip for developer: consumable tips that unlock nothing.
+
+Permissions and background activity: Face ID is used only if the user turns on the app lock in Settings. Access to Reminders is requested only when the user adds a payment reminder to an invoice. Background App Refresh is used to check KSeF for new invoices and, if the user turned notifications on, to post a local notification; in demo mode there is no KSeF token, so no background network activity takes place.
+
+The app does not provide banking or payment services and never moves money: it only prepares a payment file that the user uploads to their own bank&#x27;s website, and reads statement files exported from the bank.
+
+“KSeF” is the name of the Ministry of Finance system the app connects to; the app states in its description that it is not a Ministry of Finance app.</pre><div class="copy-bar"><span class="count">2616 / 4000 znaków</span><button type="button" data-copy="c34">Kopiuj</button></div></div>
+</section><section id="szyfrowanie"><h2>Szyfrowanie (Export Compliance)</h2><p class="where">W App Store Connect: pytanie przy buildzie</p>
+<p>W aplikacji jest ustawione <code>ITSAppUsesNonExemptEncryption = NO</code>, więc App Store Connect nie powinien o to pytać. Gdyby zapytał:</p>
+<ol class="steps">
+  <li><em>Does your app use encryption?</em> — <strong>Yes</strong> (HTTPS oraz RSA i AES wymagane przez KSeF).</li>
+  <li><em>What type of encryption algorithms…?</em> — <strong>None of the algorithms mentioned above</strong>: aplikacja korzysta tylko z szyfrowania wbudowanego w iOS.</li>
+  <li>Dokumentacja eksportowa nie jest potrzebna.</li>
+</ol>
+</section><section id="testflight"><h2>TestFlight — testerzy zewnętrzni</h2><p class="where">W App Store Connect: TestFlight → Test Information oraz grupa testerów</p>
+<p>Testerzy wewnętrzni (osoby z Twojego zespołu w App Store Connect) nie wymagają niczego. Pierwszy build dla testerów <strong>zewnętrznych</strong> przechodzi skróconą recenzję i wtedy pojawia się okno z Twojego zrzutu.</p>
+<div class="table-wrap"><table class="fields"><tbody><tr><th scope="row">Beta App Description</th><td><div class="tabs"><div class="tab-row" role="tablist"><button type="button" role="tab" class="tab on" data-group="t35" data-lang="pl">Polski</button><button type="button" role="tab" class="tab" data-group="t35" data-lang="en">English</button></div><div class="pane on" data-group="t35" data-lang="pl" lang="pl"><div class="copy"><pre id="c36">KS-eFektywnie to faktury z Krajowego Systemu e-Faktur na iPhonie: pobieranie faktur kosztowych, pliki przelewów dla banku, rozliczanie wyciągów i wystawianie faktur FA(3). Dane zostają na telefonie — bez konta i bez serwera. Bez tokenu KSeF możesz wypróbować aplikację na danych przykładowych.</pre><div class="copy-bar"><span class="count">293 / 4000 znaków</span><button type="button" data-copy="c36">Kopiuj</button></div></div></div><div class="pane" data-group="t35" data-lang="en" lang="en"><div class="copy"><pre id="c37">KS-eFektywnie brings invoices from Poland&#x27;s National e-Invoice System (KSeF) to the iPhone: download purchase invoices, prepare bank payment files, match bank statements and issue FA(3) sales invoices. Data stays on the phone — no account and no server. Without a KSeF token you can try the app with sample data.</pre><div class="copy-bar"><span class="count">312 / 4000 znaków</span><button type="button" data-copy="c37">Kopiuj</button></div></div></div></div></td></tr><tr><th scope="row">Feedback Email</th><td><code>bartosz@ikolek.pl</code></td></tr><tr><th scope="row">Marketing URL</th><td><code>https://ksefektywnie.ikolek.pl/</code></td></tr><tr><th scope="row">Privacy Policy URL</th><td><code>https://ksefektywnie.ikolek.pl/polityka-prywatnosci.html</code></td></tr><tr><th scope="row">Sign-in required</th><td><strong>odznaczone</strong></td></tr><tr><th scope="row">Contact Information</th><td>jak w sekcji <a href="#review">Informacje dla recenzenta</a></td></tr><tr><th scope="row">Review Notes</th><td>ten sam tekst co w sekcji <a href="#review">Informacje dla recenzenta</a></td></tr><tr><th scope="row">What to Test (dla buildu 0.2.7)</th><td><div class="tabs"><div class="tab-row" role="tablist"><button type="button" role="tab" class="tab on" data-group="t38" data-lang="pl">Polski</button><button type="button" role="tab" class="tab" data-group="t38" data-lang="en">English</button></div><div class="pane on" data-group="t38" data-lang="pl" lang="pl"><div class="copy"><pre id="c39">Token KSeF nie znika już po zablokowaniu telefonu. Nowe faktury pobierają się po otwarciu aplikacji (najwyżej raz na godzinę). Ustawienia → Połączenie z KSeF pokazują, kiedy iOS uruchomił synchronizację w tle. Nowy pasek okresu nad listami. Uwagi: Ustawienia → Zgłoś problem.</pre><div class="copy-bar"><span class="count">275 / 4000 znaków</span><button type="button" data-copy="c39">Kopiuj</button></div></div></div><div class="pane" data-group="t38" data-lang="en" lang="en"><div class="copy"><pre id="c40">The KSeF token no longer disappears after the phone is locked. New invoices are downloaded when you open the app (at most once an hour). Settings → KSeF connection shows when iOS last ran background sync. New period bar above the lists. Feedback: Settings → Report a problem.</pre><div class="copy-bar"><span class="count">275 / 4000 znaków</span><button type="button" data-copy="c40">Kopiuj</button></div></div></div></div></td></tr></tbody></table></div>
+</section><section id="ryzyka"><h2>Na co recenzent może zwrócić uwagę</h2>
+<p>Nie da się przewidzieć recenzji, ale przy tej aplikacji te cztery punkty są najbardziej prawdopodobne. Notatki dla recenzenta odpowiadają na każdy z nich.</p>
+<div class="table-wrap"><table class="plan">
+<thead><tr><th>Temat</th><th>Skąd ryzyko</th><th>Jak jest zaadresowane</th></tr></thead>
+<tbody>
+<tr><td>Brak dostępu do funkcji</td><td>Recenzent nie ma tokenu KSeF, a aplikacja bez niego nie pobierze faktur.</td><td>Tryb demo opisany krok po kroku w Notes.</td></tr>
+<tr><td>Usługi finansowe</td><td>Kategoria Finance i słowo „przelewy”. Apple wymaga, by usługi bankowe zgłaszała instytucja, nie osoba prywatna.</td><td>Notes mówią wprost, że aplikacja nie przesyła pieniędzy, tylko przygotowuje plik dla banku.</td></tr>
+<tr><td>Nazwa systemu rządowego</td><td>„KSeF” w nazwie i opisie może sugerować oficjalną aplikację.</td><td>Opis i Notes zawierają zdanie, że to nie jest aplikacja Ministerstwa Finansów.</td></tr>
+<tr><td>Działanie w tle i uprawnienia</td><td>Aplikacja deklaruje odświeżanie w tle, Face ID i dostęp do Przypomnień.</td><td>Notes wyjaśniają, do czego służy każde z nich i kiedy pojawia się prośba o zgodę.</td></tr>
+</tbody></table></div>
+<p class="note">Strona <code>ksefektywnie.ikolek.pl</code> musi działać po HTTPS w chwili recenzji — niedziałający adres polityki prywatności albo wsparcia kończy się odrzuceniem. Z komputera, na którym powstał ten plik, strona nie odpowiedziała po HTTPS (przekroczony czas), ale może to wynikać z sieci lokalnej. Sprawdź ją z telefonu na danych komórkowych.</p>
+</section><section id="lista"><h2>Lista kontrolna przed „Add for Review”</h2>
+<p>Zaznaczenia zapisują się w tej przeglądarce.</p>
+<ul class="checklist"><li><label><input type="checkbox" data-check="k0"><span>Strona ksefektywnie.ikolek.pl działa po HTTPS z zewnątrz (polityka, wsparcie) i ma wgrane najnowsze teksty.</span></label> <a href="#ryzyka" class="jump">sekcja</a></li><li><label><input type="checkbox" data-check="k1"><span>Umowa Paid Apps aktywna, dane bankowe i podatkowe uzupełnione.</span></label> <a href="#konto-dev" class="jump">sekcja</a></li><li><label><input type="checkbox" data-check="k2"><span>Deklaracja Digital Services Act złożona.</span></label> <a href="#konto-dev" class="jump">sekcja</a></li><li><label><input type="checkbox" data-check="k3"><span>App Information: nazwy i podtytuły w 4 językach, kategorie.</span></label> <a href="#app-info" class="jump">sekcja</a></li><li><label><input type="checkbox" data-check="k4"><span>Kategoria wiekowa wypełniona (4+).</span></label> <a href="#wiek" class="jump">sekcja</a></li><li><label><input type="checkbox" data-check="k5"><span>Cena i dostępność ustawione; Mac i Vision Pro wyłączone.</span></label> <a href="#cena" class="jump">sekcja</a></li><li><label><input type="checkbox" data-check="k6"><span>App Privacy: adres polityki i „Data Not Collected” opublikowane.</span></label> <a href="#prywatnosc" class="jump">sekcja</a></li><li><label><input type="checkbox" data-check="k7"><span>Trzy napiwki założone, ze zrzutem i notatką, dodane do wersji.</span></label> <a href="#napiwki" class="jump">sekcja</a></li><li><label><input type="checkbox" data-check="k8"><span>Zrzuty ekranu 6,9″ zrobione na aktualnej wersji.</span></label> <a href="#wersja" class="jump">sekcja</a></li><li><label><input type="checkbox" data-check="k9"><span>Teksty wersji w 4 językach, adresy wsparcia i marketingu, copyright.</span></label> <a href="#wersja" class="jump">sekcja</a></li><li><label><input type="checkbox" data-check="k10"><span>Build z numerem wersji publicznej wysłany i wybrany.</span></label> <a href="#wersja" class="jump">sekcja</a></li><li><label><input type="checkbox" data-check="k11"><span>App Review Information: Sign-in required odznaczone, telefon, Notes.</span></label> <a href="#review" class="jump">sekcja</a></li><li><label><input type="checkbox" data-check="k12"><span>Wysyłka faktury na środowisku testowym KSeF sprawdzona na żywo (UPO, kod QR).</span></label> <a href="#review" class="jump">sekcja</a></li></ul>
+<p class="progress" id="progress" aria-live="polite"></p>
+</section>
+</main>
+</div>
+<script>
+document.addEventListener('click', function (ev) {
+  var copyBtn = ev.target.closest('[data-copy]');
+  if (copyBtn) {
+    var text = document.getElementById(copyBtn.dataset.copy).textContent;
+    var done = function () {
+      copyBtn.textContent = 'Skopiowano';
+      copyBtn.classList.add('done');
+      setTimeout(function () { copyBtn.textContent = 'Kopiuj'; copyBtn.classList.remove('done'); }, 1600);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () { fallback(text); done(); });
+    } else { fallback(text); done(); }
+    return;
+  }
+  var tab = ev.target.closest('.tab');
+  if (tab) {
+    document.querySelectorAll('[data-group="' + tab.dataset.group + '"]').forEach(function (el) {
+      el.classList.toggle('on', el.dataset.lang === tab.dataset.lang);
+    });
+  }
+});
+function fallback(text) {
+  var area = document.createElement('textarea');
+  area.value = text; area.style.position = 'fixed'; area.style.opacity = '0';
+  document.body.appendChild(area); area.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  area.remove();
+}
+var KEY = 'ksefektywnie-asc-checklist';
+var state = {};
+try { state = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
+var boxes = document.querySelectorAll('[data-check]');
+function progress() {
+  var done = document.querySelectorAll('[data-check]:checked').length;
+  document.getElementById('progress').textContent = 'Gotowe: ' + done + ' z ' + boxes.length + '.';
+}
+boxes.forEach(function (box) {
+  box.checked = !!state[box.dataset.check];
+  box.addEventListener('change', function () {
+    state[box.dataset.check] = box.checked;
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+    progress();
+  });
+});
+progress();
+</script>
+</body>
+</html>
