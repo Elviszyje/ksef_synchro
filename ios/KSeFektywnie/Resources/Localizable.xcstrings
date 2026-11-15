@@ -3760,24 +3760,24 @@
         }
       }
     },
-    "Napiwki będą dostępne w wersji opublikowanej w App Store.": {
+    "Napiwek dla autora": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tips will be available in the version published on the App Store."
+            "value": "Tip for developer"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Las propinas estarán disponibles en la versión publicada en el App Store."
+            "value": "Propina para el desarrollador"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Чайові будуть доступні у версії, опублікованій в App Store."
+            "value": "Чайові для розробника"
           }
         }
       }
@@ -4174,6 +4174,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Не вдалося завантажити рахунки-фактури продажу: %@"
+          }
+        }
+      }
+    },
+    "Nie udało się wczytać napiwków z App Store. Sprawdź połączenie i spróbuj ponownie.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not load tips from the App Store. Check your connection and try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudieron cargar las propinas desde el App Store. Comprueba la conexión e inténtalo de nuevo."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не вдалося завантажити чайові з App Store. Перевірте з'єднання та спробуйте ще раз."
           }
         }
       }
@@ -8020,28 +8042,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Перевірити з'єднання"
-          }
-        }
-      }
-    },
-    "Tip for developer": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tip for developer"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Propina para el desarrollador"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Чайові для розробника"
           }
         }
       }

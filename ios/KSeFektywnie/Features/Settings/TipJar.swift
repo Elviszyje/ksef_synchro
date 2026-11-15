@@ -16,7 +16,8 @@ enum TipJar {
 
 struct TipJarView: View {
     @State private var thanks = false
-    /// nil — ładowanie; pusta lista — produkty nieskonfigurowane w App Store Connect (np. wczesny TestFlight).
+    /// nil — ładowanie; pusta lista — App Store nie zwrócił produktów (brak sieci albo zakupy
+    /// jeszcze niedostępne dla tego buildu).
     @State private var available: [String]?
 
     var body: some View {
@@ -27,9 +28,14 @@ struct TipJarView: View {
                 Text("Aplikacja działa w całości na Twoim telefonie, bez kont i reklam. Jeśli oszczędza Ci czas, możesz postawić autorowi kawę.")
                     .foregroundStyle(.secondary).multilineTextAlignment(.center)
 
-                if available?.isEmpty == true {
-                    Text("Napiwki będą dostępne w wersji opublikowanej w App Store.")
+                if available == nil {
+                    ProgressView().padding(.top, 8)
+                } else if available?.isEmpty == true {
+                    // Bez zapowiedzi „będzie w przyszłej wersji”: to stan błędu, który da się ponowić.
+                    Text("Nie udało się wczytać napiwków z App Store. Sprawdź połączenie i spróbuj ponownie.")
                         .font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                    Button("Spróbuj ponownie") { Task { await load() } }
+                        .buttonStyle(.glass)
                 }
                 VStack(spacing: 12) {
                     ForEach(available ?? [], id: \.self) { id in
@@ -44,11 +50,8 @@ struct TipJarView: View {
             }
             .padding()
         }
-        .navigationTitle("Tip for developer")
-        .task {
-            let products = (try? await Product.products(for: TipJar.productIDs)) ?? []
-            available = TipJar.productIDs.filter { id in products.contains { $0.id == id } }
-        }
+        .navigationTitle("Napiwek dla autora")
+        .task { await load() }
         .onInAppPurchaseCompletion { _, result in
             if case .success(.success(let verification)) = result, case .verified(let transaction) = verification {
                 await transaction.finish()
@@ -60,6 +63,12 @@ struct TipJarView: View {
         } message: {
             Text("Twoje wsparcie bardzo pomaga w dalszym rozwoju aplikacji.")
         }
+    }
+
+    private func load() async {
+        available = nil
+        let products = (try? await Product.products(for: TipJar.productIDs)) ?? []
+        available = TipJar.productIDs.filter { id in products.contains { $0.id == id } }
     }
 
     private func icon(for id: String) -> String {

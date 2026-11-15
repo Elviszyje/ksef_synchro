@@ -84,7 +84,7 @@ struct SettingsView: View {
 
                 Section {
                     NavigationLink { TipJarView() } label: {
-                        Label("Tip for developer", systemImage: "cup.and.saucer")
+                        Label("Napiwek dla autora", systemImage: "cup.and.saucer")
                     }
                 } footer: {
                     Text("Aplikacja jest bezpłatna i nie wyświetla reklam. Napiwek wspiera jej dalszy rozwój i niczego nie odblokowuje.")
