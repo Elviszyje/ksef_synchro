@@ -104,7 +104,7 @@ W `Info.plist` jest `ITSAppUsesNonExemptEncryption = NO`, więc ASC nie pyta prz
 | Reference Name (wewnętrzna) | Product ID | Typ | Cena (bazowo Polska) |
 |---|---|---|---|
 | Tip — coffee | `pl.ksefektywnie.tip.coffee` | Consumable | 4,99 zł |
-| Tip — lunch | `pl.ksefektywnie.tip.lunch` | Consumable | 14,99 zł |
+| Tip — lunch | `pl.ksefektywnie.tip.lunch` | Consumable | 19,99 zł |
 | Tip — big | `pl.ksefektywnie.tip.big` | Consumable | 49,99 zł |
 
 Product ID muszą być dokładnie takie — aplikacja szuka ich po tych identyfikatorach. Ceny w innych krajach ASC przeliczy automatycznie.
@@ -150,10 +150,10 @@ Copyright: `2026 Bartosz Kołek`
 
 ### Tekst promocyjny (170, można zmieniać bez nowej wersji)
 
-- **pl**: Faktury z KSeF, pliki przelewów dla banku, rozliczanie wyciągów i wystawianie faktur FA(3) — wszystko na iPhonie, bez konta i bez abonamentu.
-- **en**: KSeF invoices, bank payment files, statement matching and FA(3) sales invoices — all on your iPhone, with no account and no subscription.
-- **es**: Facturas de KSeF, archivos de pago para el banco, conciliación de extractos y facturas FA(3), todo en tu iPhone, sin cuenta ni suscripción.
-- **uk**: Рахунки з KSeF, файли платежів для банку, звірка виписок і рахунки FA(3) — усе на iPhone, без облікового запису й підписки.
+- **pl**: Faktury z KSeF, pliki przelewów dla banku, rozliczanie wyciągów i wystawianie faktur — wszystko na iPhonie, w pełni za darmo, bez konta i bez abonamentu.
+- **en**: KSeF invoices, bank payment files, statement matching and sales invoicing — all on your iPhone, completely free, with no account and no subscription.
+- **es**: Facturas de KSeF, archivos de pago para el banco, conciliación de extractos y emisión de facturas, todo en tu iPhone, totalmente gratis, sin cuenta ni suscripción.
+- **uk**: Рахунки з KSeF, файли платежів для банку, звірка виписок і виставлення рахунків — усе на iPhone, повністю безкоштовно, без облікового запису й підписки.
 
 ### Słowa kluczowe (100, po przecinku, bez spacji po przecinkach)
 
@@ -166,7 +166,7 @@ Nazwy aplikacji i kategorii nie powtarzamy w słowach kluczowych (Apple i tak je
 
 ### Opis — pl
 
-KS-eFektywnie to faktury z Krajowego Systemu e-Faktur na Twoim iPhonie — bez konta, bez serwera, bez abonamentu.
+KS-eFektywnie to faktury z Krajowego Systemu e-Faktur na Twoim iPhonie — za darmo, bez konta, bez serwera, bez abonamentu.
 
 FAKTURY KOSZTOWE
 • Pobieranie faktur z KSeF z pełną treścią XML i wizualizacją PDF z kodem QR KSeF.
@@ -176,7 +176,7 @@ FAKTURY KOSZTOWE
 • Nowe faktury pobierają się same po otwarciu aplikacji; opcjonalne powiadomienia o nowych fakturach.
 
 PRZELEWY
-• Plik dla banku z zatwierdzonych faktur: Erste Bank, mBank albo Elixir-0 dla pozostałych banków.
+• Generowanie plików do banku z zatwierdzonych faktur: Erste Bank, mBank albo Elixir-0 dla pozostałych banków.
 • Obsługa podzielonej płatności (MPP) i historia wygenerowanych paczek.
 
 WYCIĄGI
@@ -184,7 +184,7 @@ WYCIĄGI
 • Automatyczne dopasowanie przelewów do faktur; po zatwierdzeniu faktury oznaczają się jako opłacone.
 
 FAKTURY SPRZEDAŻOWE
-• Wystawianie faktur FA(3), wysyłka do KSeF i pobranie UPO.
+• Wystawianie faktur, wysyłka do KSeF i pobranie UPO.
 • Faktury wystawione poza aplikacją pobierają się z KSeF (tylko do odczytu).
 • Dane nabywcy po NIP z Białej Listy podatników VAT.
 • Katalog pozycji i nabywców — wpisujesz raz, wybierasz przy kolejnych fakturach.
@@ -203,7 +203,7 @@ KS-eFektywnie nie jest aplikacją Ministerstwa Finansów. KSeF to system Ministe
 
 ### Description — en
 
-KS-eFektywnie brings invoices from Poland's National e-Invoice System (KSeF) to your iPhone — no account, no server, no subscription.
+KS-eFektywnie brings invoices from Poland's National e-Invoice System (KSeF) to your iPhone — free, with no account, no server and no subscription.
 
 PURCHASE INVOICES
 • Download invoices from KSeF with the full XML and a PDF view with the KSeF QR code.
@@ -213,7 +213,7 @@ PURCHASE INVOICES
 • New invoices are downloaded when you open the app; optional notifications about new invoices.
 
 BANK TRANSFERS
-• Payment files from approved invoices: Erste Bank, mBank or Elixir-0 for other banks.
+• Generate bank payment files from approved invoices: Erste Bank, mBank or Elixir-0 for other banks.
 • Split payment (MPP) support and a history of generated batches.
 
 STATEMENTS
@@ -221,7 +221,7 @@ STATEMENTS
 • Automatic matching of payments to invoices; confirmed invoices are marked as paid.
 
 SALES INVOICES
-• Issue FA(3) invoices, send them to KSeF and download the UPO receipt.
+• Issue invoices, send them to KSeF and download the UPO receipt.
 • Sales invoices issued outside the app are downloaded from KSeF (read-only).
 • Buyer details by tax ID from the Polish VAT White List.
 • A catalog of items and buyers — enter them once, reuse them later.
@@ -240,7 +240,7 @@ KS-eFektywnie is not an app of the Polish Ministry of Finance. KSeF is a system 
 
 ### Descripción — es
 
-KS-eFektywnie lleva a tu iPhone las facturas del Sistema Nacional de Facturas Electrónicas de Polonia (KSeF), sin cuenta, sin servidor y sin suscripción.
+KS-eFektywnie lleva a tu iPhone las facturas del Sistema Nacional de Facturas Electrónicas de Polonia (KSeF), gratis, sin cuenta, sin servidor y sin suscripción.
 
 FACTURAS DE COMPRA
 • Descarga de facturas de KSeF con el XML completo y vista en PDF con el código QR de KSeF.
@@ -250,7 +250,7 @@ FACTURAS DE COMPRA
 • Las facturas nuevas se descargan al abrir la app; notificaciones opcionales de facturas nuevas.
 
 TRANSFERENCIAS
-• Archivo de pagos de las facturas aprobadas: Erste Bank, mBank o Elixir-0 para otros bancos.
+• Generación de archivos de pago para el banco a partir de las facturas aprobadas: Erste Bank, mBank o Elixir-0 para otros bancos.
 • Pago dividido (MPP) e historial de lotes generados.
 
 EXTRACTOS
@@ -258,7 +258,7 @@ EXTRACTOS
 • Conciliación automática de pagos con facturas; al confirmar, las facturas quedan pagadas.
 
 FACTURAS DE VENTA
-• Emisión de facturas FA(3), envío a KSeF y descarga del UPO.
+• Emisión de facturas, envío a KSeF y descarga del UPO.
 • Las facturas emitidas fuera de la app se descargan de KSeF (solo lectura).
 • Datos del comprador por NIP desde la Lista Blanca de contribuyentes de IVA.
 • Catálogo de productos y compradores: se introducen una vez y se reutilizan.
@@ -277,7 +277,7 @@ KS-eFektywnie no es una aplicación del Ministerio de Finanzas de Polonia. KSeF 
 
 ### Опис — uk
 
-KS-eFektywnie переносить на ваш iPhone рахунки-фактури з Національної системи електронних рахунків Польщі (KSeF) — без облікового запису, без сервера, без підписки.
+KS-eFektywnie переносить на ваш iPhone рахунки-фактури з Національної системи електронних рахунків Польщі (KSeF) — безкоштовно, без облікового запису, без сервера, без підписки.
 
 ВХІДНІ РАХУНКИ
 • Завантаження рахунків із KSeF з повним XML і переглядом у PDF з QR-кодом KSeF.
@@ -287,7 +287,7 @@ KS-eFektywnie переносить на ваш iPhone рахунки-факту�
 • Нові рахунки завантажуються під час відкриття застосунку; необов'язкові сповіщення про нові рахунки.
 
 ПЕРЕКАЗИ
-• Файл платежів із затверджених рахунків: Erste Bank, mBank або Elixir-0 для інших банків.
+• Створення файлів платежів для банку із затверджених рахунків: Erste Bank, mBank або Elixir-0 для інших банків.
 • Розділений платіж (MPP) та історія згенерованих пакетів.
 
 ВИПИСКИ
@@ -295,7 +295,7 @@ KS-eFektywnie переносить на ваш iPhone рахунки-факту�
 • Автоматичне зіставлення платежів із рахунками; після підтвердження рахунки позначаються як оплачені.
 
 РАХУНКИ НА ПРОДАЖ
-• Виставлення рахунків FA(3), надсилання до KSeF і отримання UPO.
+• Виставлення рахунків, надсилання до KSeF і отримання UPO.
 • Рахунки, виставлені поза застосунком, завантажуються з KSeF (лише для читання).
 • Дані покупця за NIP з Білого списку платників ПДВ.
 • Каталог позицій і покупців — вводите один раз, використовуєте знову.
@@ -391,8 +391,8 @@ Pierwszy build dla testerów zewnętrznych przechodzi skróconą recenzję (Beta
 
 ### Beta App Description
 
-- **pl**: KS-eFektywnie to faktury z Krajowego Systemu e-Faktur na iPhonie: pobieranie faktur kosztowych, pliki przelewów dla banku, rozliczanie wyciągów i wystawianie faktur FA(3). Dane zostają na telefonie — bez konta i bez serwera. Bez tokenu KSeF możesz wypróbować aplikację na danych przykładowych.
-- **en**: KS-eFektywnie brings invoices from Poland's National e-Invoice System (KSeF) to the iPhone: download purchase invoices, prepare bank payment files, match bank statements and issue FA(3) sales invoices. Data stays on the phone — no account and no server. Without a KSeF token you can try the app with sample data.
+- **pl**: KS-eFektywnie to faktury z Krajowego Systemu e-Faktur na iPhonie: pobieranie faktur kosztowych, pliki przelewów dla banku, rozliczanie wyciągów i wystawianie faktur. Dane zostają na telefonie — bez konta i bez serwera. Bez tokenu KSeF możesz wypróbować aplikację na danych przykładowych.
+- **en**: KS-eFektywnie brings invoices from Poland's National e-Invoice System (KSeF) to the iPhone: download purchase invoices, prepare bank payment files, match bank statements and issue sales invoices. Data stays on the phone — no account and no server. Without a KSeF token you can try the app with sample data.
 
 ### What to Test (wersja 0.2.7)
 
