@@ -3,8 +3,10 @@
 Statyczna strona aplikacji iOS KS-eFektywnie pod adresem **https://ksefektywnie.ikolek.pl**.
 W App Store Connect służy jako adres polityki prywatności, adres wsparcia (Support URL) i strona marketingowa.
 
-Czysty HTML + CSS i kilka linii JS. Bez kroku budowania, frameworków, zewnętrznych CDN i fontów,
+Czysty HTML + CSS i kilka linii JS. Bez kroku budowania, frameworków i zewnętrznych CDN,
 bez cookies, analityki i trackerów (polityka prywatności to obiecuje, więc nie dodawaj ich).
+Krój Space Grotesk jest serwowany z tego samego serwera (`assets/fonts/`, licencja OFL) — nic nie ładuje się z zewnątrz.
+Wygląd jest ten sam co w aplikacji („Grafit”: grafit i mięta, tryb jasny i ciemny).
 
 ## Struktura
 
@@ -21,6 +23,8 @@ website/
 │   ├── style.css               cały wygląd; tryb jasny/ciemny przez prefers-color-scheme
 │   ├── config.js               APP_STORE_URL — link do App Store (jedyne miejsce do zmiany)
 │   ├── site.js                 pokazuje przycisk App Store, gdy link jest ustawiony
+│   ├── fonts/                  Space Grotesk (Regular, Bold) + tekst licencji OFL
+│   ├── shots/                  zrzuty ekranu na stronie głównej (PL i EN, 603×1311 JPEG)
 │   ├── icon-512.png            ikona na stronie (rogi zaokrąglane w CSS)
 │   ├── apple-touch-icon.png    180×180
 │   ├── favicon-32.png          32×32
@@ -30,7 +34,8 @@ website/
 └── README.md                   ten plik (nie musi trafiać na serwer)
 ```
 
-Obrazki wygenerowano z `docs/ikona.png`. Linki do podstron są względne, więc stronę można też
+Ikony pochodzą z ikony aplikacji (`ios/scripts/generate_icon.swift`), a zrzuty ekranu z grafik do sklepu
+(`docs/app-store/zrzuty-grafit/`, pomniejszone o połowę). Linki do podstron są względne, więc stronę można też
 otworzyć lokalnie: `cd website && python3 -m http.server 8000` → http://localhost:8000.
 
 Adresy w App Store Connect:

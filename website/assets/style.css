@@ -1,41 +1,66 @@
 /* KS-eFektywnie — strona aplikacji. Bez zewnętrznych zasobów. */
 
+/* Wygląd „Grafit” jak w aplikacji: grafit i mięta. Mięta jest czytelna tylko na graficie,
+   więc w trybie jasnym przyciski są grafitowe z miętowym napisem, a linki ciemnozielone. */
+
+@font-face {
+  font-family: "Space Grotesk";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url("fonts/SpaceGrotesk-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Space Grotesk";
+  font-weight: 600 700;
+  font-style: normal;
+  font-display: swap;
+  src: url("fonts/SpaceGrotesk-Bold.ttf") format("truetype");
+}
+
 :root {
   color-scheme: light dark;
-  --brand: #1a56db;
-  --brand-strong: #1446b8;
-  --bg: #ffffff;
-  --bg-soft: #f5f5f7;
+  --brand: #0f1211;
+  --brand-strong: #232a27;
+  --on-brand: #6ef0b2;
+  --bg: #f2f5f3;
+  --bg-soft: #e9eeeb;
   --card: #ffffff;
-  --text: #1d1d1f;
-  --text-2: #4f4f55;
-  --text-3: #6e6e73;
-  --link: #1a56db;
-  --border: rgba(0, 0, 0, 0.09);
-  --header-bg: rgba(255, 255, 255, 0.78);
-  --tint: #eef3fe;
-  --tint-border: #d6e2fb;
-  --icon-shadow: 0 18px 40px -12px rgba(26, 86, 219, 0.45), 0 4px 12px rgba(0, 0, 0, 0.08);
-  --radius: 18px;
+  --text: #0f1211;
+  --text-2: #3f4944;
+  --text-3: #5a6660;
+  --link: #0b7a4b;
+  --border: rgba(15, 18, 17, 0.12);
+  --header-bg: rgba(242, 245, 243, 0.82);
+  --tint: #e0f5ea;
+  --tint-border: #c2e8d3;
+  --icon-shadow: 0 18px 40px -14px rgba(15, 18, 17, 0.35), 0 4px 12px rgba(0, 0, 0, 0.08);
+  --check-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236ef0b2' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.5l4 4 8-9'/%3E%3C/svg%3E");
+  --radius: 22px;
   --max: 1080px;
-  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto,
+  --font: "Space Grotesk", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto,
     "Helvetica Neue", Arial, "Noto Sans", sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #000000;
-    --bg-soft: #111113;
-    --card: #1c1c1e;
-    --text: #f5f5f7;
-    --text-2: #c7c7cc;
-    --text-3: #98989f;
-    --link: #7aa7ff;
-    --border: rgba(255, 255, 255, 0.12);
-    --header-bg: rgba(0, 0, 0, 0.72);
-    --tint: #0e1a33;
-    --tint-border: #1d3263;
-    --icon-shadow: 0 18px 44px -14px rgba(26, 86, 219, 0.7), 0 4px 12px rgba(0, 0, 0, 0.5);
+    --brand: #6ef0b2;
+    --brand-strong: #8ff5c5;
+    --on-brand: #0f1211;
+    --bg: #0f1211;
+    --bg-soft: #141917;
+    --card: #181d1b;
+    --text: #ecf1ee;
+    --text-2: #c4cec8;
+    --text-3: #9ba8a1;
+    --link: #6ef0b2;
+    --border: rgba(236, 241, 238, 0.14);
+    --header-bg: rgba(15, 18, 17, 0.78);
+    --tint: #14231c;
+    --tint-border: #1f3a2d;
+    --icon-shadow: 0 18px 44px -14px rgba(0, 0, 0, 0.8), 0 4px 12px rgba(0, 0, 0, 0.5);
+    --check-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230f1211' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.5l4 4 8-9'/%3E%3C/svg%3E");
   }
 }
 
@@ -90,7 +115,7 @@ summary:focus-visible,
   padding: 10px 14px;
   border-radius: 10px;
   background: var(--brand);
-  color: #fff;
+  color: var(--on-brand);
 }
 
 .skip-link:focus {
@@ -239,13 +264,7 @@ summary:focus-visible,
   line-height: 1.25;
   letter-spacing: -0.015em;
   font-weight: 600;
-  color: var(--brand);
-}
-
-@media (prefers-color-scheme: dark) {
-  .hero .subtitle {
-    color: var(--link);
-  }
+  color: var(--link);
 }
 
 .hero .lead {
@@ -273,7 +292,7 @@ summary:focus-visible,
   padding: 12px 24px;
   border-radius: 999px;
   background: var(--brand);
-  color: #ffffff;
+  color: var(--on-brand);
   font-size: 17px;
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -326,6 +345,39 @@ summary:focus-visible,
   margin: 0;
   font-size: 14px;
   color: var(--text-3);
+}
+
+/* ---------- Zrzuty ekranu ---------- */
+
+.shots {
+  list-style: none;
+  margin: 48px auto 0;
+  padding: 0 20px 8px;
+  max-width: var(--max);
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.shots li {
+  flex: 0 0 min(72vw, 300px);
+  scroll-snap-align: center;
+}
+
+.shots img {
+  display: block;
+  width: 100%;
+  border-radius: 28px;
+  border: 1px solid var(--border);
+}
+
+@media (min-width: 1000px) {
+  .shots {
+    justify-content: center;
+    overflow: visible;
+  }
 }
 
 /* ---------- Sekcje ---------- */
@@ -395,7 +447,7 @@ summary:focus-visible,
   height: 44px;
   border-radius: 12px;
   background: var(--brand);
-  color: #fff;
+  color: var(--on-brand);
   margin-bottom: 16px;
 }
 
@@ -473,9 +525,7 @@ summary:focus-visible,
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: var(--brand)
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.5l4 4 8-9'/%3E%3C/svg%3E")
-    center / 14px no-repeat;
+  background: var(--brand) var(--check-icon) center / 14px no-repeat;
 }
 
 .checks strong {
@@ -509,13 +559,7 @@ summary:focus-visible,
   margin: 0 0 8px;
   font-size: 15px;
   font-weight: 600;
-  color: var(--brand);
-}
-
-@media (prefers-color-scheme: dark) {
-  .page-head .eyebrow {
-    color: var(--link);
-  }
+  color: var(--link);
 }
 
 .page-head .lead {
