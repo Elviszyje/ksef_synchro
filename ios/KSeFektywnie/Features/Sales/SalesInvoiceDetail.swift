@@ -24,19 +24,19 @@ struct SalesInvoiceDetail: View {
                         }
                         if !invoice.ksefNumber.isEmpty {
                             LabeledContent("Numer KSeF") {
-                                Text(invoice.ksefNumber).font(.caption.monospaced()).textSelection(.enabled)
+                                Text(invoice.ksefNumber).font(.appCaption.monospaced()).textSelection(.enabled)
                             }
                         }
                         if invoice.status == .imported {
                             Text("Faktura wystawiona poza aplikacją, pobrana z KSeF. Można ją przeglądać, ale nie edytować.")
-                                .font(.footnote).foregroundStyle(.secondary)
+                                .font(.appFootnote).foregroundStyle(.secondary)
                         }
                         if invoice.environment == .test {
                             Label("Środowisko testowe", systemImage: "testtube.2").foregroundStyle(.orange)
                         }
                         if invoice.status == .sending {
                             Text("KSeF przetwarza fakturę. Zwykle trwa to kilka sekund, czasem dłużej.")
-                                .font(.footnote).foregroundStyle(.secondary)
+                                .font(.appFootnote).foregroundStyle(.secondary)
                         }
                         if !invoice.errorMessage.isEmpty {
                             Text(invoice.errorMessage).foregroundStyle(.red)
@@ -62,7 +62,7 @@ struct SalesInvoiceDetail: View {
                         LabeledContent("Data wystawienia", value: invoice.issueDate.formatted)
                         LabeledContent("Brutto") { Text(invoice.amountGross.money(invoice.currency)).bold() }
                         if !invoice.notes.isEmpty {
-                            Text(invoice.notes).font(.footnote).foregroundStyle(.secondary)
+                            Text(invoice.notes).font(.appFootnote).foregroundStyle(.secondary)
                         }
                     }
 
@@ -97,6 +97,7 @@ struct SalesInvoiceDetail: View {
                 }
                 if let error { Section { Text(error).foregroundStyle(.red) } }
             }
+            .appScreenBackground()
             .navigationTitle(invoice?.invoiceNumber ?? "")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

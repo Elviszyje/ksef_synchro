@@ -48,7 +48,7 @@ struct ReminderSection: View {
                     }
                     if let due = info.due {
                         Text("\(due.formatted(date: .abbreviated, time: .shortened)) · \(info.listName)")
-                            .font(.caption).foregroundStyle(.secondary)
+                            .font(.appCaption).foregroundStyle(.secondary)
                     }
                 }
                 Button("Zmień przypomnienie") { openEditor() }
@@ -58,9 +58,9 @@ struct ReminderSection: View {
             }
             if model.reminders.isDenied {
                 Text("Brak dostępu do Przypomnień. Włącz go w Ustawieniach iOS → KS-eFektywnie → Przypomnienia.")
-                    .font(.footnote).foregroundStyle(.secondary)
+                    .font(.appFootnote).foregroundStyle(.secondary)
             }
-            if let error { Text(error).font(.footnote).foregroundStyle(.red) }
+            if let error { Text(error).font(.appFootnote).foregroundStyle(.red) }
         } header: {
             Text("Przypomnienie")
         }
@@ -148,9 +148,10 @@ struct ReminderEditor: View {
                     }
                 }
                 Section("Notatka") {
-                    Text(draft.notes).font(.footnote).foregroundStyle(.secondary)
+                    Text(draft.notes).font(.appFootnote).foregroundStyle(.secondary)
                 }
             }
+            .appScreenBackground()
             .navigationTitle(existing == nil ? String(localized: "Nowe przypomnienie") : String(localized: "Przypomnienie"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

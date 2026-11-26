@@ -5,7 +5,7 @@ final class InvoiceSwipeUITests: XCTestCase {
     @MainActor
     func launch() -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["-demo", "-AppleLanguages", "(pl)", "-AppleLocale", "pl_PL"]
+        app.launchArguments = ["-demo", "-tab", "invoices", "-AppleLanguages", "(pl)", "-AppleLocale", "pl_PL"]
         app.launch()
         return app
     }

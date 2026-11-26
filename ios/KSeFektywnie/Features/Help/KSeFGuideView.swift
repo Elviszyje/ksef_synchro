@@ -45,11 +45,11 @@ struct KSeFGuideView: View {
                     HStack(alignment: .top, spacing: 14) {
                         ZStack {
                             Circle().fill(.tint.opacity(0.15)).frame(width: 36, height: 36)
-                            Text("\(step.id)").font(.headline).foregroundStyle(.tint)
+                            Text("\(step.id)").font(.appHeadline).foregroundStyle(.tint)
                         }
                         VStack(alignment: .leading, spacing: 6) {
-                            Label { Text(step.title).font(.headline) } icon: { Image(systemName: step.symbol) }
-                            Text(step.body).font(.subheadline).foregroundStyle(.secondary)
+                            Label { Text(step.title).font(.appHeadline) } icon: { Image(systemName: step.symbol) }
+                            Text(step.body).font(.appSubheadline).foregroundStyle(.secondary)
                         }
                     }
                     .padding(.vertical, 4)
@@ -58,8 +58,8 @@ struct KSeFGuideView: View {
             Section("Gdy coś nie działa") {
                 ForEach(Array(Self.problems.enumerated()), id: \.offset) { _, problem in
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(problem.0).font(.subheadline.bold())
-                        Text(problem.1).font(.subheadline).foregroundStyle(.secondary)
+                        Text(problem.0).font(.appSubheadline.bold())
+                        Text(problem.1).font(.appSubheadline).foregroundStyle(.secondary)
                     }
                 }
             }
@@ -71,6 +71,7 @@ struct KSeFGuideView: View {
                 Text("KS-eFektywnie nie jest aplikacją Ministerstwa Finansów.")
             }
         }
+        .appScreenBackground()
         .navigationTitle("Połączenie z KSeF")
     }
 }

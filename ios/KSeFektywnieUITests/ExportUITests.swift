@@ -5,7 +5,7 @@ final class ExportUITests: XCTestCase {
     @MainActor
     func launch() -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["-demo", "YES", "-AppleLanguages", "(pl)", "-AppleLocale", "pl_PL"]
+        app.launchArguments = ["-demo", "YES", "-tab", "invoices", "-AppleLanguages", "(pl)", "-AppleLocale", "pl_PL"]
         app.launch()
         XCTAssertTrue(app.staticTexts["FV/2026/0001"].waitForExistence(timeout: 10))
         return app

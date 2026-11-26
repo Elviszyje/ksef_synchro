@@ -21,6 +21,10 @@ public enum DemoData {
         Seller(name: "Telekom Przykład Sp. z o.o.", nip: "8865797544", address: "ul. Światłowodowa 2, 50-001 Wrocław", account: "20105000007924402685995289"),
     ]
 
+    /// Rachunek, na który do niedawna płacono za serwis IT. Bieżąca faktura tego dostawcy ma już
+    /// inny numer, więc w danych demo widać ostrzeżenie o zmianie rachunku.
+    static let previousServiceAccount = "50109010140000000012345678"
+
     /// Tworzy firmę demo z fakturami w różnych statusach. Terminy liczone od `today`.
     @discardableResult
     public static func seed(db: AppDatabase, device: String, today: LocalDate = .today(), now: Date = Date()) throws -> Company {
@@ -61,11 +65,18 @@ public enum DemoData {
             invoice(8, seller: sellers[0], net: "-100", issued: -1, due: nil, status: .new, type: "KOR", item: "Korekta — zwrot tonera"),
         ]
         let repo = InvoiceRepository(db: db, companyID: company.id, device: device)
-        try repo.upsertFromKSeF(invoices, now: now)
-        // Historyczna paczka przelewów: faktura 7 już opłacona, 6 czeka na wyciąg.
+        // Dwie kolejne faktury z przygotowanym przelewem — przykładowy wyciąg ma dzięki nim
+        // dopasowanie pewne (pełny opis przelewu) i niepewne (zgodna sama kwota).
+        let awaitingStatement = [
+            invoice(9, seller: sellers[2], net: "968.20", issued: -28, due: -14, status: .accepted, item: "Energia elektryczna — październik"),
+            invoice(10, seller: sellers[3], net: "1800", issued: -30, due: -16, status: .accepted, item: "Prowadzenie księgowości"),
+        ]
+        try repo.upsertFromKSeF(invoices + awaitingStatement, now: now)
+        try repo.upsertFromKSeF(history(invoice, today: today), now: now)
+        // Historyczna paczka przelewów: faktura 7 już opłacona, 6, 9 i 10 czekają na wyciąg.
         let paidLater = Date(timeInterval: -20 * 86_400, since: now)
         try PaymentFileRepository(db: db, companyID: company.id, device: device).generate(
-            invoiceIDs: [invoices[5].id, invoices[6].id], debitAccount: account,
+            invoiceIDs: [invoices[5].id, invoices[6].id] + awaitingStatement.map(\.id), debitAccount: account,
             payer: PaymentPayer(debitAccount: account.accountNumber, name: company.name, address: company.address),
             date: day(-21), now: Date(timeInterval: -21 * 86_400, since: now))
         try repo.changeStatus(invoices[6].id, to: .paid, note: "Opłacona (dane demo).", now: paidLater)
@@ -75,22 +86,61 @@ public enum DemoData {
         return company
     }
 
-    /// Wyciąg MT940 z zapłatą faktury przekazanej do opłacenia i jedną transakcją bez dopasowania.
+    /// Opłacone faktury z 11 poprzednich miesięcy — żeby wykres kosztów na pulpicie miał historię.
+    /// Stałe koszty co miesiąc (serwis, energia) i kilka większych zakupów.
+    static func history(_ invoice: (Int, Seller, String, Decimal, Int, Int?, InvoiceStatus, Bool, String, String) -> Invoice,
+                        today: LocalDate) -> [Invoice] {
+        let energy = ["1310.40", "1422.15", "1385.00", "1190.72", "1046.30", "921.55", "874.10", "902.64", "968.20", "1104.95", "1236.80"]
+        let purchases: [Int: (seller: Int, net: String, item: String)] = [
+            1: (0, "640.00", "Papier A4, koperty"), 3: (4, "9800.00", "Blacha stalowa 2 mm"), 5: (0, "480.50", "Tonery"),
+            6: (4, "14300.00", "Pręt zbrojeniowy fi 10, 4 t"), 8: (3, "1800.00", "Prowadzenie księgowości"), 10: (0, "395.00", "Artykuły biurowe"),
+        ]
+        func offset(monthsAgo: Int, dayOfMonth: Int) -> Int {
+            let first = today.firstOfMonth.addingMonths(-monthsAgo)
+            let date = LocalDate(year: first.year, month: first.month, day: dayOfMonth)!
+            return Calendar.current.dateComponents([.day], from: today.date(), to: date.date()).day ?? 0
+        }
+        let service = Seller(name: sellers[1].name, nip: sellers[1].nip, address: sellers[1].address, account: previousServiceAccount)
+        var result: [Invoice] = []
+        var number = 11
+        for monthsAgo in 1...11 {
+            let rows: [(Int, String, String, Int)] = [
+                (1, "3500.00", "Abonament serwisowy", 5),
+                (2, energy[monthsAgo - 1], "Energia elektryczna", 12),
+            ] + (purchases[monthsAgo].map { [($0.seller, $0.net, $0.item, 18)] } ?? [])
+            for (seller, net, item, dayOfMonth) in rows {
+                let issued = offset(monthsAgo: monthsAgo, dayOfMonth: dayOfMonth)
+                result.append(invoice(number, seller == 1 ? service : sellers[seller], net, 23, issued, issued + 14, .paid, false, "VAT", item))
+                number += 1
+            }
+        }
+        return result
+    }
+
+    /// Wyciąg MT940 z zapłatami faktur przekazanych do opłacenia i jedną transakcją bez dopasowania.
     static func seedStatement(company: Company, invoices: [Invoice], db: AppDatabase, device: String, today: LocalDate, now: Date) throws {
-        guard let sent = invoices.first(where: { $0.status == .sentForPayment }) else { return }
+        // Faktury z przygotowanym przelewem: wszystkie poza ostatnią mają pełny opis w tytule
+        // (dopasowanie pewne), ostatnia tylko zgodną kwotę (niepewne).
+        let sent = invoices.filter { $0.status == .sentForPayment }.sorted { $0.invoiceNumber < $1.invoiceNumber }
+        guard !sent.isEmpty else { return }
         let yymmdd = String(today.compact.dropFirst(2))
-        let amount = PaymentText.formatAmount(sent.amountGross)
+        var lines = ""
+        var balance = DecimalText.parse("25000")! - DecimalText.parse("58.40")! + DecimalText.parse("12300")!
+        for (index, invoice) in sent.enumerated() {
+            let described = sent.count == 1 || index < sent.count - 1
+            lines += ":61:\(yymmdd)D\(PaymentText.formatAmount(invoice.amountGross))NTRFNONREF\n"
+            lines += described ? ":86:Faktura \(invoice.invoiceNumber) NIP \(invoice.sellerNIP) \(invoice.sellerName)\n" : ":86:Przelew wychodzacy\n"
+            balance -= invoice.amountGross
+        }
         let mt940 = """
             :20:DEMO
             :25:/PL61109010140000071219812874
             :60F:C\(yymmdd)PLN25000,00
-            :61:\(yymmdd)D\(amount)NTRFNONREF
-            :86:Faktura \(sent.invoiceNumber) NIP \(sent.sellerNIP) \(sent.sellerName)
-            :61:\(yymmdd)D58,40NTRFNONREF
+            \(lines):61:\(yymmdd)D58,40NTRFNONREF
             :86:Oplata za prowadzenie rachunku
             :61:\(yymmdd)C12300,00NTRFNONREF
             :86:Wplata od klienta FV/\(today.year)/0001
-            :62F:C\(yymmdd)PLN37057,60
+            :62F:C\(yymmdd)PLN\(PaymentText.formatAmount(balance))
             """
         try StatementRepository(db: db, companyID: company.id, device: device)
             .importStatement(fileName: "wyciag_demo.sta", data: Data(mt940.utf8), now: now)

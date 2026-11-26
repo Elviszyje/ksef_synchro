@@ -28,7 +28,7 @@ struct InvoiceLayoutEditor: View {
         ScrollView {
             VStack(spacing: 14) {
                 Text("Przytrzymaj sekcję i przeciągnij ją w górę lub w dół. Logo i kod QR przeciągnij w lewo albo w prawo.")
-                    .font(.footnote)
+                    .font(.appFootnote)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
@@ -164,7 +164,7 @@ struct InvoiceLayoutEditor: View {
                             .frame(width: 28, height: 28)
                             .overlay {
                                 if template.accentColor == hex {
-                                    Image(systemName: "checkmark").font(.caption.bold()).foregroundStyle(.white)
+                                    Image(systemName: "checkmark").font(.appCaption.bold()).foregroundStyle(.white)
                                 }
                             }
                     }
@@ -275,7 +275,7 @@ private struct SectionPiece: View {
             Group {
                 if isDragging {
                     Label { Text(piece.section.label) } icon: { Image(systemName: "line.3.horizontal") }
-                        .font(.caption2.weight(.semibold))
+                        .font(.appCaption2.weight(.semibold))
                         .padding(.horizontal, 7).padding(.vertical, 3)
                         .background(template.color, in: .capsule)
                         .offset(x: 14 * scale, y: -12)
@@ -298,10 +298,10 @@ private struct SectionPiece: View {
 
     @ViewBuilder private var placeholder: some View {
         HStack {
-            Text(piece.section.emptyHint).font(.caption2).foregroundStyle(.secondary)
+            Text(piece.section.emptyHint).font(.appCaption2).foregroundStyle(.secondary)
             Spacer()
             if piece.section == .signatures {
-                Button("Pokaż") { template.showSignatureFields = true }.font(.caption2.bold())
+                Button("Pokaż") { template.showSignatureFields = true }.font(.appCaption2.bold())
             }
         }
         .padding(.horizontal, 40 * scale)

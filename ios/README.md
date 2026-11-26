@@ -16,6 +16,8 @@ ios/
     Sources/AppServices        # synchronizacja KSeF, dane demo
     Tests/DomainTests/Fixtures # golden files z Django (input/ ręcznie, expected/ generowane)
   scripts/translations.py      # tłumaczenia pl/en/es/uk → String Catalogs (z odmianą przez liczbę)
+  KSeFektywnie/Support/Theme.swift   # wygląd „Grafit”: kolory (jasny/ciemny), kroje, wspólne komponenty
+  KSeFektywnie/Resources/Fonts/      # Space Grotesk i JetBrains Mono (licencja OFL, teksty licencji obok plików)
   scripts/generate_icon.swift  # tymczasowa ikona aplikacji
 ```
 
@@ -35,8 +37,9 @@ xcodebuild -project ios/KSeFektywnie.xcodeproj -scheme KSeFektywnie \
 # zrzuty ekranu na danych demo (tylko Debug), argumenty uruchomienia:
 #   -demo                       dane demo w pamięci (bez lustra iCloud)
 #   -demo-cloud                 jak wyżej, z lustrem (na symulatorze: katalog lokalny)
-#   -tab sales|payments|statements|settings
+#   -tab invoices|sales|payments|statements|settings   (bez argumentu: Pulpit; sales = Faktury → Sprzedaż)
 #   -open-sale 2  -open-statement YES  -open-dashboard YES
+#   -select-payable YES  -store-shots YES  -welcome YES   (grafiki do sklepu: zaznaczone przelewy, bez paska demo, plansza powitalna)
 ```
 
 ## Golden files z Django

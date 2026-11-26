@@ -46,7 +46,7 @@ struct DatePeriodBar: View {
             if case .custom(let from, let to) = period {
                 Button { editingRange = true } label: {
                     Label("\(from.short) – \(to.short)", systemImage: "calendar")
-                        .font(.subheadline.weight(.medium))
+                        .font(.appSubheadline.weight(.medium))
                 }
                 .buttonStyle(.glass)
                 .controlSize(.small)
@@ -85,6 +85,7 @@ private struct DateRangeSheet: View {
                 DatePicker("Od", selection: $from, displayedComponents: .date)
                 DatePicker("Do", selection: $to, in: from..., displayedComponents: .date)
             }
+            .appScreenBackground()
             .onChange(of: from) { _, value in if to < value { to = value } }
             .navigationTitle("Zakres dat")
             .navigationBarTitleDisplayMode(.inline)

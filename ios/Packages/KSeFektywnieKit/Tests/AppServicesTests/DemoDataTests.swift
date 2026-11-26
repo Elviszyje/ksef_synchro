@@ -24,12 +24,19 @@ struct DemoDataTests {
         #expect(try CatalogRepository(db: db, companyID: company.id, device: "d").items().first?.name == "Konsultacje IT")
 
         let statement = try #require(try StatementRepository(db: db, companyID: company.id, device: "d").summaries().first)
-        #expect(statement.debitCount == 2)
-        #expect(statement.matchCount == 1)
+        // Trzy zapłaty faktur (dwie z pełnym opisem, jedna rozpoznana po kwocie) i opłata bankowa.
+        #expect(statement.debitCount == 4)
+        #expect(statement.matchCount == 3)
 
         let invoices = try InvoiceRepository(db: db, companyID: company.id, device: "d").fetch()
-        #expect(invoices.count == 8)
+        // 8 bieżących + 2 czekające na wyciąg + historia: 11 miesięcy × 2 stałe koszty + 6 większych zakupów.
+        #expect(invoices.count == 8 + 2 + 22 + 6)
+        #expect(invoices.filter { $0.issueDate < LocalDate(year: 2026, month: 9, day: 1)! }.allSatisfy { $0.status == .paid })
         #expect(Set(invoices.map(\.status)) == Set(InvoiceStatus.allCases))
+        // Dane demo pokazują ostrzeżenie o zmianie rachunku dokładnie przy jednej fakturze (serwis IT).
+        #expect(Validation.isValidNRB(DemoData.previousServiceAccount))
+        let changed = SellerAccountCheck.changedAccounts(in: invoices, history: invoices)
+        #expect(invoices.filter { changed.contains($0.id) }.map(\.invoiceNumber) == ["FV/2026/0002"])
         for invoice in invoices {
             let parsed = FAParser.parse(Data(invoice.rawXML.utf8))
             #expect(parsed.amountGross == invoice.amountGross, "\(invoice.invoiceNumber)")

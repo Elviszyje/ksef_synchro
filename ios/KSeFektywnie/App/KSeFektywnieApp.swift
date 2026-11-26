@@ -8,11 +8,18 @@ struct KSeFektywnieApp: App {
     @State private var lock = AppLock()
     @Environment(\.scenePhase) private var scenePhase
 
+    init() {
+        Theme.applyNavigationAppearance()
+    }
+
     var body: some Scene {
         WindowGroup {
             // Po ponownym otwarciu bazy powstaje nowy model — `id` odtwarza widoki i zadania na nim.
             RootView(retryStartup: { model = AppModel.live() })
                 .id(ObjectIdentifier(model))
+                // Domyślny krój całej aplikacji; ekrany nadpisują go stylami `Font.app…`.
+                .font(.appBody)
+                .tint(Color.appAccent)
                 .environment(model)
                 .environment(lock)
                 .task { await TipJar.finishPendingTransactions() }

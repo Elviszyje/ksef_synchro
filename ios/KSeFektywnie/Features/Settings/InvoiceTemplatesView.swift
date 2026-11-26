@@ -23,6 +23,7 @@ struct InvoiceTemplatesView: View {
                 Text("Szablon określa wygląd PDF faktur sprzedażowych: układ, kolor, logo, język etykiet i stopkę. Domyślny szablon jest wybrany w podglądzie faktury, a inny można wskazać w menu podglądu.")
             }
         }
+        .appScreenBackground()
         .navigationTitle("Szablony faktur")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -60,11 +61,11 @@ private struct TemplateRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(template.displayName)
                 Text("\(Text(template.layout.label)) · \(Text(template.language.label))")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(.appCaption).foregroundStyle(.secondary)
             }
             Spacer()
             if template.isDefault {
-                Text("Domyślny").font(.caption.weight(.medium)).foregroundStyle(.secondary)
+                Text("Domyślny").font(.appCaption.weight(.medium)).foregroundStyle(.secondary)
             }
         }
     }
@@ -147,7 +148,7 @@ struct InvoiceTemplateEditor: View {
                             Circle()
                                 .fill(Color(hex: hex))
                                 .frame(width: 30, height: 30)
-                                .overlay { if template.accentColor == hex { Image(systemName: "checkmark").font(.caption.bold()).foregroundStyle(.white) } }
+                                .overlay { if template.accentColor == hex { Image(systemName: "checkmark").font(.appCaption.bold()).foregroundStyle(.white) } }
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel(Text("Kolor \(hex)"))
@@ -204,6 +205,7 @@ struct InvoiceTemplateEditor: View {
                 }
             }
         }
+        .appScreenBackground()
         .navigationTitle(template.displayName)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

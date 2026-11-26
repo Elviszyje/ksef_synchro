@@ -12,7 +12,7 @@ struct RootView: View {
         Group {
             if model.databaseUnavailable {
                 DatabaseUnavailableView(details: model.startupError, retry: retryStartup)
-            } else if model.company == nil {
+            } else if model.company == nil || DebugLaunch.showWelcome {
                 OnboardingView()
             } else {
                 MainTabView()
@@ -49,7 +49,7 @@ struct DatabaseUnavailableView: View {
             Label("Dane są chwilowo niedostępne", systemImage: "lock.doc")
         } description: {
             Text("Nie udało się otworzyć bazy aplikacji. Twoje dane są bezpieczne — odblokuj telefon i spróbuj ponownie.")
-            if let details { Text(details).font(.caption) }
+            if let details { Text(details).font(.appCaption) }
         } actions: {
             Button("Spróbuj ponownie", action: retry)
                 .buttonStyle(.glassProminent)
@@ -63,21 +63,26 @@ struct DatabaseUnavailableView: View {
 }
 
 enum AppTab: String, Hashable {
-    case invoices, sales, payments, statements, settings
+    /// `sales` nie ma własnej zakładki — to widok „Sprzedaż” w zakładce Faktury (argument `-tab sales`).
+    case dashboard, invoices, sales, payments, statements, settings
 }
 
 struct MainTabView: View {
     @Environment(AppModel.self) private var model
-    @State private var selection: AppTab = DebugLaunch.initialTab ?? .invoices
+    @State private var selection: AppTab = DebugLaunch.initialTab.map { $0 == .sales ? .invoices : $0 } ?? .dashboard
+    @State private var invoiceKind: InvoiceKind = DebugLaunch.initialTab == .sales ? .sales : .cost
     @State private var flight = PaymentsFlight()
     @State private var reminderPresenter = ReminderPresenter()
     @State private var payableCount = 0
 
     var body: some View {
         TabView(selection: $selection) {
-            Tab("Faktury", systemImage: "doc.text", value: .invoices) { InvoicesView() }
-            Tab("Sprzedaż", systemImage: "square.and.pencil", value: .sales) { SalesListView() }
-            Tab("Przelewy", systemImage: "banknote", value: .payments) { PaymentsView() }
+            Tab("Pulpit", systemImage: "chart.bar", value: .dashboard) {
+                DashboardView(openPayments: { selection = .payments },
+                              openInvoices: { invoiceKind = .cost; selection = .invoices })
+            }
+            Tab("Faktury", systemImage: "doc.text", value: .invoices) { InvoicesTab(kind: $invoiceKind) }
+            Tab("Przelewy", systemImage: "arrow.left.arrow.right", value: .payments) { PaymentsView() }
                 .badge(payableCount)
             Tab("Wyciągi", systemImage: "tray.and.arrow.down", value: .statements) { StatementsView() }
             Tab("Ustawienia", systemImage: "gearshape", value: .settings) { SettingsView() }
@@ -91,7 +96,7 @@ struct MainTabView: View {
         .sensoryFeedback(.impact(weight: .light), trigger: flight.landings)
         .onChange(of: model.openTarget) { _, target in
             switch target {
-            case .invoice?: selection = .invoices
+            case .invoice?: invoiceKind = .cost; selection = .invoices
             case .paymentFile?: selection = .payments
             case nil: break
             }
@@ -117,11 +122,13 @@ struct MainTabView: View {
 }
 
 /// Argumenty uruchomienia do zrzutów ekranu i testów UI (tylko Debug):
-/// `-demo`, `-tab sales`, `-open-sale 2` (n-ty szkic sprzedaży), `-open-statement YES` (pierwszy wyciąg).
+/// `-demo`, `-tab invoices|sales|payments|statements|settings` (domyślnie Pulpit), `-open-sale 2` (n-ty szkic sprzedaży), `-open-statement YES` (pierwszy wyciąg).
 enum DebugLaunch {
     static var initialTab: AppTab? {
         #if DEBUG
-        UserDefaults.standard.string(forKey: "tab").flatMap(AppTab.init(rawValue:))
+        // Flagi otwierające coś na liście faktur działają tylko wtedy, gdy ta zakładka jest na ekranie.
+        if let tab = UserDefaults.standard.string(forKey: "tab").flatMap(AppTab.init(rawValue:)) { return tab }
+        return openInvoiceNumber != nil || autoSwipe != nil || dumpExports ? .invoices : nil
         #else
         nil
         #endif
@@ -158,6 +165,33 @@ enum DebugLaunch {
     static var dumpExports: Bool {
         #if DEBUG
         UserDefaults.standard.bool(forKey: "dump-exports")
+        #else
+        false
+        #endif
+    }
+
+    /// `-store-shots YES`: zrzuty do sklepu — bez paska „Tryb demo”.
+    static var storeShots: Bool {
+        #if DEBUG
+        UserDefaults.standard.bool(forKey: "store-shots")
+        #else
+        false
+        #endif
+    }
+
+    /// `-welcome YES`: plansza powitalna mimo istniejącej firmy, bez szukania kopii w iCloud (zrzuty do sklepu).
+    static var showWelcome: Bool {
+        #if DEBUG
+        UserDefaults.standard.bool(forKey: "welcome")
+        #else
+        false
+        #endif
+    }
+
+    /// `-select-payable YES`: zaznacza wszystkie faktury w zakładce Przelewy (zrzuty ekranu).
+    static var selectAllPayable: Bool {
+        #if DEBUG
+        UserDefaults.standard.bool(forKey: "select-payable")
         #else
         false
         #endif
@@ -206,7 +240,7 @@ struct LockScreen: View {
             Rectangle().fill(.ultraThinMaterial).ignoresSafeArea()
             VStack(spacing: 20) {
                 Image(systemName: "lock.fill").font(.system(size: 48)).foregroundStyle(.secondary)
-                Text("KS-eFektywnie").font(.title2.bold())
+                Text("KS-eFektywnie").font(.appTitle2.bold())
                 if lock.isLocked {
                     Button("Odblokuj") { Task { await lock.unlock() } }
                         .buttonStyle(.glassProminent)

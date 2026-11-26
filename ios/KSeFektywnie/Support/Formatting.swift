@@ -2,10 +2,46 @@ import Foundation
 import SwiftUI
 import Domain
 
+/// Formatery kwot. Polskie ustawienia regionalne nie grupują liczb czterocyfrowych („4305,00 zł”
+/// obok „24 600,00 zł”) — w zestawieniach kwot wygląda to jak błąd, więc grupujemy zawsze.
+enum MoneyFormat {
+    private static var currencyFormatters: [String: NumberFormatter] = [:]
+
+    static func currency(_ code: String) -> NumberFormatter {
+        let key = "\(code)|\(Locale.current.identifier)"
+        if let cached = currencyFormatters[key] { return cached }
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = code
+        formatter.locale = .current
+        formatter.minimumGroupingDigits = 1
+        currencyFormatters[key] = formatter
+        return formatter
+    }
+
+    /// Sama liczba z dwoma miejscami po przecinku, bez symbolu waluty.
+    static func plain() -> NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.locale = .current
+        formatter.minimumFractionDigits = 2
+        formatter.maximumFractionDigits = 2
+        formatter.minimumGroupingDigits = 1
+        return formatter
+    }
+}
+
 extension Decimal {
     /// Kwota z kodem waluty w formacie bieżącego języka (np. „1 446,00 zł”, „PLN 1,446.00”).
     func money(_ currency: String = "PLN") -> String {
-        formatted(.currency(code: currency.isEmpty ? "PLN" : currency))
+        let code = currency.isEmpty ? "PLN" : currency
+        return MoneyFormat.currency(code).string(from: self as NSDecimalNumber)
+            ?? formatted(.currency(code: code))
+    }
+
+    /// Kwota bez symbolu waluty (np. „1 446,00”).
+    var plainAmount: String {
+        MoneyFormat.plain().string(from: self as NSDecimalNumber) ?? formatted()
     }
 }
 
@@ -39,11 +75,11 @@ extension InvoiceStatus {
 
     var color: Color {
         switch self {
-        case .new: .blue
-        case .disputed: .red
-        case .accepted: .orange
-        case .sentForPayment: .purple
-        case .paid: .green
+        case .new: .appAccent
+        case .disputed: .appDanger
+        case .accepted: .appWarning
+        case .sentForPayment: .appMuted
+        case .paid: .appSuccess
         }
     }
 

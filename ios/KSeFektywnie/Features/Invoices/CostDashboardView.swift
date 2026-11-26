@@ -42,7 +42,7 @@ struct CostDashboardView: View {
                     .accessibilityLabel(Text("Wykres kosztów brutto z ostatnich 12 miesięcy"))
                     if summary.otherCurrencyCount > 0 {
                         Text("Faktury w innych walutach (\(summary.otherCurrencyCount)) nie są wliczane do sum.")
-                            .font(.caption).foregroundStyle(.secondary)
+                            .font(.appCaption).foregroundStyle(.secondary)
                     }
                 }
 
@@ -54,15 +54,16 @@ struct CostDashboardView: View {
                         HStack {
                             VStack(alignment: .leading) {
                                 Text(seller.name).lineLimit(1)
-                                Text("NIP \(seller.nip) · \(seller.count) fakt.").font(.caption).foregroundStyle(.secondary)
+                                Text("NIP \(seller.nip) · \(seller.count) fakt.").font(.appCaption).foregroundStyle(.secondary)
                             }
                             Spacer()
-                            Text(seller.gross.money()).font(.subheadline.monospacedDigit())
+                            Text(seller.gross.money()).font(.appSubheadline.monospacedDigit())
                         }
                     }
                 }
             }
         }
+        .appScreenBackground()
         .navigationTitle("Podsumowanie kosztów")
         .navigationBarTitleDisplayMode(.inline)
         .task {
@@ -83,8 +84,8 @@ struct StatTile: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(title).font(.caption).foregroundStyle(.secondary)
-            Text(value).font(.headline.monospacedDigit()).foregroundStyle(tint).lineLimit(1).minimumScaleFactor(0.6)
+            Text(title).font(.appCaption).foregroundStyle(.secondary)
+            Text(value).font(.appHeadline.monospacedDigit()).foregroundStyle(tint).lineLimit(1).minimumScaleFactor(0.6)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()

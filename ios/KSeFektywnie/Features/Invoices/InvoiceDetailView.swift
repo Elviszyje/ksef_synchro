@@ -8,6 +8,10 @@ struct InvoiceDetailView: View {
     @Environment(PaymentsFlight.self) private var flight
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var statusButtonFrame: CGRect = .zero
+    @State private var primaryButtonFrame: CGRect = .zero
+    @State private var accountCopied = 0
+    /// Rachunek na tej fakturze różni się od wcześniejszych faktur tego dostawcy.
+    @State private var accountChanged = false
     @State private var invoice: Invoice?
     @State private var log: [InvoiceStatusLogEntry] = []
     @State private var notes = ""
@@ -16,18 +20,25 @@ struct InvoiceDetailView: View {
     var body: some View {
         Form {
             if let invoice {
+                Section {
+                    header(invoice)
+                        .frame(maxWidth: .infinity)
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                }
+
                 // Jeden zwarty wiersz. `LabeledContent` z `Label` w formularzu iOS 26 dostawał
                 // błędnie wyliczoną, zmienną wysokość (puste miejsce pod statusem).
                 Section {
                     HStack(spacing: 12) {
                         Image(systemName: invoice.status.symbol)
-                            .font(.title2)
+                            .font(.appTitle2)
                             .foregroundStyle(invoice.status.color)
                             .frame(width: 32)
                             .contentTransition(.symbolEffect(.replace))
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Status").font(.caption).foregroundStyle(.secondary)
-                            Text(invoice.status.label).font(.headline).foregroundStyle(invoice.status.color)
+                            Text("Status").font(.appCaption).foregroundStyle(.secondary)
+                            Text(invoice.status.label).font(.appHeadline).foregroundStyle(invoice.status.color)
                         }
                         Spacer(minLength: 8)
                         if !invoice.statusActions.isEmpty {
@@ -50,15 +61,8 @@ struct InvoiceDetailView: View {
                     .padding(.vertical, 2)
                     .accessibilityElement(children: .contain)
                     Text(invoice.status.explanation)
-                        .font(.footnote)
+                        .font(.appFootnote)
                         .foregroundStyle(.secondary)
-                }
-
-                Section("Kwoty") {
-                    LabeledContent("Netto", value: invoice.amountNet.money(invoice.currency))
-                    LabeledContent("VAT", value: invoice.amountVAT.money(invoice.currency))
-                    LabeledContent("Brutto") { Text(invoice.amountGross.money(invoice.currency)).bold() }
-                    if invoice.isSplitPayment { Label("Mechanizm podzielonej płatności", systemImage: "arrow.triangle.branch") }
                 }
 
                 Section("Sprzedawca") {
@@ -75,8 +79,29 @@ struct InvoiceDetailView: View {
                         Label("Brak numeru rachunku — faktury nie można dodać do przelewu.", systemImage: "exclamationmark.triangle")
                             .foregroundStyle(.orange)
                     } else {
-                        LabeledContent("Rachunek", value: invoice.bankAccountNumber)
-                            .textSelection(.enabled)
+                        HStack(spacing: 12) {
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("Rachunek").font(.appCaption).foregroundStyle(.secondary)
+                                Text(invoice.bankAccountNumber.groupedNRB)
+                                    .font(.mono(13, medium: true, relativeTo: .subheadline))
+                                    .textSelection(.enabled)
+                            }
+                            Spacer(minLength: 8)
+                            Button {
+                                UIPasteboard.general.string = invoice.bankAccountNumber
+                                accountCopied += 1
+                            } label: {
+                                Label("Kopiuj numer rachunku", systemImage: "doc.on.doc").labelStyle(.iconOnly)
+                            }
+                            .buttonStyle(.bordered)
+                            .sensoryFeedback(.success, trigger: accountCopied)
+                            .accessibilityIdentifier("copy-account")
+                        }
+                        if accountChanged {
+                            Label("Ten dostawca podawał dotąd inny rachunek. Potwierdź numer przed zapłatą.", systemImage: "exclamationmark.triangle")
+                                .font(.appFootnote)
+                                .foregroundStyle(Color.appWarning)
+                        }
                     }
                 }
 
@@ -87,7 +112,7 @@ struct InvoiceDetailView: View {
                             VStack(alignment: .leading) {
                                 Text(item.name)
                                 Text("\(item.qty) \(item.unit) × \(item.unitPrice) · VAT \(item.vatRate)")
-                                    .font(.caption).foregroundStyle(.secondary)
+                                    .font(.appCaption).foregroundStyle(.secondary)
                             }
                         }
                     }
@@ -114,15 +139,15 @@ struct InvoiceDetailView: View {
                         ForEach(Array(log.enumerated()), id: \.offset) { _, entry in
                             VStack(alignment: .leading) {
                                 Text("\(Text(entry.change.from.label)) → \(Text(entry.change.to.label))")
-                                Text(entry.change.at.formatted(date: .abbreviated, time: .shortened)).font(.caption).foregroundStyle(.secondary)
-                                if !entry.change.note.isEmpty { Text(entry.change.note).font(.caption) }
+                                Text(entry.change.at.formatted(date: .abbreviated, time: .shortened)).font(.appCaption).foregroundStyle(.secondary)
+                                if !entry.change.note.isEmpty { Text(entry.change.note).font(.appCaption) }
                             }
                         }
                     }
                 }
 
                 Section {
-                    LabeledContent("Numer KSeF", value: invoice.ksefReferenceNumber).font(.caption).textSelection(.enabled)
+                    LabeledContent("Numer KSeF", value: invoice.ksefReferenceNumber).font(.appCaption).textSelection(.enabled)
                     if !invoice.rawXML.isEmpty {
                         NavigationLink {
                             InvoicePDFPreview(source: model.costVisualization(invoice), templates: [model.costTemplate], isCostInvoice: true)
@@ -138,8 +163,12 @@ struct InvoiceDetailView: View {
             }
             if let error { Section { Text(error).foregroundStyle(.red) } }
         }
+        .appScreenBackground()
         .navigationTitle(invoice?.invoiceNumber ?? "")
         .navigationBarTitleDisplayMode(.inline)
+        .safeAreaInset(edge: .bottom) {
+            if let invoice { actionBar(invoice) }
+        }
         .task {
             load()
             if DebugLaunch.autoApprove, invoice?.allowedTransitions.contains(.accepted) == true {
@@ -149,19 +178,85 @@ struct InvoiceDetailView: View {
         }
     }
 
+    /// Nagłówek: dostawca, kwota brutto, netto i VAT, termin oraz MPP.
+    private func header(_ invoice: Invoice) -> some View {
+        VStack(spacing: 6) {
+            InitialsAvatar(name: invoice.sellerName, size: 52, prominent: true)
+            Text(invoice.sellerName)
+                .font(.grotesk(18, .medium, relativeTo: .title3))
+                .multilineTextAlignment(.center)
+                .padding(.top, 4)
+            Text("NIP \(invoice.sellerNIP)").font(.mono(12)).foregroundStyle(Color.appMuted)
+            HeroAmount(amount: invoice.amountGross, currency: invoice.currency, size: 44)
+                .padding(.top, 8)
+            Text("netto \(invoice.amountNet.money(invoice.currency)) · VAT \(invoice.amountVAT.money(invoice.currency))")
+                .font(.appFootnote)
+                .foregroundStyle(Color.appMuted)
+            HStack(spacing: 8) {
+                if let due = invoice.paymentDueDate, invoice.status != .paid {
+                    let term = Text("Termin: \(due.formatted)")
+                    if let summary = DueSummary(invoice, today: .today()) {
+                        AppPill(text: Text("\(term) · \(Text(summary.text))"),
+                                tone: summary.tone == .danger ? .danger : summary.tone == .warning ? .warning : .neutral)
+                    } else {
+                        AppPill(text: term)
+                    }
+                }
+                if invoice.isSplitPayment { AppPill(text: Text("MPP"), tone: .outline) }
+            }
+            .padding(.top, 6)
+        }
+    }
+
+    /// Stały pasek na dole: zatwierdzenie do zapłaty i podgląd PDF.
+    @ViewBuilder
+    private func actionBar(_ invoice: Invoice) -> some View {
+        let canAccept = invoice.allowedTransitions.contains(.accepted)
+        let hasPDF = !invoice.rawXML.isEmpty
+        if canAccept || hasPDF {
+            HStack(spacing: 10) {
+                if canAccept {
+                    Button { change(to: .accepted, origin: primaryButtonFrame) } label: {
+                        Text(invoice.isCorrection ? "Zatwierdź korektę" : "Zatwierdź do zapłaty")
+                    }
+                    .buttonStyle(.appPrimary)
+                    .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { primaryButtonFrame = $0 }
+                    .accessibilityIdentifier("approve-invoice")
+                }
+                if hasPDF {
+                    NavigationLink {
+                        InvoicePDFPreview(source: model.costVisualization(invoice), templates: [model.costTemplate], isCostInvoice: true)
+                    } label: {
+                        Text("PDF").frame(maxWidth: canAccept ? nil : .infinity)
+                    }
+                    .buttonStyle(.appSecondary)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 10)
+            .padding(.bottom, 8)
+            .background(.bar)
+        }
+    }
+
     private func load() {
         guard let repo = model.invoices else { return }
         invoice = try? repo.find(invoiceID)
         log = (try? repo.statusLog(invoiceID)) ?? []
         notes = invoice?.notes ?? ""
+        if let invoice, invoice.status != .paid {
+            accountChanged = SellerAccountCheck.hasChangedAccount(invoice, history: (try? repo.fetch()) ?? [])
+        }
     }
 
-    private func change(to status: InvoiceStatus) {
+    /// - Parameter origin: ramka przycisku, z którego startuje animacja (domyślnie menu „Zmień status”).
+    private func change(to status: InvoiceStatus, origin: CGRect? = nil) {
         do {
             let flies = status == .accepted && invoice?.movesToPaymentsWhenAccepted == true
             try model.invoices?.changeStatus(invoiceID, to: status)
-            if flies && !reduceMotion && statusButtonFrame != .zero {
-                flight.launch(from: CGPoint(x: statusButtonFrame.midX, y: statusButtonFrame.midY))
+            let start = origin ?? statusButtonFrame
+            if flies && !reduceMotion && start != .zero {
+                flight.launch(from: CGPoint(x: start.midX, y: start.midY))
             }
             withAnimation(.snappy) { load() }
         } catch {

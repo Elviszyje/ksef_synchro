@@ -44,17 +44,17 @@ struct WhiteListLookup: View {
         case .found(let taxpayer):
             if taxpayer.isActiveVATPayer {
                 Label("Czynny podatnik VAT — dane uzupełnione", systemImage: "checkmark.seal.fill")
-                    .font(.caption).foregroundStyle(.green)
+                    .font(.appCaption).foregroundStyle(.green)
             } else {
                 Label("Status VAT: \(taxpayer.vatStatus.isEmpty ? "—" : taxpayer.vatStatus) — dane uzupełnione",
                       systemImage: "exclamationmark.triangle.fill")
-                    .font(.caption).foregroundStyle(.orange)
+                    .font(.appCaption).foregroundStyle(.orange)
             }
         case .notFound:
             Label("Brak w wykazie podatników VAT — wpisz dane ręcznie.", systemImage: "questionmark.circle")
-                .font(.caption).foregroundStyle(.secondary)
+                .font(.appCaption).foregroundStyle(.secondary)
         case .failed(let message):
-            Label(message, systemImage: "wifi.exclamationmark").font(.caption).foregroundStyle(.red)
+            Label(message, systemImage: "wifi.exclamationmark").font(.appCaption).foregroundStyle(.red)
         case .idle, .loading:
             EmptyView()
         }

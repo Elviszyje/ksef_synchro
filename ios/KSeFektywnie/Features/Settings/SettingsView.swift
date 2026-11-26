@@ -31,7 +31,7 @@ struct SettingsView: View {
                             VStack(alignment: .leading) {
                                 Text("Połączenie z KSeF")
                                 Text(model.ksefToken == nil ? "Nie skonfigurowano" : "Token zapisany")
-                                    .font(.caption).foregroundStyle(.secondary)
+                                    .font(.appCaption).foregroundStyle(.secondary)
                             }
                         } icon: { Image(systemName: "link") }
                     }
@@ -43,7 +43,7 @@ struct SettingsView: View {
                             VStack(alignment: .leading) {
                                 Text("iCloud Drive")
                                 Text(model.cloud.isEnabled ? "Kopia danych włączona" : "Wyłączona")
-                                    .font(.caption).foregroundStyle(.secondary)
+                                    .font(.appCaption).foregroundStyle(.secondary)
                             }
                         } icon: { Image(systemName: "icloud") }
                     }
@@ -95,6 +95,7 @@ struct SettingsView: View {
                     Button("Usuń wszystkie dane", role: .destructive) { confirmDelete = true }
                 }
             }
+            .appScreenBackground()
             .navigationTitle("Ustawienia")
             .confirmationDialog("Usunąć wszystkie dane z tego iPhone'a?", isPresented: $confirmDelete, titleVisibility: .visible) {
                 Button("Usuń", role: .destructive) { try? model.deleteAllData() }
@@ -141,6 +142,7 @@ struct CompanySettingsView: View {
                 Text("W plikach Elixir-0 nazwa i adres są skracane do 35 znaków każde.")
             }
         }
+        .appScreenBackground()
         .navigationTitle("Firma")
         .onAppear {
             name = model.company?.name ?? ""
@@ -164,8 +166,8 @@ struct BankAccountsView: View {
                 ForEach(model.bankAccounts) { account in
                     VStack(alignment: .leading) {
                         Text(account.label.isEmpty ? BankDetection.label(for: account.bankKey).nonEmptyOr(String(localized: "Rachunek")) : account.label)
-                        Text(account.accountNumber.groupedNRB).font(.caption.monospaced()).foregroundStyle(.secondary)
-                        Text("Format pliku: \(PaymentFileFormat.forBank(account.bankKey).label)").font(.caption2).foregroundStyle(.secondary)
+                        Text(account.accountNumber.groupedNRB).font(.appCaption.monospaced()).foregroundStyle(.secondary)
+                        Text("Format pliku: \(PaymentFileFormat.forBank(account.bankKey).label)").font(.appCaption2).foregroundStyle(.secondary)
                     }
                 }
                 .onDelete { idx in idx.map { model.bankAccounts[$0] }.forEach { try? model.deleteBankAccount($0) } }
@@ -180,6 +182,7 @@ struct BankAccountsView: View {
                 Button("Dodaj") { add() }.disabled(number.filter(\.isNumber).count != 26)
             }
         }
+        .appScreenBackground()
         .navigationTitle("Rachunki bankowe")
     }
 
@@ -254,8 +257,8 @@ struct KSeFSettingsView: View {
                     }
                 }
                 .disabled(model.ksefToken == nil || testState == .running)
-                if case .failed(let message) = testState { Text(message).font(.footnote).foregroundStyle(.red) }
-                if testState == .ok { Text("Połączenie działa.").font(.footnote).foregroundStyle(.green) }
+                if case .failed(let message) = testState { Text(message).font(.appFootnote).foregroundStyle(.red) }
+                if testState == .ok { Text("Połączenie działa.").font(.appFootnote).foregroundStyle(.green) }
 
                 Button {
                     Task { await model.sync(); refreshPending() }
@@ -267,7 +270,7 @@ struct KSeFSettingsView: View {
                     }
                 }
                 .disabled(model.ksefToken == nil || model.syncInProgress)
-                if let message = model.syncMessage { Text(message).font(.footnote) }
+                if let message = model.syncMessage { Text(message).font(.appFootnote) }
             } footer: {
                 VStack(alignment: .leading, spacing: 4) {
                     if let last = model.company?.lastSyncAt {
@@ -300,6 +303,7 @@ struct KSeFSettingsView: View {
                 }
             }
         }
+        .appScreenBackground()
         .navigationTitle("KSeF")
         .onAppear(perform: refreshPending)
     }

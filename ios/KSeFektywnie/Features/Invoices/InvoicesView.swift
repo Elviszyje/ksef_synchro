@@ -6,12 +6,12 @@ import Domain
 import Persistence
 
 struct InvoicesView: View {
+    @Binding var kind: InvoiceKind
     @Environment(AppModel.self) private var model
     @State private var invoices: [Invoice] = []
     @State private var filter = InvoiceFilter()
     @State private var period: DatePeriod = .all
     @State private var loadError: String?
-    @State private var showDashboard = DebugLaunch.openDashboard
     @State private var path: [UUID] = []
     @State private var rowFrames: [UUID: CGRect] = [:]
     @State private var undo: UndoStatus?
@@ -22,41 +22,53 @@ struct InvoicesView: View {
     var body: some View {
         NavigationStack(path: $path) {
             List {
-                if model.isDemo {
-                    Section { Label("Tryb demo — dane przykładowe", systemImage: "theatermasks").font(.footnote) }
+                InvoiceKindSection(kind: $kind)
+                if model.isDemo && !DebugLaunch.storeShots {
+                    BannerRow(text: Text("Tryb demo — dane przykładowe"), systemImage: "theatermasks")
                 }
                 if let message = model.syncBanner {
-                    Section { Label(message, systemImage: "arrow.triangle.2.circlepath").font(.footnote) }
+                    BannerRow(text: Text(message), systemImage: "arrow.triangle.2.circlepath")
                 }
                 if !invoices.isEmpty || isNarrowed {
                     DatePeriodSection(period: $period)
+                    QuickFilterSection(filter: $filter)
                 }
                 if invoices.isEmpty && isNarrowed {
                     NoResultsSection { clearFilters() }
                 }
-                ForEach(invoices) { invoice in
-                    NavigationLink(value: invoice.id) { InvoiceRow(invoice: invoice) }
-                        .accessibilityIdentifier("invoice-\(invoice.id.uuidString)")
-                        .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { rowFrames[invoice.id] = $0 }
-                        // W prawo: zatwierdź do zapłaty. W lewo: sporna. Po każdym geście pasek „Cofnij”.
-                        .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                            if invoice.allowedTransitions.contains(.accepted) {
-                                Button { swipe(invoice, to: .accepted) } label: {
-                                    Label(invoice.isCorrection ? "Zatwierdź korektę" : "Do zapłaty", systemImage: "banknote")
+                ForEach(InvoiceDayGroup.make(invoices)) { group in
+                    Section {
+                        ForEach(group.invoices) { invoice in
+                            NavigationLink(value: invoice.id) { InvoiceRow(invoice: invoice) }
+                                .accessibilityIdentifier("invoice-\(invoice.id.uuidString)")
+                                .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { rowFrames[invoice.id] = $0 }
+                                // W prawo: zatwierdź do zapłaty. W lewo: sporna. Po każdym geście pasek „Cofnij”.
+                                .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                                    if invoice.allowedTransitions.contains(.accepted) {
+                                        Button { swipe(invoice, to: .accepted) } label: {
+                                            Label(invoice.isCorrection ? "Zatwierdź korektę" : "Do zapłaty", systemImage: "banknote")
+                                        }
+                                        .tint(Color.appSwipeApprove)
+                                    }
                                 }
-                                .tint(.orange)
-                            }
-                        }
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            if invoice.allowedTransitions.contains(.disputed) {
-                                Button { swipe(invoice, to: .disputed) } label: {
-                                    Label("Sporna", systemImage: "exclamationmark.bubble")
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    if invoice.allowedTransitions.contains(.disputed) {
+                                        Button { swipe(invoice, to: .disputed) } label: {
+                                            Label("Sporna", systemImage: "exclamationmark.bubble")
+                                        }
+                                        .tint(Color.appSwipeDispute)
+                                    }
                                 }
-                                .tint(.red)
-                            }
+                                .listRowBackground(Color.clear)
+                                .listRowSeparatorTint(Color.appLine)
                         }
+                    } header: {
+                        InvoiceDayHeader(group: group)
+                    }
                 }
             }
+            .listStyle(.plain)
+            .appScreenBackground()
             .overlay {
                 if invoices.isEmpty && !isNarrowed {
                     ContentUnavailableView {
@@ -86,9 +98,6 @@ struct InvoicesView: View {
             .searchable(text: $filter.search, prompt: Text("Numer, sprzedawca, NIP"))
             .refreshable { await model.sync() }
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button { showDashboard = true } label: { Label("Podsumowanie kosztów", systemImage: "chart.bar") }
-                }
                 ToolbarItem(placement: .topBarTrailing) {
                     if !invoices.isEmpty { exportMenu }
                 }
@@ -97,7 +106,6 @@ struct InvoicesView: View {
             .navigationTitle("Faktury")
             .animation(.snappy, value: model.syncBanner)
             .navigationDestination(for: UUID.self) { InvoiceDetailView(invoiceID: $0) }
-            .navigationDestination(isPresented: $showDashboard) { CostDashboardView() }
             .task(id: filter) { await observe() }
             .onChange(of: period, initial: true) { _, period in
                 let bounds = period.bounds()
@@ -223,32 +231,107 @@ extension InvoiceFilter {
     }
 }
 
-struct InvoiceRow: View {
-    let invoice: Invoice
+/// Faktury z jednego dnia wystawienia (lista jest posortowana od najnowszych).
+struct InvoiceDayGroup: Identifiable {
+    let date: LocalDate
+    var invoices: [Invoice]
+    var id: LocalDate { date }
 
-    var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: invoice.status.symbol)
-                .foregroundStyle(invoice.status.color)
-                .frame(width: 22)
-            VStack(alignment: .leading, spacing: 3) {
-                Text(invoice.sellerName).font(.headline).lineLimit(1)
-                Text(invoice.invoiceNumber).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
-                if let due = invoice.paymentDueDate {
-                    Text("Termin: \(due.formatted)")
-                        .font(.caption)
-                        .foregroundStyle(invoice.isOverdue(today: .today()) ? .red : .secondary)
-                }
-            }
-            Spacer()
-            VStack(alignment: .trailing, spacing: 3) {
-                Text(invoice.amountGross.money(invoice.currency)).font(.subheadline.monospacedDigit().bold())
-                if invoice.isSplitPayment {
-                    Text("MPP").font(.caption2.bold()).padding(.horizontal, 5).background(.orange.opacity(0.2), in: .capsule)
-                }
+    var newCount: Int { invoices.filter { $0.status == .new }.count }
+    /// Suma brutto faktur w PLN; nil, gdy w grupie są tylko inne waluty.
+    var totalPLN: Decimal? {
+        let pln = invoices.filter { $0.currency == "PLN" }
+        return pln.isEmpty ? nil : pln.reduce(0) { $0 + $1.amountGross }
+    }
+
+    static func make(_ invoices: [Invoice]) -> [InvoiceDayGroup] {
+        var groups: [InvoiceDayGroup] = []
+        for invoice in invoices {
+            if groups.last?.date == invoice.issueDate {
+                groups[groups.count - 1].invoices.append(invoice)
+            } else {
+                groups.append(InvoiceDayGroup(date: invoice.issueDate, invoices: [invoice]))
             }
         }
-        .accessibilityElement(children: .combine)
+        return groups
+    }
+}
+
+/// Nagłówek dnia: „Dziś, 26 listopada” i liczba nowych faktur albo suma dnia.
+struct InvoiceDayHeader: View {
+    let group: InvoiceDayGroup
+    var today: LocalDate = .today()
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(title)
+            Spacer()
+            if group.newCount > 0 {
+                Text("\(group.newCount) nowych").foregroundStyle(Color.appAccent)
+            } else if let total = group.totalPLN, group.invoices.count > 1 {
+                Text(total.money()).monospacedDigit()
+            }
+        }
+        .font(.grotesk(13, .medium, relativeTo: .footnote))
+        .foregroundStyle(Color.appMuted)
+        .textCase(nil)
+    }
+
+    private var title: String {
+        let date = group.date.date()
+        let includeYear = group.date.year != today.year
+        let dayMonth = date.formatted(includeYear ? .dateTime.day().month(.wide).year() : .dateTime.day().month(.wide))
+        switch DueSummary.days(from: group.date, to: today) {
+        case 0: return String(localized: "Dziś, \(dayMonth)")
+        case 1: return String(localized: "Wczoraj, \(dayMonth)")
+        default:
+            let weekday = date.formatted(.dateTime.weekday(.wide))
+            return "\(weekday.prefix(1).uppercased() + weekday.dropFirst()), \(dayMonth)"
+        }
+    }
+}
+
+/// Szybkie filtry pod paskiem okresu. Zmieniają ten sam filtr co menu „Filtry”.
+struct QuickFilterSection: View {
+    @Binding var filter: InvoiceFilter
+
+    var body: some View {
+        Section {
+            ScrollView(.horizontal) {
+                HStack(spacing: 8) {
+                    chip("Nowe", isOn: filter.statuses == [.new]) {
+                        filter.statuses = filter.statuses == [.new] ? [] : [.new]
+                    }
+                    chip("Zatwierdzone", isOn: filter.statuses == [.accepted]) {
+                        filter.statuses = filter.statuses == [.accepted] ? [] : [.accepted]
+                    }
+                    chip("Po terminie", isOn: filter.overdueOnly) { filter.overdueOnly.toggle() }
+                    chip("MPP", isOn: filter.splitPaymentOnly) { filter.splitPaymentOnly.toggle() }
+                }
+                .padding(.horizontal)
+            }
+            .scrollIndicators(.hidden)
+            .padding(.vertical, 4)
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+        }
+        .listSectionSeparator(.hidden)
+    }
+
+    private func chip(_ title: LocalizedStringKey, isOn: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.grotesk(13, .medium, relativeTo: .footnote))
+                .foregroundStyle(isOn ? Color.appOnPrimary : Color.appInk)
+                .padding(.horizontal, 12)
+                .frame(minHeight: 34)
+                .background(isOn ? Color.appPrimaryFill : Color.appSurface, in: .capsule)
+                .overlay { if !isOn { Capsule().strokeBorder(Color.appLine) } }
+                .contentShape(.capsule)
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isOn ? .isSelected : [])
     }
 }
 
@@ -269,8 +352,8 @@ struct UndoBanner: View {
         HStack(spacing: 12) {
             Image(systemName: item.current.symbol).foregroundStyle(item.current.color)
             VStack(alignment: .leading, spacing: 1) {
-                Text(item.invoiceNumber).font(.caption).foregroundStyle(.secondary)
-                Text(item.current.label).font(.subheadline.weight(.semibold))
+                Text(item.invoiceNumber).font(.appCaption).foregroundStyle(.secondary)
+                Text(item.current.label).font(.appSubheadline.weight(.semibold))
             }
             Spacer()
             Button("Cofnij", action: onUndo)

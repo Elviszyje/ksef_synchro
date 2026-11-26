@@ -31,7 +31,7 @@ struct SalesInvoiceForm: View {
                 if draft.status == .rejected && !draft.errorMessage.isEmpty {
                     Section {
                         Label { Text(draft.errorMessage) } icon: { Image(systemName: "xmark.octagon.fill") }
-                            .foregroundStyle(.red)
+                            .foregroundStyle(Color.appDanger)
                     } header: {
                         Text("Odrzucona przez KSeF")
                     } footer: {
@@ -41,7 +41,7 @@ struct SalesInvoiceForm: View {
                     // Synchronizacja zmieniła numer szkicu, bo był już użyty w KSeF.
                     Section {
                         Label { Text(draft.errorMessage) } icon: { Image(systemName: "number") }
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(Color.appWarning)
                     }
                 }
                 buyerSection
@@ -50,39 +50,27 @@ struct SalesInvoiceForm: View {
                 detailsSection
                 summarySection
                 if !issues.isEmpty || error != nil { problemsSection }
-                Section {
-                    Button {
-                        prepareSend()
-                    } label: {
-                        HStack {
-                            Label("Wyślij do KSeF", systemImage: "paperplane.fill")
-                            Spacer()
-                            if sending { ProgressView() }
-                        }
+                if model.ksefToken == nil {
+                    Section {
+                        Label("Aby wysłać fakturę, zapisz token KSeF w Ustawieniach (z uprawnieniem do wystawiania faktur).", systemImage: "key")
+                            .font(.appFootnote).foregroundStyle(Color.appMuted)
                     }
-                    .disabled(sending || model.ksefToken == nil)
-                } footer: {
-                    if model.ksefToken == nil {
-                        Text("Aby wysłać fakturę, zapisz token KSeF w Ustawieniach (z uprawnieniem do wystawiania faktur).")
-                    } else if model.company?.ksefEnvironment == .test {
-                        Text("Środowisko testowe KSeF — faktury nie mają skutków prawnych.")
+                } else if model.company?.ksefEnvironment == .test {
+                    Section {
+                        Label("Środowisko testowe KSeF — faktury nie mają skutków prawnych.", systemImage: "testtube.2")
+                            .font(.appFootnote).foregroundStyle(Color.appMuted)
                     }
                 }
             }
+            .appScreenBackground()
             .disabled(!editable)
+            .safeAreaInset(edge: .bottom) { actionBar }
             .navigationTitle(draft.invoiceNumber.isEmpty ? String(localized: "Nowa faktura") : draft.invoiceNumber)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Anuluj") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Zapisz", action: save).disabled(!editable)
-                }
-                ToolbarItem(placement: .bottomBar) {
-                    Button { showXML = true } label: { Label("Podgląd XML FA(3)", systemImage: "chevron.left.forwardslash.chevron.right") }
-                }
-                ToolbarItem(placement: .bottomBar) {
-                    Button { showPDF = true } label: { Label("Podgląd PDF", systemImage: "doc.richtext") }
-                        .accessibilityIdentifier("draft-pdf")
                 }
             }
             .sheet(isPresented: $showItemPicker) {
@@ -211,7 +199,7 @@ struct SalesInvoiceForm: View {
                 Picker("Rachunek", selection: $draft.bankAccountNumber) {
                     if model.bankAccounts.isEmpty { Text("Dodaj rachunek w Ustawieniach").tag("") }
                     ForEach(model.bankAccounts) { account in
-                        Text(account.accountNumber.groupedNRB).font(.caption.monospaced()).tag(account.accountNumber)
+                        Text(account.accountNumber.groupedNRB).font(.appCaption.monospaced()).tag(account.accountNumber)
                     }
                 }
             }
@@ -223,17 +211,45 @@ struct SalesInvoiceForm: View {
         Section("Podsumowanie") {
             LabeledContent("Netto", value: draft.amountNet.money(draft.currency))
             LabeledContent("VAT", value: draft.amountVAT.money(draft.currency))
-            LabeledContent("Brutto") { Text(draft.amountGross.money(draft.currency)).bold() }
+            LabeledContent("Brutto") { HeroAmount(amount: draft.amountGross, currency: draft.currency, size: 26) }
         }
+    }
+
+    /// Stały pasek na dole: wysyłka do KSeF oraz podgląd PDF i XML.
+    private var actionBar: some View {
+        HStack(spacing: 10) {
+            Button(action: prepareSend) {
+                HStack(spacing: 8) {
+                    if sending { ProgressView().tint(Color.appOnPrimary) }
+                    Text("Wyślij do KSeF")
+                }
+            }
+            .buttonStyle(.appPrimary)
+            // W zrzutach do sklepu (dane demo bez tokenu) przycisk ma wyglądać na aktywny.
+            .disabled(!editable || sending || (model.ksefToken == nil && !DebugLaunch.storeShots))
+            Button { showPDF = true } label: { Text("PDF") }
+                .buttonStyle(.appSecondary)
+                .accessibilityLabel(Text("Podgląd PDF"))
+                .accessibilityIdentifier("draft-pdf")
+            Button { showXML = true } label: {
+                Image(systemName: "chevron.left.forwardslash.chevron.right").font(.system(size: 15, weight: .semibold))
+            }
+            .buttonStyle(.appSecondary)
+            .accessibilityLabel(Text("Podgląd XML FA(3)"))
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 10)
+        .padding(.bottom, 8)
+        .background(.bar)
     }
 
     private var problemsSection: some View {
         Section {
             ForEach(issues, id: \.self) { issue in
                 Label { Text(issue.message) } icon: { Image(systemName: "exclamationmark.triangle.fill") }
-                    .foregroundStyle(.red)
+                    .foregroundStyle(Color.appDanger)
             }
-            if let error { Text(error).foregroundStyle(.red) }
+            if let error { Text(error).foregroundStyle(Color.appDanger) }
         }
     }
 
@@ -299,10 +315,10 @@ struct ItemRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.name.isEmpty ? String(localized: "Nowa pozycja") : item.name)
                 Text("\(item.quantity.formatted()) \(item.unit) × \(item.unitPriceNet.money(currency)) · \(item.vatRate.shortLabel)")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(.appCaption).foregroundStyle(.secondary)
             }
             Spacer()
-            Text(item.amountGross.money(currency)).font(.subheadline.monospacedDigit())
+            Text(item.amountGross.money(currency)).font(.appSubheadline.monospacedDigit())
         }
     }
 }
@@ -332,6 +348,7 @@ struct ItemEditor: View {
                     LabeledContent("Brutto", value: item.amountGross.money())
                 }
             }
+            .appScreenBackground()
             .navigationTitle("Pozycja")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -375,7 +392,7 @@ struct CatalogPickerSheet: View {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(entry.name)
                                     Text("\(entry.unit) · \(entry.unitPriceNet.money()) netto · \(entry.vatRate.shortLabel)")
-                                        .font(.caption).foregroundStyle(.secondary)
+                                        .font(.appCaption).foregroundStyle(.secondary)
                                 }
                             }
                             .tint(.primary)
@@ -383,6 +400,7 @@ struct CatalogPickerSheet: View {
                     }
                 }
             }
+            .appScreenBackground()
             .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: Text("Szukaj w katalogu"))
             .navigationTitle("Dodaj pozycję")
             .navigationBarTitleDisplayMode(.inline)
@@ -408,11 +426,12 @@ struct BuyerPickerSheet: View {
                 } label: {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(buyer.name)
-                        Text("NIP \(buyer.nip)").font(.caption).foregroundStyle(.secondary)
+                        Text("NIP \(buyer.nip)").font(.appCaption).foregroundStyle(.secondary)
                     }
                 }
                 .tint(.primary)
             }
+            .appScreenBackground()
             .overlay {
                 if buyers.isEmpty {
                     ContentUnavailableView("Brak zapisanych nabywców", systemImage: "person.2",
@@ -439,7 +458,7 @@ struct XMLPreview: View {
                 switch result {
                 case .success(let xml):
                     ScrollView {
-                        Text(xml).font(.caption.monospaced()).textSelection(.enabled).padding()
+                        Text(xml).font(.appCaption.monospaced()).textSelection(.enabled).padding()
                     }
                     .toolbar {
                         ToolbarItem(placement: .primaryAction) {

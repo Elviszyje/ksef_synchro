@@ -4,6 +4,7 @@ import Domain
 import Persistence
 
 struct SalesListView: View {
+    @Binding var kind: InvoiceKind
     @Environment(AppModel.self) private var model
     @State private var invoices: [OutgoingInvoice] = []
     @State private var period: DatePeriod = .all
@@ -14,14 +15,12 @@ struct SalesListView: View {
     var body: some View {
         NavigationStack {
             List {
+                InvoiceKindSection(kind: $kind)
                 if model.company?.ksefEnvironment == .test {
-                    Section {
-                        Label("Środowisko testowe KSeF — faktury nie mają skutków prawnych.", systemImage: "testtube.2")
-                            .font(.footnote).foregroundStyle(.orange)
-                    }
+                    BannerRow(text: Text("Środowisko testowe KSeF — faktury nie mają skutków prawnych."), systemImage: "testtube.2")
                 }
                 if let message = model.syncBanner {
-                    Section { Label(message, systemImage: "arrow.triangle.2.circlepath").font(.footnote) }
+                    BannerRow(text: Text(message), systemImage: "arrow.triangle.2.circlepath")
                 }
                 if !invoices.isEmpty {
                     DatePeriodSection(period: $period)
@@ -32,6 +31,8 @@ struct SalesListView: View {
                 ForEach(visible) { invoice in
                     Button { editing = invoice } label: { SalesRow(invoice: invoice) }
                         .tint(.primary)
+                        .listRowBackground(Color.clear)
+                        .listRowSeparatorTint(Color.appLine)
                         .swipeActions(edge: .leading) {
                             Button { previewing = invoice } label: { Label("PDF", systemImage: "doc.richtext") }
                                 .tint(.indigo)
@@ -46,6 +47,8 @@ struct SalesListView: View {
                 }
                 .onDelete(perform: delete)
             }
+            .listStyle(.plain)
+            .appScreenBackground()
             .overlay {
                 if invoices.isEmpty {
                     ContentUnavailableView {
@@ -54,7 +57,7 @@ struct SalesListView: View {
                         Text("Wystaw pierwszą fakturę. Wpisane pozycje i nabywcy zostaną zapamiętani do kolejnych faktur. Faktury wystawione w innych programach pojawią się tu po synchronizacji z KSeF.")
                     } actions: {
                         Button("Nowa faktura") { editing = model.newSalesDraft() }
-                            .buttonStyle(.glassProminent)
+                            .buttonStyle(.appPrimaryCompact)
                     }
                 }
             }
@@ -63,7 +66,7 @@ struct SalesListView: View {
                     Button { editing = model.newSalesDraft() } label: { Label("Nowa faktura", systemImage: "plus") }
                 }
             }
-            .navigationTitle("Sprzedaż")
+            .navigationTitle("Faktury")
             .animation(.snappy, value: model.syncBanner)
             .sheet(item: $editing) { invoice in
                 if invoice.canBeEdited {
@@ -119,20 +122,32 @@ struct SalesRow: View {
     let invoice: OutgoingInvoice
 
     var body: some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 3) {
-                Text(invoice.buyerName).font(.headline).lineLimit(1)
-                Text(invoice.invoiceNumber).font(.subheadline).foregroundStyle(.secondary)
-                Text("Wystawiona: \(invoice.issueDate.formatted)").font(.caption).foregroundStyle(.secondary)
+        HStack(spacing: 12) {
+            InitialsAvatar(name: invoice.buyerName)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(invoice.buyerName)
+                    .font(.grotesk(15, .medium, relativeTo: .headline))
+                    .foregroundStyle(Color.appInk)
+                    .lineLimit(1)
+                Text("\(invoice.invoiceNumber) · \(invoice.issueDate.formatted)")
+                    .font(.mono(12)).foregroundStyle(Color.appMuted).lineLimit(1)
             }
-            Spacer()
+            Spacer(minLength: 8)
             VStack(alignment: .trailing, spacing: 3) {
-                Text(invoice.amountGross.money(invoice.currency)).font(.subheadline.monospacedDigit().bold())
-                Text(invoice.status.label).font(.caption2.bold())
-                    .padding(.horizontal, 6).padding(.vertical, 2)
-                    .background(.secondary.opacity(0.15), in: .capsule)
+                Text(invoice.amountGross.money(invoice.currency))
+                    .font(.grotesk(15, .medium, relativeTo: .subheadline))
+                    .monospacedDigit()
+                    .foregroundStyle(Color.appInk)
+                    .lineLimit(1)
+                Text(invoice.status.label)
+                    .font(.grotesk(12, .medium, relativeTo: .caption))
+                    .foregroundStyle(invoice.status.tone)
+                    .lineLimit(1)
             }
+            .layoutPriority(1)
         }
+        .padding(.vertical, 2)
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -145,6 +160,15 @@ extension OutgoingInvoiceStatus {
         case .accepted: "Przyjęta przez KSeF"
         case .rejected: "Odrzucona przez KSeF"
         case .imported: "Z KSeF"
+        }
+    }
+
+    var tone: Color {
+        switch self {
+        case .accepted: .appAccent
+        case .rejected: .appDanger
+        case .queued, .sending: .appWarning
+        case .draft, .imported: .appMuted
         }
     }
 }

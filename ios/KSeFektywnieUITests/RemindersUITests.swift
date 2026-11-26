@@ -12,6 +12,12 @@ final class RemindersUITests: XCTestCase {
         let add = app.buttons["Dodaj przypomnienie"]
         XCTAssertTrue(app.staticTexts["Status"].waitForExistence(timeout: 10))
         for _ in 0..<6 where !add.isHittable { app.swipeUp() }
+        // Stały pasek akcji na dole zasłania końcówkę listy — przycisk musi być nad nim.
+        let actionBar = app.buttons["approve-invoice"]
+        for _ in 0..<6 where actionBar.exists && add.frame.maxY > actionBar.frame.minY - 12 {
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.55))
+                .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.4)))
+        }
         add.tap()
         // Zgoda na dostęp do Przypomnień (okno systemowe przy pierwszym użyciu).
         let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
@@ -33,7 +39,7 @@ final class DeepLinkUITests: XCTestCase {
     @MainActor
     func testInvoiceLinkOpensDetail() {
         let app = XCUIApplication()
-        app.launchArguments = ["-demo", "-AppleLanguages", "(pl)", "-AppleLocale", "pl_PL"]
+        app.launchArguments = ["-demo", "-tab", "invoices", "-AppleLanguages", "(pl)", "-AppleLocale", "pl_PL"]
         app.launch()
 
         let row = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'invoice-'")).firstMatch

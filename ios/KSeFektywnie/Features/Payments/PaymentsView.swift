@@ -13,6 +13,8 @@ struct PaymentsView: View {
     @State private var accountNumber = ""
     @State private var generated: PaymentFile?
     @State private var error: String?
+    /// Faktury do zapłaty, których rachunek różni się od wcześniejszych faktur tego dostawcy.
+    @State private var changedAccounts = Set<UUID>()
 
     private var account: CompanyBankAccount? {
         model.bankAccounts.first { $0.accountNumber == accountNumber } ?? model.defaultBankAccount
@@ -30,16 +32,19 @@ struct PaymentsView: View {
                             Label("Dodaj rachunek firmowy, z którego wychodzą przelewy", systemImage: "building.columns")
                         }
                     }
+                } else if let account {
+                    Section { accountRow(account) }
                 }
 
                 Section {
                     if payable.isEmpty {
                         Text("Brak faktur do zapłaty. Zatwierdź fakturę do zapłaty w zakładce Faktury — pojawi się tutaj.")
-                            .font(.subheadline).foregroundStyle(.secondary)
+                            .font(.appSubheadline).foregroundStyle(.secondary)
                     }
                     ForEach(payable) { invoice in
                         Button { toggle(invoice.id) } label: {
-                            PayableRow(invoice: invoice, selected: selection.contains(invoice.id))
+                            PayableRow(invoice: invoice, selected: selection.contains(invoice.id),
+                                       accountChanged: changedAccounts.contains(invoice.id))
                         }
                         .tint(.primary)
                     }
@@ -51,38 +56,25 @@ struct PaymentsView: View {
                             Button(selection.count == payable.count ? "Odznacz" : "Zaznacz wszystkie") {
                                 selection = selection.count == payable.count ? [] : Set(payable.map(\.id))
                             }
-                            .font(.caption)
+                            .font(.appCaption)
                         }
                     }
-                }
-
-                if !selection.isEmpty, let account {
-                    Section {
-                        if model.bankAccounts.count > 1 {
-                            Picker("Rachunek obciążany", selection: $accountNumber) {
-                                ForEach(model.bankAccounts) { a in
-                                    Text(a.accountNumber.groupedNRB).font(.caption.monospaced()).tag(a.accountNumber)
-                                }
-                            }
-                        }
-                        LabeledContent("Format pliku", value: PaymentFileFormat.forBank(account.bankKey).label)
-                        LabeledContent("Faktur", value: "\(selection.count)")
-                        LabeledContent("Suma") { Text(selectedTotal.money()).bold() }
-                        Button(action: generate) {
-                            Label("Generuj plik przelewów", systemImage: "doc.badge.arrow.up")
-                        }
-                        .buttonStyle(.glassProminent)
-                        .frame(maxWidth: .infinity)
-                    } footer: {
+                } footer: {
+                    if !payable.isEmpty {
                         Text("Faktury zmienią status na „Przelew przygotowany”. Plik zaimportuj w bankowości internetowej.")
                     }
                 }
 
                 if let error {
-                    Section { Text(error).foregroundStyle(.red) }
+                    Section { Text(error).foregroundStyle(Color.appDanger) }
                 }
 
             }
+            .appScreenBackground()
+            .safeAreaInset(edge: .bottom) {
+                if !selection.isEmpty, account != nil { summaryBar }
+            }
+            .animation(.snappy, value: selection.isEmpty)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink { PaymentHistoryView() } label: {
@@ -101,8 +93,63 @@ struct PaymentsView: View {
             .navigationTitle("Przelewy")
             .sheet(item: $generated) { file in PaymentFileShareSheet(file: file) }
             .task { await observePayable() }
-            .onAppear { if accountNumber.isEmpty { accountNumber = model.defaultBankAccount?.accountNumber ?? "" } }
+            .onAppear {
+                if accountNumber.isEmpty { accountNumber = model.defaultBankAccount?.accountNumber ?? "" }
+                if DebugLaunch.selectAllPayable { selection = Set(payable.map(\.id)) }
+            }
         }
+    }
+
+    /// Rachunek obciążany i format pliku wynikający z banku tego rachunku.
+    @ViewBuilder
+    private func accountRow(_ account: CompanyBankAccount) -> some View {
+        let label = HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text("Z rachunku firmowego").font(.appCaption).foregroundStyle(Color.appMuted)
+                Text(account.accountNumber.groupedNRB)
+                    .font(.mono(13, medium: true, relativeTo: .subheadline))
+                    .foregroundStyle(Color.appInk)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+            Spacer(minLength: 8)
+            AppPill(text: Text(PaymentFileFormat.forBank(account.bankKey).label))
+            if model.bankAccounts.count > 1 {
+                Image(systemName: "chevron.up.chevron.down").font(.system(size: 12, weight: .semibold)).foregroundStyle(Color.appMuted)
+            }
+        }
+        if model.bankAccounts.count > 1 {
+            Menu {
+                Picker("Rachunek obciążany", selection: $accountNumber) {
+                    ForEach(model.bankAccounts) { a in Text(a.accountNumber.groupedNRB).tag(a.accountNumber) }
+                }
+            } label: { label }
+        } else {
+            label
+        }
+    }
+
+    /// Stałe podsumowanie wybranych przelewów z przyciskiem generowania pliku.
+    private var summaryBar: some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Wybrano: \(selection.count)")
+                    .font(.grotesk(13, .medium, relativeTo: .footnote))
+                    .foregroundStyle(Color.appOnGraphiteMuted)
+                HeroAmount(amount: selectedTotal, size: 24, onGraphite: true)
+            }
+            Spacer(minLength: 8)
+            Button("Generuj plik", action: generate)
+                .buttonStyle(.appMint)
+                .accessibilityIdentifier("generate-payment-file")
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .background(Color.appFeatureCard, in: .rect(cornerRadius: 22))
+        .overlay(RoundedRectangle(cornerRadius: 22).strokeBorder(Color.appLine.opacity(0.6)))
+        .padding(.horizontal, 16)
+        .padding(.bottom, 8)
+        .transition(.move(edge: .bottom).combined(with: .opacity))
     }
 
     private func toggle(_ id: UUID) {
@@ -127,6 +174,9 @@ struct PaymentsView: View {
             for try await value in payments.observePayable().values(in: model.database.reader) {
                 payable = value
                 selection.formIntersection(value.map(\.id))
+                let history = (try? model.invoices?.fetch()) ?? []
+                changedAccounts = SellerAccountCheck.changedAccounts(in: value, history: history)
+                if DebugLaunch.selectAllPayable, selection.isEmpty { selection = Set(value.map(\.id)) }
             }
         } catch {}
     }
@@ -136,28 +186,50 @@ struct PaymentsView: View {
 struct PayableRow: View {
     let invoice: Invoice
     let selected: Bool
+    var accountChanged = false
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: selected ? "checkmark.circle.fill" : "circle")
-                .font(.title3)
-                .foregroundStyle(selected ? Color.accentColor : .secondary)
+            Image(systemName: selected ? "checkmark" : "circle")
+                .font(.system(size: selected ? 12 : 26, weight: selected ? .bold : .light))
+                .foregroundStyle(selected ? Color.appOnPrimary : Color.appMuted)
+                .frame(width: 26, height: 26)
+                .background(selected ? Color.appPrimaryFill : Color.clear, in: .circle)
             VStack(alignment: .leading, spacing: 2) {
-                Text(invoice.sellerName).lineLimit(1)
-                Text(invoice.invoiceNumber).font(.caption).foregroundStyle(.secondary)
-                if let due = invoice.paymentDueDate {
-                    Text("Termin: \(due.formatted)").font(.caption)
-                        .foregroundStyle(invoice.isOverdue(today: .today()) ? .red : .secondary)
+                Text(invoice.sellerName)
+                    .font(.grotesk(15, .medium, relativeTo: .headline))
+                    .lineLimit(1)
+                HStack(spacing: 6) {
+                    Text(invoice.invoiceNumber).font(.mono(12)).lineLimit(1)
+                    if invoice.isSplitPayment { Text("· MPP").font(.mono(12)) }
+                }
+                .foregroundStyle(Color.appMuted)
+                if accountChanged {
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Image(systemName: "exclamationmark.triangle.fill").font(.system(size: 10))
+                        Text("Inny rachunek niż dotąd — sprawdź")
+                    }
+                    .font(.grotesk(12, .medium, relativeTo: .caption))
+                    .foregroundStyle(Color.appWarning)
                 }
             }
-            Spacer()
+            Spacer(minLength: 8)
             VStack(alignment: .trailing, spacing: 2) {
-                Text(invoice.amountGross.money(invoice.currency)).font(.subheadline.monospacedDigit())
-                if invoice.isSplitPayment {
-                    Text("MPP").font(.caption2.bold()).padding(.horizontal, 5).background(.orange.opacity(0.2), in: .capsule)
+                Text(invoice.amountGross.money(invoice.currency))
+                    .font(.grotesk(15, .medium, relativeTo: .subheadline))
+                    .monospacedDigit()
+                    .lineLimit(1)
+                if let due = DueSummary(invoice, today: .today()) {
+                    Text(due.text)
+                        .font(.grotesk(12, .medium, relativeTo: .caption))
+                        .foregroundStyle(due.color)
+                        .lineLimit(1)
                 }
             }
+            .layoutPriority(1)
         }
+        .padding(.vertical, 2)
+        .accessibilityElement(children: .combine)
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }
@@ -167,10 +239,10 @@ struct PaymentFileRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(file.fileName).font(.subheadline)
+            Text(file.fileName).font(.appSubheadline)
             Text("\(file.invoiceCount) faktur · \(file.totalAmount.money())")
-                .font(.caption).foregroundStyle(.secondary)
-            Text(file.createdAt.formatted(date: .abbreviated, time: .shortened)).font(.caption2).foregroundStyle(.secondary)
+                .font(.appCaption).foregroundStyle(.secondary)
+            Text(file.createdAt.formatted(date: .abbreviated, time: .shortened)).font(.appCaption2).foregroundStyle(.secondary)
         }
     }
 }
@@ -201,12 +273,12 @@ struct PaymentFileDetailView: View {
                     HStack {
                         VStack(alignment: .leading) {
                             Text(invoice.sellerName).lineLimit(1)
-                            Text(invoice.invoiceNumber).font(.caption).foregroundStyle(.secondary)
+                            Text(invoice.invoiceNumber).font(.appCaption).foregroundStyle(.secondary)
                         }
                         Spacer()
                         VStack(alignment: .trailing) {
-                            Text(invoice.amountGross.money(invoice.currency)).font(.subheadline.monospacedDigit())
-                            Text(invoice.status.label).font(.caption2).foregroundStyle(invoice.status.color)
+                            Text(invoice.amountGross.money(invoice.currency)).font(.appSubheadline.monospacedDigit())
+                            Text(invoice.status.label).font(.appCaption2).foregroundStyle(invoice.status.color)
                         }
                     }
                 }
@@ -218,6 +290,7 @@ struct PaymentFileDetailView: View {
             }
             if let error { Section { Text(error).foregroundStyle(.red) } }
         }
+        .appScreenBackground()
         .navigationTitle(file.fileName)
         .navigationBarTitleDisplayMode(.inline)
         .task { invoices = (try? model.payments?.invoices(in: file.id)) ?? [] }
@@ -242,18 +315,22 @@ struct PaymentFileShareSheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
-                Image(systemName: "checkmark.seal.fill").font(.system(size: 56)).foregroundStyle(.green)
-                Text("Plik gotowy").font(.title2.bold())
-                Text(file.fileName).font(.subheadline.monospaced())
+                Image(systemName: "checkmark")
+                    .font(.system(size: 30, weight: .bold))
+                    .foregroundStyle(Color.appOnPrimary)
+                    .frame(width: 72, height: 72)
+                    .background(Color.appPrimaryFill, in: .circle)
+                Text("Plik gotowy").font(.appTitle2.bold())
+                Text(file.fileName).font(.appSubheadline.monospaced())
                 Text("\(file.invoiceCount) faktur · \(file.totalAmount.money())").foregroundStyle(.secondary)
                 if let url = try? PaymentFileExport.temporaryURL(for: file) {
                     ShareLink(item: url) {
-                        Label("Udostępnij plik", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
+                        Label("Udostępnij plik", systemImage: "square.and.arrow.up")
                     }
-                    .buttonStyle(.glassProminent)
+                    .buttonStyle(.appPrimary)
                 }
                 Text("Zapisz plik w aplikacji Pliki albo wyślij go na komputer (AirDrop, poczta), a potem zaimportuj w bankowości internetowej jako paczkę przelewów.")
-                    .font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                    .font(.appFootnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
             }
             .padding()
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Gotowe") { dismiss() } } }

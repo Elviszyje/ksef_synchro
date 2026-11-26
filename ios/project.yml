@@ -36,6 +36,12 @@ targets:
           - CFBundleURLName: pl.ksefektywnie.app
             CFBundleURLSchemes: [ksefektywnie]
         UIBackgroundModes: [fetch]
+        UIAppFonts:
+          - SpaceGrotesk-Regular.ttf
+          - SpaceGrotesk-Medium.ttf
+          - SpaceGrotesk-Bold.ttf
+          - JetBrainsMono-Regular.ttf
+          - JetBrainsMono-Medium.ttf
         NSUbiquitousContainers:
           iCloud.pl.ksefektywnie.app:
             NSUbiquitousContainerIsDocumentScopePublic: true

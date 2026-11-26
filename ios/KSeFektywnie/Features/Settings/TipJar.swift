@@ -24,7 +24,7 @@ struct TipJarView: View {
         ScrollView {
             VStack(spacing: 20) {
                 Image(systemName: "cup.and.saucer.fill").font(.system(size: 56)).foregroundStyle(.tint)
-                Text("Dziękuję, że korzystasz z KS-eFektywnie!").font(.title3.bold()).multilineTextAlignment(.center)
+                Text("Dziękuję, że korzystasz z KS-eFektywnie!").font(.appTitle3.bold()).multilineTextAlignment(.center)
                 Text("Aplikacja działa w całości na Twoim telefonie, bez kont i reklam. Jeśli oszczędza Ci czas, możesz postawić autorowi kawę.")
                     .foregroundStyle(.secondary).multilineTextAlignment(.center)
 
@@ -33,14 +33,14 @@ struct TipJarView: View {
                 } else if available?.isEmpty == true {
                     // Bez zapowiedzi „będzie w przyszłej wersji”: to stan błędu, który da się ponowić.
                     Text("Nie udało się wczytać napiwków z App Store. Sprawdź połączenie i spróbuj ponownie.")
-                        .font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                        .font(.appFootnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
                     Button("Spróbuj ponownie") { Task { await load() } }
                         .buttonStyle(.glass)
                 }
                 VStack(spacing: 12) {
                     ForEach(available ?? [], id: \.self) { id in
                         ProductView(id: id) {
-                            Image(systemName: icon(for: id)).font(.title2).foregroundStyle(.tint)
+                            Image(systemName: icon(for: id)).font(.appTitle2).foregroundStyle(.tint)
                         }
                         .productViewStyle(.compact)
                         .padding()

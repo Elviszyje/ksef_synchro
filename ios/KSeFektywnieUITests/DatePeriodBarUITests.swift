@@ -6,7 +6,7 @@ final class DatePeriodBarUITests: XCTestCase {
     @MainActor
     func testSegmentsFitAndCustomRangeIsEditable() {
         let app = XCUIApplication()
-        app.launchArguments = ["-demo", "-AppleLanguages", "(pl)", "-AppleLocale", "pl_PL"]
+        app.launchArguments = ["-demo", "-tab", "invoices", "-AppleLanguages", "(pl)", "-AppleLocale", "pl_PL"]
         app.launch()
 
         let segments = app.segmentedControls.firstMatch

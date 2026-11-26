@@ -94,6 +94,206 @@
     "%lld": {
       "shouldTranslate": false
     },
+    "%lld dni po terminie": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld day overdue"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld days overdue"
+                }
+              }
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "vencida hace %lld día"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "vencida hace %lld días"
+                }
+              }
+            }
+          }
+        },
+        "pl": {
+          "variations": {
+            "plural": {
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld dni po terminie"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld dni po terminie"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld dzień po terminie"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld dnia po terminie"
+                }
+              }
+            }
+          }
+        },
+        "uk": {
+          "variations": {
+            "plural": {
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld дні після терміну"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld днів після терміну"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld день після терміну"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld дня після терміну"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld faktur": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld invoice"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld invoices"
+                }
+              }
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld factura"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld facturas"
+                }
+              }
+            }
+          }
+        },
+        "pl": {
+          "variations": {
+            "plural": {
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld faktury"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld faktur"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld faktura"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld faktury"
+                }
+              }
+            }
+          }
+        },
+        "uk": {
+          "variations": {
+            "plural": {
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld рахунки-фактури"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld рахунків-фактур"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld рахунок-фактура"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld рахунку-фактури"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld faktur · %@": {
       "localizations": {
         "en": {
@@ -187,6 +387,106 @@
                 "stringUnit": {
                   "state": "translated",
                   "value": "%lld рахунку-фактури · %@"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld nowych": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld new"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld new"
+                }
+              }
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nueva"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nuevas"
+                }
+              }
+            }
+          }
+        },
+        "pl": {
+          "variations": {
+            "plural": {
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nowe"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nowych"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nowa"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nowej"
+                }
+              }
+            }
+          }
+        },
+        "uk": {
+          "variations": {
+            "plural": {
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld нові"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld нових"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld новий"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld нового"
                 }
               }
             }
@@ -461,6 +761,28 @@
         }
       }
     },
+    "Bez konta i bez serwera": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No account, no server"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin cuenta ni servidor"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Без облікового запису й сервера"
+          }
+        }
+      }
+    },
     "Bez nazwy": {
       "localizations": {
         "en": {
@@ -699,6 +1021,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Цього місяця немає рахунків-фактур."
+          }
+        }
+      }
+    },
+    "Brak nieopłaconych faktur z terminem.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No unpaid invoices with a due date."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay facturas pendientes con vencimiento."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немає неоплачених рахунків-фактур із терміном."
           }
         }
       }
@@ -1319,6 +1663,106 @@
         }
       }
     },
+    "Do zapłaty · %lld faktur": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "To pay · %lld invoice"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "To pay · %lld invoices"
+                }
+              }
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Por pagar · %lld factura"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Por pagar · %lld facturas"
+                }
+              }
+            }
+          }
+        },
+        "pl": {
+          "variations": {
+            "plural": {
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Do zapłaty · %lld faktury"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Do zapłaty · %lld faktur"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Do zapłaty · %lld faktura"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Do zapłaty · %lld faktury"
+                }
+              }
+            }
+          }
+        },
+        "uk": {
+          "variations": {
+            "plural": {
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "До сплати · %lld рахунки-фактури"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "До сплати · %lld рахунків-фактур"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "До сплати · %lld рахунок-фактура"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "До сплати · %lld рахунку-фактури"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "Dodaj": {
       "localizations": {
         "en": {
@@ -1667,6 +2111,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Дякую, що користуєтеся KS-eFektywnie!"
+          }
+        }
+      }
+    },
+    "Dziś, %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today, %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoy, %@"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сьогодні, %@"
           }
         }
       }
@@ -2092,6 +2558,28 @@
         }
       }
     },
+    "Faktury z KSeF, pliki przelewów i rozliczanie wyciągów — na Twoim telefonie.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KSeF invoices, bank transfer files and statement reconciliation — on your phone."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Facturas de KSeF, archivos de transferencias y conciliación de extractos, en tu teléfono."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Рахунки-фактури з KSeF, файли переказів і звірка виписок — на вашому телефоні."
+          }
+        }
+      }
+    },
     "Faktury zmienią status na „Przelew przygotowany”. Plik zaimportuj w bankowości internetowej.": {
       "localizations": {
         "en": {
@@ -2356,6 +2844,28 @@
         }
       }
     },
+    "Generuj plik": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generate file"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generar archivo"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Створити файл"
+          }
+        }
+      }
+    },
     "Generuj plik przelewów": {
       "localizations": {
         "en": {
@@ -2528,6 +3038,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Інша підстава"
+          }
+        }
+      }
+    },
+    "Inny rachunek niż dotąd — sprawdź": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Different account than before — check it"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuenta distinta a la anterior: compruébala"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Інший рахунок, ніж раніше — перевірте"
           }
         }
       }
@@ -3154,6 +3686,50 @@
         }
       }
     },
+    "Kopiuj numer rachunku": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy account number"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar número de cuenta"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скопіювати номер рахунку"
+          }
+        }
+      }
+    },
+    "Kosztowe": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchases"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compras"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вхідні"
+          }
+        }
+      }
+    },
     "Koszty brutto miesięcznie": {
       "localizations": {
         "en": {
@@ -3172,6 +3748,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Валові витрати за місяць"
+          }
+        }
+      }
+    },
+    "Koszty: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Costs: %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Costes: %@"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Витрати: %@"
           }
         }
       }
@@ -3716,6 +4314,28 @@
         }
       }
     },
+    "Najbliższe terminy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upcoming due dates"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Próximos vencimientos"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Найближчі терміни"
+          }
+        }
+      }
+    },
     "Najlepiej sprawdza się logo na przezroczystym albo białym tle.": {
       "localizations": {
         "en": {
@@ -3734,6 +4354,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Найкраще підходить логотип на прозорому або білому тлі."
+          }
+        }
+      }
+    },
+    "Najwięksi dostawcy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Top suppliers"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Principales proveedores"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Найбільші постачальники"
           }
         }
       }
@@ -3778,6 +4420,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Чайові для розробника"
+          }
+        }
+      }
+    },
+    "Następny miesiąc": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next month"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mes siguiente"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Наступний місяць"
           }
         }
       }
@@ -4504,6 +5168,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Нова позиція «%@»"
+          }
+        }
+      }
+    },
+    "Nowe": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuevas"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нові"
           }
         }
       }
@@ -5428,6 +6114,28 @@
         }
       }
     },
+    "Plik dla banku": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bank file"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivo para el banco"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Файл для банку"
+          }
+        }
+      }
+    },
     "Plik gotowy": {
       "localizations": {
         "en": {
@@ -6110,6 +6818,28 @@
         }
       }
     },
+    "Poprzedni miesiąc": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previous month"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mes anterior"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Попередній місяць"
+          }
+        }
+      }
+    },
     "Potwierdź": {
       "localizations": {
         "en": {
@@ -6330,6 +7060,50 @@
         }
       }
     },
+    "Połącz z KSeF": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect to KSeF"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectar con KSeF"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Підключити KSeF"
+          }
+        }
+      }
+    },
+    "Połącz z KSeF lub przywróć kopię": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect to KSeF or restore a backup"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectar con KSeF o restaurar una copia"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Підключити KSeF або відновити копію"
+          }
+        }
+      }
+    },
     "Połączenie działa.": {
       "localizations": {
         "en": {
@@ -6392,6 +7166,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Виробниче"
+          }
+        }
+      }
+    },
+    "Propozycje: %lld z %lld obciążeń": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suggestions: %lld of %lld debits"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Propuestas: %lld de %lld cargos"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пропозиції: %lld із %lld списань"
           }
         }
       }
@@ -6788,6 +7584,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Повернути на перевірку"
+          }
+        }
+      }
+    },
+    "Pulpit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dashboard"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Panel"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Панель"
           }
         }
       }
@@ -7892,6 +8710,28 @@
         }
       }
     },
+    "Ten dostawca podawał dotąd inny rachunek. Potwierdź numer przed zapłatą.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This supplier used a different account on earlier invoices. Confirm the number before paying."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este proveedor indicaba otra cuenta en facturas anteriores. Confirma el número antes de pagar."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "На попередніх рахунках-фактурах цей постачальник зазначав інший рахунок. Підтвердьте номер перед оплатою."
+          }
+        }
+      }
+    },
     "Ten miesiąc": {
       "localizations": {
         "en": {
@@ -8064,6 +8904,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Токен"
+          }
+        }
+      }
+    },
+    "Token KSeF zostaje w telefonie": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The KSeF token stays on your phone"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El token de KSeF se queda en tu teléfono"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Токен KSeF залишається у телефоні"
           }
         }
       }
@@ -8910,6 +9772,28 @@
     "VAT": {
       "shouldTranslate": false
     },
+    "VAT z faktur kosztowych": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VAT on purchase invoices"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IVA de las facturas de compra"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ПДВ із вхідних рахунків-фактур"
+          }
+        }
+      }
+    },
     "W dniu terminu płatności": {
       "localizations": {
         "en": {
@@ -8976,6 +9860,28 @@
         }
       }
     },
+    "W tym miesiącu nie ma jeszcze faktur kosztowych.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No purchase invoices this month yet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aún no hay facturas de compra este mes."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цього місяця ще немає вхідних рахунків-фактур."
+          }
+        }
+      }
+    },
     "W układzie strony przeciągasz sekcje, logo i kod QR na kartce. Podgląd na ostatniej fakturze sprzedażowej albo na przykładowych danych.": {
       "localizations": {
         "en": {
@@ -9016,6 +9922,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Валюта"
+          }
+        }
+      }
+    },
+    "Wczoraj, %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yesterday, %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ayer, %@"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Учора, %@"
           }
         }
       }
@@ -9196,6 +10124,28 @@
         }
       }
     },
+    "Wszystkie (%lld)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All (%lld)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas (%lld)"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Усі (%lld)"
+          }
+        }
+      }
+    },
     "Wybierz pozycję z katalogu albo dodaj nową. Nowe pozycje trafiają do katalogu po zapisaniu faktury.": {
       "localizations": {
         "en": {
@@ -9280,6 +10230,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Вибрати збереженого покупця"
+          }
+        }
+      }
+    },
+    "Wybrano: %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected: %lld"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seleccionadas: %lld"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вибрано: %lld"
           }
         }
       }
@@ -9771,6 +10743,28 @@
         }
       }
     },
+    "Z faktury prosto do przelewu.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From invoice straight to transfer."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De la factura directo a la transferencia."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Від рахунку-фактури одразу до переказу."
+          }
+        }
+      }
+    },
     "Z katalogu": {
       "localizations": {
         "en": {
@@ -9789,6 +10783,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "З каталогу"
+          }
+        }
+      }
+    },
+    "Z rachunku firmowego": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From company account"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desde la cuenta de empresa"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "З рахунку фірми"
+          }
+        }
+      }
+    },
+    "Za darmo, bez abonamentu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free, no subscription"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gratis, sin suscripción"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Безкоштовно, без підписки"
           }
         }
       }
@@ -10145,6 +11183,28 @@
         }
       }
     },
+    "Zatwierdzone": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approved"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aprobadas"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Затверджені"
+          }
+        }
+      }
+    },
     "Zatwierdzony": {
       "localizations": {
         "en": {
@@ -10251,6 +11311,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Затвердити виписку"
+          }
+        }
+      }
+    },
+    "Zatwierdź wyciąg · %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm statement · %lld"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmar extracto · %lld"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Затвердити виписку · %lld"
           }
         }
       }
@@ -10541,6 +11623,28 @@
         }
       }
     },
+    "gotowy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ready"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "listo"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "готовий"
+          }
+        }
+      }
+    },
     "iCloud Drive": {
       "shouldTranslate": false
     },
@@ -10591,6 +11695,28 @@
         }
       }
     },
+    "jutro": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "tomorrow"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mañana"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "завтра"
+          }
+        }
+      }
+    },
     "kod urządzenia": {
       "localizations": {
         "en": {
@@ -10609,6 +11735,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "код пристрою"
+          }
+        }
+      }
+    },
+    "korekta": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "correction"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "rectificativa"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "коригування"
           }
         }
       }
@@ -10634,6 +11782,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "можливе"
+          }
+        }
+      }
+    },
+    "netto %@ · VAT %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "net %@ · VAT %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neto %@ · IVA %@"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "нетто %@ · ПДВ %@"
           }
         }
       }
@@ -10682,6 +11852,28 @@
         }
       }
     },
+    "opłacona": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "paid"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pagada"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "оплачено"
+          }
+        }
+      }
+    },
     "pewne": {
       "localizations": {
         "en": {
@@ -10700,6 +11892,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "певне"
+          }
+        }
+      }
+    },
+    "pewne: %lld · niepewne: %lld · bez faktury: %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "certain: %lld · uncertain: %lld · no invoice: %lld"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "seguras: %lld · dudosas: %lld · sin factura: %lld"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "певні: %lld · непевні: %lld · без рахунку: %lld"
           }
         }
       }
@@ -10725,6 +11939,175 @@
           }
         }
       }
+    },
+    "sporna": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "disputed"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "en disputa"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "спірний"
+          }
+        }
+      }
+    },
+    "termin dziś": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "due today"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "vence hoy"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "термін сьогодні"
+          }
+        }
+      }
+    },
+    "w paczce przelewów": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "in a transfer batch"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "en un lote de transferencias"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "у пакеті переказів"
+          }
+        }
+      }
+    },
+    "za %lld dni": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "in %lld day"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "in %lld days"
+                }
+              }
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "en %lld día"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "en %lld días"
+                }
+              }
+            }
+          }
+        },
+        "pl": {
+          "variations": {
+            "plural": {
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "za %lld dni"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "za %lld dni"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "za %lld dzień"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "za %lld dnia"
+                }
+              }
+            }
+          }
+        },
+        "uk": {
+          "variations": {
+            "plural": {
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "через %lld дні"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "через %lld днів"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "через %lld день"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "через %lld дня"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "· MPP": {
+      "shouldTranslate": false
     },
     "Średnio / mies.": {
       "localizations": {

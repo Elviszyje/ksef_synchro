@@ -19,7 +19,7 @@ struct CloudSettingsView: View {
                 case .local:
                     Label("Na tym iPhonie → KS-eFektywnie", systemImage: "iphone")
                     Text("iCloud Drive jest wyłączony albo niedostępny. Pliki są w aplikacji Pliki, w sekcji „Na moim iPhonie”, ale nie są kopią poza telefonem.")
-                        .font(.footnote).foregroundStyle(.orange)
+                        .font(.appFootnote).foregroundStyle(.orange)
                 case .unknown:
                     Label("Sprawdzanie…", systemImage: "hourglass")
                 }
@@ -43,6 +43,7 @@ struct CloudSettingsView: View {
                 Text("Przydatne, gdy pliki zostały usunięte z iCloud Drive ręcznie.")
             }
         }
+        .appScreenBackground()
         .navigationTitle("iCloud Drive")
     }
 }

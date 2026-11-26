@@ -18,16 +18,17 @@ struct CatalogView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(entry.name)
                             Text("\(entry.unit) · \(entry.unitPriceNet.money()) netto · \(entry.vatRate.shortLabel)")
-                                .font(.caption).foregroundStyle(.secondary)
+                                .font(.appCaption).foregroundStyle(.secondary)
                         }
                         Spacer()
-                        Text("\(entry.useCount)×").font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                        Text("\(entry.useCount)×").font(.appCaption.monospacedDigit()).foregroundStyle(.secondary)
                     }
                 }
                 .tint(.primary)
             }
             .onDelete { offsets in offsets.map { entries[$0].id }.forEach { try? model.catalog?.delete($0) } }
         }
+        .appScreenBackground()
         .overlay {
             if entries.isEmpty {
                 ContentUnavailableView("Katalog jest pusty", systemImage: "shippingbox",
@@ -70,6 +71,7 @@ struct CatalogEntryEditor: View {
                     Text("Zmiany dotyczą tylko przyszłych faktur.")
                 }
             }
+            .appScreenBackground()
             .navigationTitle("Pozycja katalogu")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

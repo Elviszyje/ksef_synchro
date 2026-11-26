@@ -36,6 +36,7 @@ struct PaymentHistoryView: View {
                 }
             }
         }
+        .appScreenBackground()
         .overlay {
             if summaries.isEmpty {
                 ContentUnavailableView("Brak paczek przelewów", systemImage: "clock.arrow.circlepath",
@@ -119,24 +120,24 @@ struct HistoryRow: View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: summary.settlement.symbol)
                 .foregroundStyle(summary.settlement.color)
-                .font(.title3)
+                .font(.appTitle3)
                 .frame(width: 26)
             VStack(alignment: .leading, spacing: 3) {
                 HStack(alignment: .firstTextBaseline) {
                     Text(BankDetection.label(for: summary.file.bankKey).nonEmptyOr(summary.file.format.label))
-                        .font(.headline)
+                        .font(.appHeadline)
                     Spacer(minLength: 8)
-                    Text(summary.file.totalAmount.money()).font(.subheadline.monospacedDigit().weight(.semibold))
+                    Text(summary.file.totalAmount.money()).font(.appSubheadline.monospacedDigit().weight(.semibold))
                 }
                 Text(summary.settlement.label)
-                    .font(.caption2.bold())
+                    .font(.appCaption2.bold())
                     .padding(.horizontal, 7).padding(.vertical, 2)
                     .background(summary.settlement.color.opacity(0.15), in: .capsule)
                     .foregroundStyle(summary.settlement.color)
                 Text("\(summary.file.invoiceCount) faktur · \(summary.file.createdAt.formatted(date: .abbreviated, time: .shortened))")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(.appCaption).foregroundStyle(.secondary)
                 Text(summary.file.fileName)
-                    .font(.caption2.monospaced()).foregroundStyle(.tertiary).lineLimit(1)
+                    .font(.appCaption2.monospaced()).foregroundStyle(.tertiary).lineLimit(1)
             }
         }
         .accessibilityElement(children: .combine)
