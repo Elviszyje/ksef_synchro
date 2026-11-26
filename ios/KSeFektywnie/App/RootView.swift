@@ -81,10 +81,12 @@ struct MainTabView: View {
                 DashboardView(openPayments: { selection = .payments },
                               openInvoices: { invoiceKind = .cost; selection = .invoices })
             }
-            Tab("Faktury", systemImage: "doc.text", value: .invoices) { InvoicesTab(kind: $invoiceKind) }
-            Tab("Przelewy", systemImage: "arrow.left.arrow.right", value: .payments) { PaymentsView() }
+            // Zmiana aktywnej firmy odtwarza te zakładki od zera (inne dane, zresetowana nawigacja).
+            // Pulpit i Ustawienia same reagują na zmianę, więc zostają na miejscu.
+            Tab("Faktury", systemImage: "doc.text", value: .invoices) { InvoicesTab(kind: $invoiceKind).id(model.company?.id) }
+            Tab("Przelewy", systemImage: "arrow.left.arrow.right", value: .payments) { PaymentsView().id(model.company?.id) }
                 .badge(payableCount)
-            Tab("Wyciągi", systemImage: "tray.and.arrow.down", value: .statements) { StatementsView() }
+            Tab("Wyciągi", systemImage: "tray.and.arrow.down", value: .statements) { StatementsView().id(model.company?.id) }
             Tab("Ustawienia", systemImage: "gearshape", value: .settings) { SettingsView() }
         }
         .environment(flight)
@@ -95,13 +97,15 @@ struct MainTabView: View {
         .overlay { PaymentsFlightOverlay(tabFraction: 0.5).environment(flight) }
         .sensoryFeedback(.impact(weight: .light), trigger: flight.landings)
         .onChange(of: model.openTarget) { _, target in
+            // Rekord z linku może należeć do innej firmy niż aktywna.
+            if let target { model.activateCompany(owning: target) }
             switch target {
             case .invoice?: invoiceKind = .cost; selection = .invoices
             case .paymentFile?: selection = .payments
             case nil: break
             }
         }
-        .task { await observePayable() }
+        .task(id: model.company?.id) { await observePayable() }
         .task { await model.syncIfStale() }
     }
 

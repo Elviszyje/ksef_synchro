@@ -6,10 +6,13 @@ struct SettingsView: View {
     @Environment(AppModel.self) private var model
     @Environment(AppLock.self) private var lock
     @State private var confirmDelete = false
+    @State private var addingCompany = false
 
     var body: some View {
         NavigationStack {
             Form {
+                CompaniesSection(adding: $addingCompany)
+
                 Section("Firma") {
                     NavigationLink { CompanySettingsView() } label: {
                         LabeledContent(model.company?.name ?? "", value: model.company?.nip ?? "")
@@ -97,6 +100,7 @@ struct SettingsView: View {
             }
             .appScreenBackground()
             .navigationTitle("Ustawienia")
+            .sheet(isPresented: $addingCompany) { AddCompanyView() }
             .confirmationDialog("Usunąć wszystkie dane z tego iPhone'a?", isPresented: $confirmDelete, titleVisibility: .visible) {
                 Button("Usuń", role: .destructive) { try? model.deleteAllData() }
             } message: {
@@ -129,8 +133,12 @@ struct NotificationsToggle: View {
 
 struct CompanySettingsView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
     @State private var name = ""
     @State private var address = ""
+    /// Firma, której dane są na ekranie — zapis przy wyjściu nie może trafić do innej (po usunięciu lub przełączeniu).
+    @State private var companyID: UUID?
+    @State private var confirmDelete = false
 
     var body: some View {
         Form {
@@ -141,15 +149,32 @@ struct CompanySettingsView: View {
             } footer: {
                 Text("W plikach Elixir-0 nazwa i adres są skracane do 35 znaków każde.")
             }
+            if model.companies.count > 1 {
+                Section {
+                    Button("Usuń tę firmę", role: .destructive) { confirmDelete = true }
+                } footer: {
+                    Text("Usuwa z telefonu faktury, pliki przelewów, wyciągi i token tej firmy. Pozostałe firmy zostają bez zmian.")
+                }
+            }
         }
         .appScreenBackground()
         .navigationTitle("Firma")
         .onAppear {
+            companyID = model.company?.id
             name = model.company?.name ?? ""
             address = model.company?.address ?? ""
         }
         .onDisappear {
+            guard let companyID, model.company?.id == companyID else { return }
             try? model.updateCompany { $0.name = name; $0.address = address }
+        }
+        .confirmationDialog("Usunąć firmę \(name)?", isPresented: $confirmDelete, titleVisibility: .visible) {
+            Button("Usuń", role: .destructive) {
+                guard let company = model.company, company.id == companyID else { return }
+                companyID = nil
+                try? model.deleteCompany(company)
+                dismiss()
+            }
         }
     }
 }

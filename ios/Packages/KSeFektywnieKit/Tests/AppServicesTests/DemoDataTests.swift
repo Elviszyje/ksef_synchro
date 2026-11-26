@@ -44,4 +44,21 @@ struct DemoDataTests {
             #expect(parsed.isSplitPayment == invoice.isSplitPayment)
         }
     }
+
+    @Test("Druga firma demo ma własne faktury i nie miesza się z pierwszą")
+    func secondCompany() throws {
+        let db = try AppDatabase.inMemory()
+        let today = LocalDate(year: 2026, month: 10, day: 11)!
+        let first = try DemoData.seed(db: db, device: "d", today: today)
+        let second = try DemoData.seedSecondCompany(db: db, device: "d", today: today)
+        #expect(Validation.isValidNIP(second.nip) && second.nip != first.nip)
+        #expect(DemoData.isDemoNIP(first.nip) && DemoData.isDemoNIP(second.nip) && !DemoData.isDemoNIP("5252248481"))
+
+        let firstInvoices = try InvoiceRepository(db: db, companyID: first.id, device: "d").fetch()
+        let secondInvoices = try InvoiceRepository(db: db, companyID: second.id, device: "d").fetch()
+        #expect(firstInvoices.count == 38 && secondInvoices.count == 4)
+        #expect(secondInvoices.allSatisfy { $0.companyID == second.id && $0.buyerNIP == second.nip })
+        // Ten sam numer faktury może wystąpić w obu firmach — historia rachunków jest liczona osobno.
+        #expect(SellerAccountCheck.changedAccounts(in: secondInvoices, history: secondInvoices).isEmpty)
+    }
 }

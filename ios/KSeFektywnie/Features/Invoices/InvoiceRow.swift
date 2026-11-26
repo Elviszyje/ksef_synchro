@@ -58,6 +58,8 @@ struct DueSummary {
 struct InvoiceRow: View {
     let invoice: Invoice
     var today: LocalDate = .today()
+    /// Nazwa firmy pokazywana pod numerem, gdy lista łączy faktury kilku firm.
+    var companyName: String?
 
     private var isNew: Bool { invoice.status == .new }
 
@@ -82,6 +84,12 @@ struct InvoiceRow: View {
                     if invoice.isSplitPayment { Text("· MPP").font(.mono(12)) }
                 }
                 .foregroundStyle(Color.appMuted)
+                if let companyName {
+                    Text(companyName)
+                        .font(.grotesk(11.5, .medium, relativeTo: .caption2))
+                        .foregroundStyle(Color.appAccent)
+                        .lineLimit(1)
+                }
             }
             Spacer(minLength: 8)
             VStack(alignment: .trailing, spacing: 2) {

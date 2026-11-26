@@ -1157,6 +1157,28 @@
         }
       }
     },
+    "Brak tokenu KSeF": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No KSeF token"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin token de KSeF"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немає токена KSeF"
+          }
+        }
+      }
+    },
     "Brak w wykazie podatników VAT — wpisz dane ręcznie.": {
       "localizations": {
         "en": {
@@ -1803,6 +1825,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Додайте щонайменше одну позицію."
+          }
+        }
+      }
+    },
+    "Dodaj firmę": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add company"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadir empresa"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Додати фірму"
           }
         }
       }
@@ -2734,6 +2778,50 @@
         }
       }
     },
+    "Firma z tym NIP-em jest już dodana.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A company with this NIP has already been added."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ya hay una empresa con este NIP."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Фірму з цим NIP уже додано."
+          }
+        }
+      }
+    },
+    "Firmy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Companies"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empresas"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Фірми"
+          }
+        }
+      }
+    },
     "Forma płatności": {
       "localizations": {
         "en": {
@@ -3466,6 +3554,28 @@
         }
       }
     },
+    "Każda firma ma własny token. Możesz go też wkleić później w Ustawieniach → Połączenie z KSeF. Token jest przechowywany wyłącznie w pęku kluczy tego iPhone'a.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each company has its own token. You can also paste it later in Settings → KSeF connection. The token is stored only in this iPhone's keychain."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada empresa tiene su propio token. También puedes pegarlo más tarde en Ajustes → Conexión con KSeF. El token se guarda solo en el llavero de este iPhone."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Кожна фірма має власний токен. Його також можна вставити пізніше в Налаштуваннях → Підключення до KSeF. Токен зберігається лише у в'язці ключів цього iPhone."
+          }
+        }
+      }
+    },
     "Każda pozycja musi mieć nazwę.": {
       "localizations": {
         "en": {
@@ -4062,6 +4172,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Момент фонової синхронізації обирає iOS, і його неможливо примусити, тому вона не гарантована. Після відкриття застосунок сам завантажує нові рахунки-фактури, якщо від останньої синхронізації минула щонайменше година."
+          }
+        }
+      }
+    },
+    "Można dodać najwyżej %lld firmy.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can add up to %lld companies."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puedes añadir hasta %lld empresas."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Можна додати щонайбільше %lld фірми."
           }
         }
       }
@@ -5124,6 +5256,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Новий рахунок-фактура"
+          }
+        }
+      }
+    },
+    "Nowa firma": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New company"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nueva empresa"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нова фірма"
           }
         }
       }
@@ -9505,6 +9659,28 @@
         }
       }
     },
+    "Usunąć firmę %@?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete company %@?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Eliminar la empresa %@?"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Видалити фірму %@?"
+          }
+        }
+      }
+    },
     "Usunąć szablon?": {
       "localizations": {
         "en": {
@@ -9545,6 +9721,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Видалити всі дані з цього iPhone?"
+          }
+        }
+      }
+    },
+    "Usuwa z telefonu faktury, pliki przelewów, wyciągi i token tej firmy. Pozostałe firmy zostają bez zmian.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Removes this company's invoices, payment files, statements and token from the phone. Other companies are not affected."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elimina del teléfono las facturas, archivos de pago, extractos y el token de esta empresa. Las demás empresas no cambian."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Видаляє з телефону рахунки-фактури, файли переказів, виписки й токен цієї фірми. Інші фірми залишаються без змін."
           }
         }
       }
@@ -9655,6 +9853,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Видалити токен"
+          }
+        }
+      }
+    },
+    "Usuń tę firmę": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete this company"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminar esta empresa"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Видалити цю фірму"
           }
         }
       }
@@ -10142,6 +10362,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Усі (%lld)"
+          }
+        }
+      }
+    },
+    "Wszystkie firmy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All companies"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas las empresas"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Усі фірми"
           }
         }
       }
@@ -10893,6 +11135,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Діапазон дат"
+          }
+        }
+      }
+    },
+    "Zakładki pokazują dane zaznaczonej firmy. Każda firma ma własny token KSeF, rachunki i szablony. Można dodać najwyżej %lld firmy.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs show the selected company's data. Each company has its own KSeF token, accounts and templates. You can add up to %lld companies."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las pestañas muestran los datos de la empresa seleccionada. Cada empresa tiene su propio token de KSeF, cuentas y plantillas. Puedes añadir hasta %lld empresas."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вкладки показують дані вибраної фірми. Кожна фірма має власний токен KSeF, рахунки та шаблони. Можна додати щонайбільше %lld фірми."
           }
         }
       }

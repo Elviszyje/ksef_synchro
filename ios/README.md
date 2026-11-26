@@ -37,6 +37,7 @@ xcodebuild -project ios/KSeFektywnie.xcodeproj -scheme KSeFektywnie \
 # zrzuty ekranu na danych demo (tylko Debug), argumenty uruchomienia:
 #   -demo                       dane demo w pamięci (bez lustra iCloud)
 #   -demo-cloud                 jak wyżej, z lustrem (na symulatorze: katalog lokalny)
+#   -demo-second YES            druga firma demo (przełącznik firm; -dashboardAllCompanies YES = widok „Wszystkie firmy”)
 #   -tab invoices|sales|payments|statements|settings   (bez argumentu: Pulpit; sales = Faktury → Sprzedaż)
 #   -open-sale 2  -open-statement YES  -open-dashboard YES
 #   -select-payable YES  -store-shots YES  -welcome YES   (grafiki do sklepu: zaznaczone przelewy, bez paska demo, plansza powitalna)

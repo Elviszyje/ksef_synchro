@@ -26,13 +26,13 @@ struct KSeFektywnieApp: App {
                 .task(id: ObjectIdentifier(model)) {
                     // Atrapa bez bazy nie może dotykać lustra iCloud ani Przypomnień.
                     guard !model.databaseUnavailable else { return }
-                    model.reminders.start(database: model.database) { [model] in model.reminderLinks }
+                    model.reminders.start(database: model.database) { [model] in model.allReminderLinks }
                     await model.cloud.start()
                 }
                 .onOpenURL { url in model.openTarget = ReminderTarget(deepLink: url) }
         }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .background, let hours = model.company?.syncIntervalHours {
+            if phase == .background, let hours = model.companies.map(\.syncIntervalHours).min() {
                 BackgroundSync.schedule(afterHours: hours)
             }
         }

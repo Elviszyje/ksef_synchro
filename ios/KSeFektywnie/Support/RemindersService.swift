@@ -81,16 +81,17 @@ final class RemindersService {
     }
 
     /// Obserwuje zmiany statusów faktur i odhacza zakończone przypomnienia.
-    func start(database: AppDatabase, links: @escaping @MainActor @Sendable () -> ReminderLinkRepository?) {
+    /// - Parameter links: powiązania przypomnień wszystkich firm (odhaczanie nie zależy od aktywnej firmy).
+    func start(database: AppDatabase, links: @escaping @MainActor @Sendable () -> [ReminderLinkRepository]) {
         authorization = EKEventStore.authorizationStatus(for: .reminder)
         let region = DatabaseRegionObservation(tracking: [Table("invoice"), Table("reminderLink")])
         observation = region.start(in: database.writer, onError: { _ in }, onChange: { [weak self] _ in
             Task { @MainActor in
-                guard let self, let repo = links() else { return }
-                self.completeFinished(links: repo)
+                guard let self else { return }
+                for repo in links() { self.completeFinished(links: repo) }
             }
         })
-        if let repo = links() { completeFinished(links: repo) }
+        for repo in links() { completeFinished(links: repo) }
     }
 }
 

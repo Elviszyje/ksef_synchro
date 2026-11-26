@@ -5,14 +5,21 @@ import Persistence
 import KSeFClient
 import AppServices
 
-/// Stan aplikacji: baza, aktywna firma, identyfikator urządzenia.
-/// `activeCompany` to jedno źródło prawdy — przełącznik firm w v2 zmienia tylko tę wartość.
+/// Stan aplikacji: baza, firmy, aktywna firma, identyfikator urządzenia.
+/// Zakładki pracują zawsze na jednej, aktywnej firmie (`company`). Przełącznik firm zmienia
+/// tylko `activeCompanyID`; widok „Wszystkie firmy” na Pulpicie czyta dane ponad tym podziałem.
 @Observable
 final class AppModel {
     let database: AppDatabase
     let deviceID: String
+    /// Wszystkie firmy w kolejności dodania (najwyżej `maxCompanies`).
+    private(set) var companies: [Company] = []
+    /// Aktywna firma — na niej pracują zakładki Faktury, Przelewy, Wyciągi i Ustawienia.
     private(set) var company: Company?
     private(set) var bankAccounts: [CompanyBankAccount] = []
+    /// Limit firm: aplikacja jest dla przedsiębiorcy (np. dwie działalności w rodzinie), nie dla biura rachunkowego.
+    static let maxCompanies = 3
+    private static let activeCompanyKey = "activeCompanyID"
     private(set) var startupError: String?
     /// Nie udało się otworzyć bazy na dysku — model działa na pustej atrapie i nie wolno
     /// traktować go jak świeżej instalacji (ekran powitalny, lustro iCloud, synchronizacja).
@@ -50,6 +57,11 @@ final class AppModel {
             let model = AppModel(database: try! AppDatabase.inMemory(), deviceID: deviceID)
             model.cloud.isEnabled = ProcessInfo.processInfo.arguments.contains("-demo-cloud")
             try? model.startDemo()
+            // `-demo-second YES`: druga firma demo (przełącznik firm, widok „Wszystkie firmy”).
+            if UserDefaults.standard.bool(forKey: "demo-second") {
+                _ = try? DemoData.seedSecondCompany(db: model.database, device: deviceID)
+                model.reload()
+            }
             if ProcessInfo.processInfo.arguments.contains("-print-demo-links"),
                let first = try? model.invoices?.fetch().first {
                 print("DEMO-LINK \(ReminderTarget.invoice(first.id).deepLink.absoluteString) \(first.invoiceNumber)")
@@ -92,7 +104,9 @@ final class AppModel {
 
     func reload() {
         do {
-            company = try database.reader.read { try Company.order(Column.createdAt).fetchOne($0) }
+            companies = try database.reader.read { try Company.order(Column.createdAt).fetchAll($0) }
+            let stored = UserDefaults.standard.string(forKey: Self.activeCompanyKey).flatMap(UUID.init(uuidString:))
+            company = companies.first { $0.id == stored } ?? companies.first
             bankAccounts = try company.map { c in
                 try database.reader.read { try CompanyBankAccount.filter(Column.companyId == c.id).fetchAll($0) }
             } ?? []
@@ -128,6 +142,11 @@ final class AppModel {
         company.map { ReminderLinkRepository(db: database, companyID: $0.id) }
     }
 
+    /// Powiązania przypomnień wszystkich firm — odhaczanie po opłaceniu nie zależy od aktywnej firmy.
+    var allReminderLinks: [ReminderLinkRepository] {
+        companies.map { ReminderLinkRepository(db: database, companyID: $0.id) }
+    }
+
     var catalog: CatalogRepository? {
         company.map { CatalogRepository(db: database, companyID: $0.id, device: deviceID) }
     }
@@ -157,9 +176,48 @@ final class AppModel {
 
     // MARK: - Firma
 
-    func createCompany(nip: String, name: String, address: String, environment: KSeFEnvironment) throws {
+    var canAddCompany: Bool { companies.count < Self.maxCompanies }
+
+    /// Dodaje firmę i od razu ją aktywuje. Token KSeF (jeśli podany) trafia do pęku kluczy tej firmy.
+    func createCompany(nip: String, name: String, address: String, environment: KSeFEnvironment, token: String? = nil) throws {
+        guard canAddCompany else { throw CompanyError.limitReached(Self.maxCompanies) }
+        guard !companies.contains(where: { $0.nip == nip }) else { throw CompanyError.duplicateNIP }
         let company = Company(nip: nip, name: name, address: address, ksefEnvironment: environment, updatedByDevice: deviceID)
         try database.writer.write { try company.insert($0) }
+        if let token = token?.trimmingCharacters(in: .whitespacesAndNewlines), !token.isEmpty {
+            Keychain.setKSeFToken(token, for: company.id)
+            tokenRevision += 1
+        }
+        activate(company.id)
+    }
+
+    /// Przełącza aktywną firmę (zapamiętywane między uruchomieniami).
+    func activate(_ id: UUID) {
+        UserDefaults.standard.set(id.uuidString, forKey: Self.activeCompanyKey)
+        if company?.id != id || !companies.contains(where: { $0.id == id }) { reload() }
+    }
+
+    /// Aktywuje firmę, do której należy rekord z linku (przypomnienie może dotyczyć innej firmy niż aktywna).
+    func activateCompany(owning target: ReminderTarget) {
+        let owner: UUID? = try? database.reader.read { db in
+            switch target {
+            case .invoice(let id): try Invoice.filter(key: id).fetchOne(db)?.companyID
+            case .paymentFile(let id): try PaymentFile.filter(key: id).fetchOne(db)?.companyID
+            }
+        }
+        if let owner, owner != company?.id { activate(owner) }
+    }
+
+    func hasToken(_ company: Company) -> Bool {
+        _ = tokenRevision
+        return Keychain.ksefToken(for: company.id) != nil
+    }
+
+    /// Usuwa jedną firmę z telefonu razem z jej danymi i tokenem.
+    func deleteCompany(_ target: Company) throws {
+        Keychain.setKSeFToken(nil, for: target.id)
+        _ = try database.writer.write { try target.delete($0) }
+        tokenRevision += 1
         reload()
     }
 
@@ -207,7 +265,12 @@ final class AppModel {
     func refreshTokenState() { tokenRevision += 1 }
 
     func makeClient() throws -> KSeFClient {
-        guard let company, let token = ksefToken, !token.isEmpty else { throw KSeFError.missingToken }
+        guard let company else { throw KSeFError.missingToken }
+        return try makeClient(for: company)
+    }
+
+    func makeClient(for company: Company) throws -> KSeFClient {
+        guard let token = Keychain.ksefToken(for: company.id), !token.isEmpty else { throw KSeFError.missingToken }
         return KSeFClient(environment: company.ksefEnvironment, nip: company.nip, apiToken: token)
     }
 
@@ -226,19 +289,33 @@ final class AppModel {
         _ = try await makeClient().authenticate()
     }
 
-    func sync() async {
-        guard let company, !syncInProgress else { return }
+    /// Synchronizacja na żądanie: aktywna firma albo (Pulpit „Wszystkie firmy”) każda firma z tokenem.
+    func sync(allCompanies: Bool = false) async {
+        guard let company else { return }
+        let connected = companies.filter { Keychain.ksefToken(for: $0.id) != nil }
+        await sync(allCompanies && !connected.isEmpty ? connected : [company])
+    }
+
+    /// Synchronizuje podane firmy po kolei i pokazuje jeden komunikat (z nazwami firm, gdy jest ich kilka).
+    private func sync(_ targets: [Company]) async {
+        guard !targets.isEmpty, !syncInProgress else { return }
         syncInProgress = true
         defer { syncInProgress = false }
-        do {
-            let service = KSeFSyncService(company: company, source: try makeClient(), db: database, device: deviceID)
-            let result = try await service.run()
-            showSyncResult(SyncSummary.text(result), for: .seconds(4))
-            reload()
-        } catch {
-            // Błąd zostaje dłużej, żeby dało się go przeczytać.
-            showSyncResult(error.userMessage, for: .seconds(8))
+        var messages: [String] = []
+        var failed = false
+        for target in targets {
+            let prefix = targets.count > 1 ? "\(target.name): " : ""
+            do {
+                let service = KSeFSyncService(company: target, source: try makeClient(for: target), db: database, device: deviceID)
+                messages.append(prefix + SyncSummary.text(try await service.run()))
+            } catch {
+                failed = true
+                messages.append(prefix + error.userMessage)
+            }
         }
+        // Błąd zostaje dłużej, żeby dało się go przeczytać.
+        showSyncResult(messages.joined(separator: "\n"), for: .seconds(failed ? 8 : 4))
+        reload()
     }
 
     private var lastAutoSyncAttempt: Date?
@@ -247,15 +324,20 @@ final class AppModel {
     /// Krótszy niż interwał synchronizacji w tle (6 godzin), bo ten jest tylko prośbą do systemu.
     static let autoSyncMinInterval: TimeInterval = 3600
 
-    /// Synchronizacja po wejściu do aplikacji, gdy od ostatniej minęła co najmniej godzina. Synchronizacji
-    /// w tle iOS nie gwarantuje, więc to jedyny pewny moment na pobranie nowych faktur bez gestu.
-    /// Nieudana próba nie jest ponawiana przez kwadrans, żeby błąd nie wracał przy każdym powrocie.
+    /// Synchronizacja po wejściu do aplikacji: każda firma z tokenem, której ostatnia synchronizacja jest
+    /// starsza niż godzina. Synchronizacji w tle iOS nie gwarantuje, więc to jedyny pewny moment na pobranie
+    /// nowych faktur bez gestu. Nieudana próba nie jest ponawiana przez kwadrans, żeby błąd nie wracał
+    /// przy każdym powrocie.
     func syncIfStale(now: Date = Date()) async {
-        guard let company, !databaseUnavailable, !isDemo, !syncInProgress, ksefToken != nil else { return }
-        if let last = company.lastSyncAt, now.timeIntervalSince(last) < Self.autoSyncMinInterval { return }
+        guard !databaseUnavailable, !syncInProgress else { return }
+        let stale = companies.filter { company in
+            !DemoData.isDemoNIP(company.nip) && Keychain.ksefToken(for: company.id) != nil
+                && company.lastSyncAt.map { now.timeIntervalSince($0) >= Self.autoSyncMinInterval } ?? true
+        }
+        guard !stale.isEmpty else { return }
         if let attempt = lastAutoSyncAttempt, now.timeIntervalSince(attempt) < 15 * 60 { return }
         lastAutoSyncAttempt = now
-        await sync()
+        await sync(stale)
     }
 
     private func showSyncResult(_ message: String, for duration: Duration) {
@@ -282,24 +364,38 @@ final class AppModel {
 
     /// Dane przykładowe bez KSeF (także dla recenzentów App Store).
     func startDemo() throws {
-        try DemoData.seed(db: database, device: deviceID)
-        reload()
+        let demo = try DemoData.seed(db: database, device: deviceID)
+        activate(demo.id)
     }
 
-    var isDemo: Bool { company?.nip == DemoData.companyNIP }
+    var isDemo: Bool { company.map { DemoData.isDemoNIP($0.nip) } ?? false }
 
     // MARK: - Dane
 
-    /// Usuwa wszystkie dane firmy z telefonu (baza i token).
+    /// Usuwa z telefonu wszystkie firmy z ich danymi i tokenami.
     func deleteAllData() throws {
-        guard let company else { return }
-        Keychain.setKSeFToken(nil, for: company.id)
-        _ = try database.writer.write { try company.delete($0) }
+        for company in companies {
+            Keychain.setKSeFToken(nil, for: company.id)
+            _ = try database.writer.write { try company.delete($0) }
+        }
+        tokenRevision += 1
         reload()
     }
 }
 
 import GRDB
+
+enum CompanyError: LocalizedError {
+    case limitReached(Int)
+    case duplicateNIP
+
+    var errorDescription: String? {
+        switch self {
+        case .limitReached(let max): String(localized: "Można dodać najwyżej \(max) firmy.")
+        case .duplicateNIP: String(localized: "Firma z tym NIP-em jest już dodana.")
+        }
+    }
+}
 
 extension Column {
     static let createdAt = Column("createdAt")

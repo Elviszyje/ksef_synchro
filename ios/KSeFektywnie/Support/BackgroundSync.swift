@@ -3,6 +3,7 @@ import UIKit
 import BackgroundTasks
 import UserNotifications
 import AppServices
+import KSeFClient
 
 /// Synchronizacja w tle (BGAppRefreshTask) i powiadomienia o nowych fakturach.
 /// iOS sam decyduje, kiedy uruchomić zadanie — to uzupełnienie, nie gwarancja.
@@ -56,12 +57,13 @@ enum BackgroundSync {
 }
 
 extension AppModel {
-    /// Wywoływane przez system w tle: krótka synchronizacja (mały budżet XML) i powiadomienie.
+    /// Wywoływane przez system w tle: krótka synchronizacja każdej firmy z tokenem (mały budżet XML)
+    /// i jedno powiadomienie o nowych fakturach.
     func backgroundRefresh() async {
         // Bez dostępu do bazy (telefon jeszcze nieodblokowany po restarcie) nie znamy interwału —
         // i tak prosimy o kolejne uruchomienie, żeby łańcuch odświeżeń się nie urwał.
         defer {
-            if let hours = company?.syncIntervalHours ?? (databaseUnavailable ? 6 : nil) {
+            if let hours = companies.map(\.syncIntervalHours).min() ?? (databaseUnavailable ? 6 : nil) {
                 BackgroundSync.schedule(afterHours: hours)
             }
         }
@@ -70,16 +72,27 @@ extension AppModel {
             record(String(localized: "Baza danych była niedostępna (telefon nie został jeszcze odblokowany po uruchomieniu)."))
             return
         }
-        guard let company else { return }
-        do {
-            let service = KSeFSyncService(company: company, source: try makeClient(), db: database, device: deviceID)
-            let result = try await service.run(xmlBudget: 5)
-            record(SyncSummary.text(result))
-            await BackgroundSync.notifyNewInvoices(result.new)
-            await refreshSalesSubmissions()
-            reload()
-        } catch {
-            record(error.userMessage)
+        let connected = companies.filter { Keychain.ksefToken(for: $0.id) != nil }
+        guard !connected.isEmpty else {
+            if company != nil { record(KSeFError.missingToken.userMessage) }
+            return
         }
+        var outcomes: [String] = []
+        var newInvoices = 0
+        for target in connected {
+            let prefix = connected.count > 1 ? "\(target.name): " : ""
+            do {
+                let client = try makeClient(for: target)
+                let result = try await KSeFSyncService(company: target, source: client, db: database, device: deviceID).run(xmlBudget: 5)
+                outcomes.append(prefix + SyncSummary.text(result))
+                newInvoices += result.new
+                await KSeFSendService(company: target, sender: client, db: database, device: deviceID).refreshPending()
+            } catch {
+                outcomes.append(prefix + error.userMessage)
+            }
+        }
+        record(outcomes.joined(separator: "\n"))
+        await BackgroundSync.notifyNewInvoices(newInvoices)
+        reload()
     }
 }

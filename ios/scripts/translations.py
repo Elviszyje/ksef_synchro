@@ -335,6 +335,28 @@ T = {
  "termin dziś": ("due today", "vence hoy", "термін сьогодні"),
  "w paczce przelewów": ("in a transfer batch", "en un lote de transferencias", "у пакеті переказів"),
  "Generuj plik": ("Generate file", "Generar archivo", "Створити файл"),
+ # Kilka firm (limit 3): przełącznik na Pulpicie, lista w Ustawieniach.
+ "Brak tokenu KSeF": ("No KSeF token", "Sin token de KSeF", "Немає токена KSeF"),
+ "Dodaj firmę": ("Add company", "Añadir empresa", "Додати фірму"),
+ "Firma z tym NIP-em jest już dodana.": ("A company with this NIP has already been added.", "Ya hay una empresa con este NIP.", "Фірму з цим NIP уже додано."),
+ "Firmy": ("Companies", "Empresas", "Фірми"),
+ "Każda firma ma własny token. Możesz go też wkleić później w Ustawieniach → Połączenie z KSeF. Token jest przechowywany wyłącznie w pęku kluczy tego iPhone'a.":
+   ("Each company has its own token. You can also paste it later in Settings → KSeF connection. The token is stored only in this iPhone's keychain.",
+    "Cada empresa tiene su propio token. También puedes pegarlo más tarde en Ajustes → Conexión con KSeF. El token se guarda solo en el llavero de este iPhone.",
+    "Кожна фірма має власний токен. Його також можна вставити пізніше в Налаштуваннях → Підключення до KSeF. Токен зберігається лише у в'язці ключів цього iPhone."),
+ "Można dodać najwyżej %lld firmy.": ("You can add up to %lld companies.", "Puedes añadir hasta %lld empresas.", "Можна додати щонайбільше %lld фірми."),
+ "Nowa firma": ("New company", "Nueva empresa", "Нова фірма"),
+ "Usunąć firmę %@?": ("Delete company %@?", "¿Eliminar la empresa %@?", "Видалити фірму %@?"),
+ "Usuwa z telefonu faktury, pliki przelewów, wyciągi i token tej firmy. Pozostałe firmy zostają bez zmian.":
+   ("Removes this company's invoices, payment files, statements and token from the phone. Other companies are not affected.",
+    "Elimina del teléfono las facturas, archivos de pago, extractos y el token de esta empresa. Las demás empresas no cambian.",
+    "Видаляє з телефону рахунки-фактури, файли переказів, виписки й токен цієї фірми. Інші фірми залишаються без змін."),
+ "Usuń tę firmę": ("Delete this company", "Eliminar esta empresa", "Видалити цю фірму"),
+ "Wszystkie firmy": ("All companies", "Todas las empresas", "Усі фірми"),
+ "Zakładki pokazują dane zaznaczonej firmy. Każda firma ma własny token KSeF, rachunki i szablony. Można dodać najwyżej %lld firmy.":
+   ("Tabs show the selected company's data. Each company has its own KSeF token, accounts and templates. You can add up to %lld companies.",
+    "Las pestañas muestran los datos de la empresa seleccionada. Cada empresa tiene su propio token de KSeF, cuentas y plantillas. Puedes añadir hasta %lld empresas.",
+    "Вкладки показують дані вибраної фірми. Кожна фірма має власний токен KSeF, рахунки та шаблони. Можна додати щонайбільше %lld фірми."),
  "Inny rachunek niż dotąd — sprawdź": ("Different account than before — check it", "Cuenta distinta a la anterior: compruébala", "Інший рахунок, ніж раніше — перевірте"),
  "Propozycje: %lld z %lld obciążeń": ("Suggestions: %lld of %lld debits", "Propuestas: %lld de %lld cargos", "Пропозиції: %lld із %lld списань"),
  "Ten dostawca podawał dotąd inny rachunek. Potwierdź numer przed zapłatą.":

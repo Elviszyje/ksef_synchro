@@ -5,9 +5,16 @@ import Persistence
 
 /// Pulpit: koszty wybranego miesiąca, VAT z faktur, kwota do zapłaty i najbliższe terminy.
 /// Wszystko liczone z faktur kosztowych w PLN (inne waluty wymagałyby kursów).
+///
+/// Przy kilku firmach nagłówek jest przełącznikiem: jedna firma (staje się aktywna we wszystkich
+/// zakładkach) albo „Wszystkie firmy” — wtedy Pulpit sumuje dane ponad firmami, a pozostałe
+/// zakładki dalej pracują na aktywnej.
 struct DashboardView: View {
     @Environment(AppModel.self) private var model
-    @State private var invoices: [Invoice] = []
+    /// Faktury kosztowe wszystkich firm; `invoices` zawęża je do wybranego zakresu.
+    @State private var allInvoices: [Invoice] = []
+    @AppStorage("dashboardAllCompanies") private var wantsAllCompanies = false
+    @State private var addingCompany = false
     @State private var month = LocalDate.today().firstOfMonth
     @State private var path: [UUID] = []
     @State private var showSummary = DebugLaunch.openDashboard
@@ -15,6 +22,13 @@ struct DashboardView: View {
     let openInvoices: () -> Void
 
     private let today = LocalDate.today()
+
+    /// Widok łączny ma sens dopiero przy co najmniej dwóch firmach.
+    private var showsAllCompanies: Bool { wantsAllCompanies && model.companies.count > 1 }
+
+    private var invoices: [Invoice] {
+        showsAllCompanies ? allInvoices : allInvoices.filter { $0.companyID == model.company?.id }
+    }
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -36,7 +50,8 @@ struct DashboardView: View {
                 .padding(.bottom, 24)
             }
             .background(Color.appBackground.ignoresSafeArea())
-            .refreshable { await model.sync() }
+            .refreshable { await model.sync(allCompanies: showsAllCompanies) }
+            .sheet(isPresented: $addingCompany) { AddCompanyView() }
             .toolbar(.hidden, for: .navigationBar)
             .animation(.snappy, value: model.syncBanner)
             .navigationDestination(for: UUID.self) { InvoiceDetailView(invoiceID: $0) }
@@ -49,14 +64,55 @@ struct DashboardView: View {
 
     private var header: some View {
         HStack(spacing: 10) {
-            InitialsAvatar(name: model.company?.name ?? "", size: 34, prominent: true)
-            Text(model.company?.name ?? "")
-                .font(.grotesk(16, .medium, relativeTo: .headline))
-                .lineLimit(1)
+            companySwitcher
             Spacer(minLength: 8)
             monthSwitcher
         }
         .padding(.top, 8)
+    }
+
+    /// Nazwa firmy z menu: wybór firmy, widok łączny i dodanie kolejnej firmy.
+    private var companySwitcher: some View {
+        let title = showsAllCompanies ? String(localized: "Wszystkie firmy") : (model.company?.name ?? "")
+        return Menu {
+            Picker("Firma", selection: Binding(
+                get: { showsAllCompanies ? nil : model.company?.id },
+                set: { id in
+                    wantsAllCompanies = id == nil
+                    if let id { model.activate(id) }
+                })) {
+                ForEach(model.companies) { company in
+                    Text(company.name).tag(UUID?.some(company.id))
+                }
+                if model.companies.count > 1 {
+                    Label("Wszystkie firmy", systemImage: "square.stack.3d.up").tag(UUID?.none)
+                }
+            }
+            if model.canAddCompany {
+                Button { addingCompany = true } label: { Label("Dodaj firmę", systemImage: "plus") }
+            }
+        } label: {
+            HStack(spacing: 10) {
+                if showsAllCompanies {
+                    Image(systemName: "square.stack.3d.up.fill")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(Color.appOnPrimary)
+                        .frame(width: 34, height: 34)
+                        .background(Color.appPrimaryFill, in: .circle)
+                } else {
+                    InitialsAvatar(name: title, size: 34, prominent: true)
+                }
+                Text(title)
+                    .font(.grotesk(16, .medium, relativeTo: .headline))
+                    .foregroundStyle(Color.appInk)
+                    .lineLimit(1)
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(Color.appMuted)
+            }
+            .contentShape(.rect)
+        }
+        .accessibilityIdentifier("company-switcher")
     }
 
     /// Wybór miesiąca: poprzedni / następny w obrębie ostatnich 12 miesięcy.
@@ -140,24 +196,61 @@ struct DashboardView: View {
     private var payableCard: some View {
         let payable = invoices.filter { $0.currency == "PLN" && !$0.isCorrection && ($0.status == .new || $0.status == .accepted) }
         let total = payable.reduce(Decimal(0)) { $0 + $1.amountGross }
-        return HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Do zapłaty · \(payable.count) faktur")
-                    .font(.grotesk(13, .medium, relativeTo: .footnote))
-                    .foregroundStyle(Color.appOnGraphiteMuted)
-                HeroAmount(amount: total, size: 24, onGraphite: true)
-            }
-            Spacer(minLength: 8)
-            Button(action: openPayments) {
-                HStack(spacing: 6) {
-                    Text("Przelewy")
-                    Image(systemName: "arrow.right").font(.system(size: 13, weight: .bold))
+        return VStack(spacing: 14) {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Do zapłaty · \(payable.count) faktur")
+                        .font(.grotesk(13, .medium, relativeTo: .footnote))
+                        .foregroundStyle(Color.appOnGraphiteMuted)
+                    HeroAmount(amount: total, size: 24, onGraphite: true)
+                }
+                Spacer(minLength: 8)
+                if !showsAllCompanies {
+                    Button(action: openPayments) {
+                        HStack(spacing: 6) {
+                            Text("Przelewy")
+                            Image(systemName: "arrow.right").font(.system(size: 13, weight: .bold))
+                        }
+                    }
+                    .buttonStyle(.appMint)
                 }
             }
-            .buttonStyle(.appMint)
+            // Widok łączny: kwota każdej firmy osobno; dotknięcie otwiera jej Przelewy.
+            if showsAllCompanies {
+                VStack(spacing: 0) {
+                    ForEach(model.companies) { company in
+                        let amount = payable.filter { $0.companyID == company.id }.reduce(Decimal(0)) { $0 + $1.amountGross }
+                        Divider().overlay(Color.appOnGraphiteMuted.opacity(0.3))
+                        Button {
+                            model.activate(company.id)
+                            openPayments()
+                        } label: {
+                            HStack(spacing: 8) {
+                                Text(company.name)
+                                    .font(.grotesk(14, .medium, relativeTo: .subheadline))
+                                    .foregroundStyle(Color.appOnGraphite)
+                                    .lineLimit(1)
+                                Spacer(minLength: 8)
+                                Text(amount.money())
+                                    .font(.grotesk(14, .medium, relativeTo: .subheadline))
+                                    .monospacedDigit()
+                                    .foregroundStyle(Color.appOnGraphite)
+                                Image(systemName: "arrow.right")
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundStyle(Color.appMint)
+                            }
+                            .frame(minHeight: 44)
+                            .contentShape(.rect)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("payable-company-\(company.nip)")
+                    }
+                }
+            }
         }
         .padding(.horizontal, 20)
-        .padding(.vertical, 16)
+        .padding(.top, 16)
+        .padding(.bottom, showsAllCompanies ? 4 : 16)
         .background(Color.appFeatureCard, in: .rect(cornerRadius: 22))
     }
 
@@ -167,7 +260,7 @@ struct DashboardView: View {
             .filter { !$0.isCorrection && ($0.status == .new || $0.status == .accepted) && $0.paymentDueDate != nil }
             .sorted { ($0.paymentDueDate!, $0.invoiceNumber) < ($1.paymentDueDate!, $1.invoiceNumber) }
         sectionHeader("Najbliższe terminy") {
-            if upcoming.count > 3 {
+            if upcoming.count > 3 && !showsAllCompanies {
                 Button(action: openInvoices) { Text("Wszystkie (\(upcoming.count))") }
             }
         }
@@ -177,10 +270,18 @@ struct DashboardView: View {
                 .appCard()
         } else {
             VStack(spacing: 0) {
-                ForEach(Array(upcoming.prefix(3).enumerated()), id: \.element.id) { index, invoice in
+                ForEach(Array(upcoming.prefix(showsAllCompanies ? 5 : 3).enumerated()), id: \.element.id) { index, invoice in
                     if index > 0 { Divider().overlay(Color.appLine) }
-                    NavigationLink(value: invoice.id) {
-                        InvoiceRow(invoice: invoice, today: today).padding(.vertical, 8)
+                    // Szczegóły faktury czytają dane aktywnej firmy, więc w widoku łącznym
+                    // dotknięcie najpierw aktywuje firmę tej faktury.
+                    Button {
+                        model.activate(invoice.companyID)
+                        path.append(invoice.id)
+                    } label: {
+                        InvoiceRow(invoice: invoice, today: today,
+                                   companyName: showsAllCompanies ? companyName(invoice.companyID) : nil)
+                            .padding(.vertical, 8)
+                            .contentShape(.rect)
                     }
                     .buttonStyle(.plain)
                 }
@@ -281,11 +382,18 @@ struct DashboardView: View {
         return Array(sellers.values.sorted { ($0.gross, $1.name) > ($1.gross, $0.name) }.prefix(3))
     }
 
+    private func companyName(_ id: UUID) -> String? {
+        model.companies.first { $0.id == id }?.name
+    }
+
+    /// Jedna obserwacja faktur wszystkich firm — przełączanie zakresu nie wymaga jej ponawiania.
     private func observe() async {
-        guard let repo = model.invoices else { return }
+        let observation = ValueObservation.tracking { db in
+            try Invoice.order(Column("issueDate").desc, Column("syncedAt").desc).fetchAll(db)
+        }
         do {
-            for try await value in repo.observe(InvoiceFilter()).values(in: model.database.reader) {
-                invoices = value
+            for try await value in observation.values(in: model.database.reader) {
+                allInvoices = value
             }
         } catch {}
     }

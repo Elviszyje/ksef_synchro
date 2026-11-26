@@ -1,6 +1,6 @@
 # KS-eFektywnie — App Store Connect: wszystkie teksty i ustawienia
 
-Stan: 2026-11-26 (wersja 1.5.1: nowy wygląd „Grafit”, zakładka Pulpit; wcześniejszy stan 2026-11-15, wersja 0.2.7). Wersja do czytania i kopiowania pole po polu: `docs/ios-app-store.html`. Teksty do wklejenia w App Store Connect (ASC), pole po polu, z limitami znaków. Długości pól z limitem sprawdzone skryptem.
+Stan: 2026-11-26 (wersja 1.5.2: nowy wygląd „Grafit”, zakładka Pulpit, kilka firm; wcześniejszy stan 2026-11-15, wersja 0.2.7). Wersja do czytania i kopiowania pole po polu: `docs/ios-app-store.html`. Teksty do wklejenia w App Store Connect (ASC), pole po polu, z limitami znaków. Długości pól z limitem sprawdzone skryptem.
 
 Języki karty w sklepie: **polski (główny)**, angielski (U.K. lub U.S.), hiszpański (Spain), ukraiński. Tłumaczenia es/uk do przeglądu przez native speakera.
 
@@ -408,10 +408,10 @@ Pierwszy build dla testerów zewnętrznych przechodzi skróconą recenzję (Beta
 - **pl**: KS-eFektywnie to faktury z Krajowego Systemu e-Faktur na iPhonie: pobieranie faktur kosztowych, pliki przelewów dla banku, rozliczanie wyciągów i wystawianie faktur. Dane zostają na telefonie — bez konta i bez serwera. Bez tokenu KSeF możesz wypróbować aplikację na danych przykładowych.
 - **en**: KS-eFektywnie brings invoices from Poland's National e-Invoice System (KSeF) to the iPhone: download purchase invoices, prepare bank payment files, match bank statements and issue sales invoices. Data stays on the phone — no account and no server. Without a KSeF token you can try the app with sample data.
 
-### What to Test (wersja 1.5.1)
+### What to Test (wersja 1.5.2)
 
-- **pl**: Nowy wygląd w trybie jasnym i ciemnym. Nowa zakładka Pulpit z kosztami miesiąca i najbliższymi terminami. Sprzedaż jest teraz w zakładce Faktury (przełącznik u góry). W Przelewach ostrzeżenie, gdy dostawca podał inny rachunek niż dotąd. Uwagi: Ustawienia → Zgłoś problem.
-- **en**: New look in light and dark mode. New Dashboard tab with this month's costs and upcoming due dates. Sales moved to the Invoices tab (switch at the top). Transfers now warn when a supplier gives a different account than before. Feedback: Settings → Report a problem.
+- **pl**: Kilka firm (do 3): dodaj kolejną w Ustawienia → Firmy albo po dotknięciu nazwy firmy na Pulpicie; każda ma własny token KSeF. Na Pulpicie widok „Wszystkie firmy” sumuje koszty i kwoty do zapłaty. Poza tym: nowy wygląd w trybie jasnym i ciemnym, zakładka Pulpit, Sprzedaż w zakładce Faktury, ostrzeżenie o zmianie rachunku dostawcy. Uwagi: Ustawienia → Zgłoś problem.
+- **en**: Several companies (up to 3): add another one in Settings → Companies or by tapping the company name on the Dashboard; each has its own KSeF token. The “All companies” view on the Dashboard adds up costs and amounts to pay. Also: new look in light and dark mode, Dashboard tab, Sales inside the Invoices tab, a warning when a supplier's account changes. Feedback: Settings → Report a problem.
 
 ---
 

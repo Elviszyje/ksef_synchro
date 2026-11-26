@@ -7,6 +7,10 @@ import Persistence
 /// NIP-y i rachunki są fikcyjne (poprawne sumy kontrolne, nie należą do realnych firm).
 public enum DemoData {
     public static let companyNIP = "1111111111"
+    /// Druga firma demo — do sprawdzania przełącznika firm i widoku „Wszystkie firmy”.
+    public static let secondCompanyNIP = "2222222222"
+
+    public static func isDemoNIP(_ nip: String) -> Bool { nip == companyNIP || nip == secondCompanyNIP }
 
     struct Seller {
         let name, nip, address, account: String
@@ -39,19 +43,8 @@ public enum DemoData {
         func day(_ offset: Int) -> LocalDate { LocalDate(Calendar.current.date(byAdding: .day, value: offset, to: today.date())!) }
         func invoice(_ i: Int, seller: Seller, net netText: String, rate: Decimal = 23, issued: Int, due: Int?, status: InvoiceStatus,
                      split: Bool = false, type: String = "VAT", item: String) -> Invoice {
-            // Kwoty jako tekst: literał Decimal przechodzi przez Double i traci precyzję (1204.88 → 1204.8799…).
-            let net = DecimalText.parse(netText)!
-            let vat = (net * rate / 100).rounded(scale: 2)
-            let number = "FV/\(today.year)/\(String(format: "%04d", i))"
-            let ref = "\(seller.nip)-\(day(issued).compact)-DEMO\(String(format: "%06d", i))"
-            return Invoice(companyID: company.id, ksefReferenceNumber: ref, invoiceNumber: number,
-                           sellerName: seller.name, sellerNIP: seller.nip, sellerAddress: seller.address, buyerNIP: companyNIP,
-                           amountNet: net, amountVAT: vat, amountGross: net + vat, isSplitPayment: split,
-                           issueDate: day(issued), paymentDueDate: due.map(day), bankAccountNumber: seller.account,
-                           paymentTitle: "Faktura \(number)", paymentForm: "przelew", status: status, invoiceType: type,
-                           description: item, rawXML: xml(number: number, seller: seller, issued: day(issued), due: due.map(day),
-                                                          net: net, vat: vat, item: item, split: split),
-                           syncedAt: now, updatedAt: now, updatedByDevice: device)
+            makeInvoice(i, company: company, device: device, today: today, now: now, seller: seller, net: netText, rate: rate,
+                        issued: issued, due: due, status: status, split: split, type: type, item: item)
         }
 
         let invoices = [
@@ -83,6 +76,49 @@ public enum DemoData {
         let stored = try repo.fetch()
         try seedSales(company: company, account: account, db: db, device: device, today: today, now: now)
         try seedStatement(company: company, invoices: stored, db: db, device: device, today: today, now: now)
+        return company
+    }
+
+    /// Faktura demo z kwotami, numerem i treścią XML zgodnymi ze sobą. `issued` i `due` to dni względem `today`.
+    static func makeInvoice(_ i: Int, company: Company, device: String, today: LocalDate, now: Date, seller: Seller,
+                            net netText: String, rate: Decimal = 23, issued: Int, due: Int?, status: InvoiceStatus,
+                            split: Bool = false, type: String = "VAT", item: String) -> Invoice {
+        func day(_ offset: Int) -> LocalDate { LocalDate(Calendar.current.date(byAdding: .day, value: offset, to: today.date())!) }
+        // Kwoty jako tekst: literał Decimal przechodzi przez Double i traci precyzję (1204.88 → 1204.8799…).
+        let net = DecimalText.parse(netText)!
+        let vat = (net * rate / 100).rounded(scale: 2)
+        let number = "FV/\(today.year)/\(String(format: "%04d", i))"
+        let ref = "\(seller.nip)-\(day(issued).compact)-DEMO\(String(format: "%06d", i))"
+        return Invoice(companyID: company.id, ksefReferenceNumber: ref, invoiceNumber: number,
+                       sellerName: seller.name, sellerNIP: seller.nip, sellerAddress: seller.address, buyerNIP: company.nip,
+                       amountNet: net, amountVAT: vat, amountGross: net + vat, isSplitPayment: split,
+                       issueDate: day(issued), paymentDueDate: due.map(day), bankAccountNumber: seller.account,
+                       paymentTitle: "Faktura \(number)", paymentForm: "przelew", status: status, invoiceType: type,
+                       description: item, rawXML: xml(number: number, seller: seller, issued: day(issued), due: due.map(day),
+                                                      net: net, vat: vat, item: item, split: split),
+                       syncedAt: now, updatedAt: now, updatedByDevice: device)
+    }
+
+    /// Druga, mała firma demo: kilka faktur kosztowych w różnych statusach i własny rachunek.
+    @discardableResult
+    public static func seedSecondCompany(db: AppDatabase, device: String, today: LocalDate = .today(), now: Date = Date()) throws -> Company {
+        let company = Company(nip: secondCompanyNIP, name: "Anna Nowak Projektowanie", address: "ul. Kreślarska 4, 61-001 Poznań",
+                              ksefEnvironment: .test, createdAt: Date(timeInterval: 1, since: now), updatedAt: now, updatedByDevice: device)
+        let account = CompanyBankAccount(companyID: company.id, accountNumber: previousServiceAccount, label: "Konto firmowe", isDefault: true)
+        try db.writer.write { db in
+            try company.insert(db)
+            try account.insert(db)
+        }
+        func invoice(_ i: Int, _ seller: Int, _ net: String, issued: Int, due: Int, _ status: InvoiceStatus, _ item: String) -> Invoice {
+            makeInvoice(i, company: company, device: device, today: today, now: now, seller: sellers[seller], net: net,
+                        issued: issued, due: due, status: status, item: item)
+        }
+        try InvoiceRepository(db: db, companyID: company.id, device: device).upsertFromKSeF([
+            invoice(101, 5, "89.43", issued: -3, due: 2, .new, "Internet światłowodowy"),
+            invoice(102, 0, "356.10", issued: -8, due: 6, .accepted, "Papier do plotera, tusze"),
+            invoice(103, 3, "650", issued: -12, due: -1, .accepted, "Prowadzenie księgowości"),
+            invoice(104, 1, "1200", issued: -40, due: -26, .paid, "Naprawa komputera"),
+        ], now: now)
         return company
     }
 

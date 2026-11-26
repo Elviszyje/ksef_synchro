@@ -52,33 +52,8 @@ struct OnboardingView: View {
                     }
                 }
 
-                Section {
-                    TextField("NIP", text: $nip)
-                        .keyboardType(.numberPad)
-                        .textContentType(.none)
-                    WhiteListLookup(nip: nip, autoLookup: name.isEmpty && address.isEmpty) { taxpayer in
-                        name = taxpayer.name
-                        address = taxpayer.address
-                    }
-                    TextField("Nazwa firmy", text: $name)
-                    TextField("Adres (do plików bankowych)", text: $address, axis: .vertical)
-                } header: {
-                    Text("Twoja firma")
-                } footer: {
-                    if !nip.isEmpty && !nipValid {
-                        Text("Nieprawidłowy NIP — sprawdź 10 cyfr.").foregroundStyle(.red)
-                    }
-                }
-
-                Section {
-                    Picker("Środowisko KSeF", selection: $environment) {
-                        ForEach(KSeFEnvironment.allCases, id: \.self) { env in
-                            Text(env.label).tag(env)
-                        }
-                    }
-                } footer: {
-                    Text("Środowisko testowe służy do prób i ma osobne dane oraz tokeny. Do pracy na prawdziwych fakturach wybierz produkcyjne.")
-                }
+                CompanyFieldsSection(nip: $nip, name: $name, address: $address)
+                KSeFEnvironmentSection(environment: $environment)
 
                 if let error {
                     Section { Text(error).foregroundStyle(.red) }
