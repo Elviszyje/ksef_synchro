@@ -6,15 +6,20 @@ import UIKit
 // na graficie, więc przyciski są grafitowe z miętowym napisem, a tekst akcentu ciemnozielony.
 
 extension UIColor {
-    convenience init(hex: UInt32) {
+    nonisolated convenience init(hex: UInt32) {
         self.init(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255,
                   blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
     }
 }
 
 extension Color {
-    init(light: UInt32, dark: UInt32) {
-        self.init(uiColor: UIColor { $0.userInterfaceStyle == .dark ? UIColor(hex: dark) : UIColor(hex: light) })
+    /// Kolor zależny od trybu jasny/ciemny. Domknięcie musi być `nonisolated` i `@Sendable`: SwiftUI rozwiązuje
+    /// kolory także na wątku renderowania (np. w animacji słupków Pulpitu), a domyślna izolacja `MainActor`
+    /// kończyła się wtedy pułapką `dispatch_assert_queue` — awarią aplikacji.
+    nonisolated init(light: UInt32, dark: UInt32) {
+        self.init(uiColor: UIColor { @Sendable traits in
+            traits.userInterfaceStyle == .dark ? UIColor(hex: dark) : UIColor(hex: light)
+        })
     }
 
     /// Tło ekranu.
