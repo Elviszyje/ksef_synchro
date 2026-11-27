@@ -49,6 +49,7 @@ struct StatementsView: View {
                 }
             }
             .navigationTitle("Wyciągi")
+            .companySwitcher()
             .navigationDestination(for: UUID.self) { StatementReviewView(statementID: $0) }
             .fileImporter(isPresented: $importing, allowedContentTypes: [.plainText, .commaSeparatedText, .text, .data]) { result in
                 importFile(result)

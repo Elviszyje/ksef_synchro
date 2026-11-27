@@ -67,6 +67,7 @@ struct SalesListView: View {
                 }
             }
             .navigationTitle("Faktury")
+            .companySwitcher()
             .animation(.snappy, value: model.syncBanner)
             .sheet(item: $editing) { invoice in
                 if invoice.canBeEdited {

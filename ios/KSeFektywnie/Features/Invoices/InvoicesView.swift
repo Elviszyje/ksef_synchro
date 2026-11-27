@@ -104,6 +104,7 @@ struct InvoicesView: View {
                 ToolbarItem(placement: .topBarTrailing) { filterMenu }
             }
             .navigationTitle("Faktury")
+            .companySwitcher()
             .animation(.snappy, value: model.syncBanner)
             .navigationDestination(for: UUID.self) { InvoiceDetailView(invoiceID: $0) }
             .task(id: filter) { await observe() }

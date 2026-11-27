@@ -2800,6 +2800,28 @@
         }
       }
     },
+    "Firma: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Company: %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empresa: %@"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Фірма: %@"
+          }
+        }
+      }
+    },
     "Firmy": {
       "localizations": {
         "en": {
@@ -11729,6 +11751,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Змінені файли"
+          }
+        }
+      }
+    },
+    "Zmień firmę": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch company"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar de empresa"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Змінити фірму"
           }
         }
       }

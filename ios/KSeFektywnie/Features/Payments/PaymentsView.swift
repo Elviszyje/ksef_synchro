@@ -91,6 +91,7 @@ struct PaymentsView: View {
                 }
             }
             .navigationTitle("Przelewy")
+            .companySwitcher()
             .sheet(item: $generated) { file in PaymentFileShareSheet(file: file) }
             .task { await observePayable() }
             .onAppear {

@@ -28,6 +28,27 @@ final class CompaniesUITests: XCTestCase {
         XCTAssertFalse(app.staticTexts["FV/2026/0001"].exists)
     }
 
+    /// Przełącznik w pasku nawigacji zakładek Faktury, Przelewy i Wyciągi.
+    @MainActor
+    func testSwitchCompanyFromInvoicesTab() {
+        let app = launch()
+        app.tabBars.buttons["Faktury"].tap()
+        XCTAssertTrue(app.staticTexts["FV/2026/0001"].waitForExistence(timeout: 15), app.debugDescription)
+        let switcher = app.buttons["company-switcher-toolbar"]
+        XCTAssertTrue(switcher.waitForExistence(timeout: 5), app.debugDescription)
+        switcher.tap()
+        let second = app.buttons["Anna Nowak Projektowanie"]
+        XCTAssertTrue(second.waitForExistence(timeout: 5), app.debugDescription)
+        second.tap()
+        XCTAssertTrue(app.staticTexts["FV/2026/0101"].waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertFalse(app.staticTexts["FV/2026/0001"].exists)
+
+        for tab in ["Przelewy", "Wyciągi"] {
+            app.tabBars.buttons[tab].tap()
+            XCTAssertTrue(app.buttons["company-switcher-toolbar"].waitForExistence(timeout: 5), "\(tab): \(app.debugDescription)")
+        }
+    }
+
     @MainActor
     func testAllCompaniesViewListsEveryCompany() {
         let app = launch()

@@ -338,6 +338,8 @@ T = {
  # Kilka firm (limit 3): przełącznik na Pulpicie, lista w Ustawieniach.
  "Brak tokenu KSeF": ("No KSeF token", "Sin token de KSeF", "Немає токена KSeF"),
  "Dodaj firmę": ("Add company", "Añadir empresa", "Додати фірму"),
+ "Firma: %@": ("Company: %@", "Empresa: %@", "Фірма: %@"),
+ "Zmień firmę": ("Switch company", "Cambiar de empresa", "Змінити фірму"),
  "Firma z tym NIP-em jest już dodana.": ("A company with this NIP has already been added.", "Ya hay una empresa con este NIP.", "Фірму з цим NIP уже додано."),
  "Firmy": ("Companies", "Empresas", "Фірми"),
  "Każda firma ma własny token. Możesz go też wkleić później w Ustawieniach → Połączenie z KSeF. Token jest przechowywany wyłącznie w pęku kluczy tego iPhone'a.":
