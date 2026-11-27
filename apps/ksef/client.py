@@ -4,6 +4,7 @@ Dokumentacja: https://api-test.ksef.mf.gov.pl/docs/v2
 """
 import base64
 import logging
+import re
 import time
 from datetime import datetime, timedelta, timezone
 from typing import Iterator
@@ -16,6 +17,18 @@ from cryptography.x509 import load_der_x509_certificate
 logger = logging.getLogger(__name__)
 
 TIMEOUT = httpx.Timeout(30.0)
+
+
+def _parse_ksef_datetime(value: str | None) -> datetime | None:
+    """Data KSeF z ułamkiem do 7 cyfr (`2025-07-11T12:23:56.0154302+00:00`) — przycina do mikrosekund."""
+    if not value:
+        return None
+    text = re.sub(r'(\.\d{6})\d+', r'\1', value.replace('Z', '+00:00'))
+    try:
+        parsed = datetime.fromisoformat(text)
+    except ValueError:
+        return None
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
 
 
 class KSeFAuthError(Exception):
@@ -264,38 +277,60 @@ class KSeFClient:
         page_size: int,
         subject_type: str = SUBJECT_BUYER,
     ) -> Iterator[dict]:
+        """
+        Stronicowanie wg specyfikacji KSeF 2.0: pageOffset (numer strony, nie rekordu), pageSize (10–250)
+        i sortOrder idą w query stringu — w treści KSeF je ignoruje (zwracał wtedy ciągle pierwszą stronę
+        po 10 faktur, a pętla kręciła się aż do 429). Po 10 000 rekordów (isTruncated) zapytanie jest
+        ponawiane od permanentStorageDate ostatniego rekordu; duplikaty z granicy są pomijane.
+        """
         headers = {'Authorization': f'Bearer {session_token}'}
+        page_size = min(max(page_size, 10), 250)
+        query_from = date_from
         page_offset = 0
+        seen: set[str] = set()
 
         while True:
             payload = {
                 'subjectType': subject_type,
                 'dateRange': {
                     'dateType': 'PermanentStorage',
-                    'from': date_from.strftime('%Y-%m-%dT%H:%M:%SZ'),
+                    'from': query_from.strftime('%Y-%m-%dT%H:%M:%SZ'),
                     'to': date_to.strftime('%Y-%m-%dT%H:%M:%SZ'),
                 },
-                'pageSize': page_size,
-                'pageOffset': page_offset,
             }
             resp = self._http.post(
                 self._url('invoices/query/metadata'),
+                params={'sortOrder': 'Asc', 'pageOffset': page_offset, 'pageSize': page_size},
                 json=payload,
                 headers=headers,
             )
             self._raise_for_status(resp)
             data = resp.json()
             invoices = data.get('invoices', [])
-            logger.info('KSeF v2 zapytanie %s–%s offset=%d: %d faktur',
-                        date_from.strftime('%Y-%m-%d'), date_to.strftime('%Y-%m-%d'),
+            logger.info('KSeF v2 zapytanie %s–%s strona=%d: %d faktur',
+                        query_from.strftime('%Y-%m-%d'), date_to.strftime('%Y-%m-%d'),
                         page_offset, len(invoices))
 
+            added = 0
             for inv in invoices:
+                number = inv.get('ksefNumber') or inv.get('ksefReferenceNumber') or ''
+                if number and number in seen:
+                    continue
+                if number:
+                    seen.add(number)
+                added += 1
                 yield inv
 
-            if not data.get('hasMore', False) or not invoices:
+            if not data.get('hasMore', False) or not added:
                 break
-            page_offset += page_size
+            if data.get('isTruncated'):
+                last = _parse_ksef_datetime(invoices[-1].get('permanentStorageDate'))
+                if last is None or last <= query_from:
+                    break
+                query_from = last
+                page_offset = 0
+            else:
+                page_offset += 1
 
     def check_quota(self, session_token: str) -> int | None:
         """

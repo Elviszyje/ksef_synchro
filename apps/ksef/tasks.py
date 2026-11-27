@@ -385,7 +385,7 @@ def _parsed_from_metadata(header: dict, buyer_nip_fallback: str = ''):
     wtedy używa buyer_nip_fallback (NIP z konfiguracji KSeF).
     """
     from decimal import Decimal
-    from apps.ksef.parser import ParsedInvoice
+    from apps.ksef.parser import ParsedInvoice, decode_entities
 
     logger.debug('KSeF metadata header: %s', header)
 
@@ -403,7 +403,7 @@ def _parsed_from_metadata(header: dict, buyer_nip_fallback: str = ''):
         or ident_by.get('value')
         or ''
     )
-    seller_name = (
+    seller_name = decode_entities(
         subj_by.get('subjectName')
         or subj_by.get('name')
         or subj_by.get('fullName')

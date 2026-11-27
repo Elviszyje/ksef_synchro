@@ -75,7 +75,7 @@ public enum SalesImport {
 
         if let buyer = root.find(".//Podmiot2", ns: ns) {
             invoice.buyerNIP = buyer.text("DaneIdentyfikacyjne/NIP", ns: ns)
-            invoice.buyerName = buyer.text("DaneIdentyfikacyjne/Nazwa", ns: ns).nonEmpty ?? invoice.buyerNIP.nonEmpty ?? "Nabywca bez nazwy"
+            invoice.buyerName = XMLEntities.decode(buyer.text("DaneIdentyfikacyjne/Nazwa", ns: ns)).nonEmpty ?? invoice.buyerNIP.nonEmpty ?? "Nabywca bez nazwy"
             invoice.buyerAddress = [buyer.text("Adres/AdresL1", ns: ns), buyer.text("Adres/AdresL2", ns: ns)]
                 .filter { !$0.isEmpty }.joined(separator: "\n")
         }

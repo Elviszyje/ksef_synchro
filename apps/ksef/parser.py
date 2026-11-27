@@ -2,6 +2,7 @@
 Parser XML FA — obsługuje FA(2) i FA(3) (auto-detect namespace).
 """
 import logging
+import re
 from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
 from typing import Optional
@@ -29,6 +30,37 @@ def _detect_ns(root) -> dict:
         if ns_uri in (root.nsmap.values() if hasattr(root, 'nsmap') else []):
             return {'fa': ns_uri}
     return {'fa': _KNOWN_NS[0]}
+
+
+_ENTITY_RE = re.compile(r'&(#[0-9]{1,8}|#[xX][0-9a-fA-F]{1,8}|amp|lt|gt|quot|apos|nbsp);')
+_NAMED_ENTITIES = {'amp': '&', 'lt': '<', 'gt': '>', 'quot': '"', 'apos': "'", 'nbsp': '\u00a0'}
+
+
+def _entity(match: re.Match) -> str:
+    name = match.group(1)
+    if name in _NAMED_ENTITIES:
+        return _NAMED_ENTITIES[name]
+    try:
+        code = int(name[2:], 16) if name[1] in 'xX' else int(name[1:])
+        return chr(code)
+    except (ValueError, OverflowError):
+        return match.group(0)
+
+
+def decode_entities(text: str) -> str:
+    """
+    Encje pozostawione w nazwie, gdy wystawca zakodował ją podwójnie (w XML `K&amp;amp;K`,
+    po parsowaniu `K&amp;K`; KSeF zwraca tak też metadane). Do 3 przebiegów.
+    Zduplikowane w iOS: `Domain/Support/XMLEntities.swift` — zmieniaj oba.
+    """
+    for _ in range(3):
+        if '&' not in text:
+            break
+        decoded = _ENTITY_RE.sub(_entity, text)
+        if decoded == text:
+            break
+        text = decoded
+    return text
 
 
 def _text(el, path: str, ns: dict) -> str:
@@ -155,7 +187,7 @@ class FA2Parser:
                 or _text(podmiot1, './/fa:NIP', NS)
             )
             # FA(2): PelnaNazwa; FA(3): Nazwa — oba warianty
-            result.seller_name = (
+            result.seller_name = decode_entities(
                 _text(podmiot1, 'fa:DaneIdentyfikacyjne/fa:PelnaNazwa', NS)
                 or _text(podmiot1, 'fa:DaneIdentyfikacyjne/fa:Nazwa', NS)
                 or _text(podmiot1, './/fa:PelnaNazwa', NS)

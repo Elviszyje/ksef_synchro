@@ -1,5 +1,6 @@
 import Foundation
 import GRDB
+import Domain
 
 /// Schemat bazy. Zasady:
 /// - identyfikatory to UUID w postaci tekstu (łączenie danych między urządzeniami w v2),
@@ -302,6 +303,22 @@ enum Schema {
         try db.create(table: "ksefSalesSync") { t in
             t.column("companyId", .text).notNull().primaryKey().references("company", onDelete: .cascade)
             t.column("lastSyncAt", .datetime)
+        }
+    }
+
+    /// Nazwy kontrahentów z encjami po podwójnym kodowaniu u wystawcy (`K&amp;K`) — dekodowane.
+    /// `updatedAt` rośnie, żeby poprawka wygrała z kopią w iCloud.
+    static func v7(_ db: Database) throws {
+        let now = Date()
+        for (table, column) in [("invoice", "sellerName"), ("outgoingInvoice", "buyerName"), ("buyer", "name")] {
+            let rows = try Row.fetchAll(db, sql: "SELECT id, \(column) AS name FROM \(table) WHERE \(column) LIKE '%&%;%'")
+            for row in rows {
+                let name: String = row["name"]
+                let decoded = XMLEntities.decode(name)
+                guard decoded != name else { continue }
+                try db.execute(sql: "UPDATE \(table) SET \(column) = ?, updatedAt = ? WHERE id = ?",
+                               arguments: [decoded, now, row["id"] as DatabaseValue])
+            }
         }
     }
 }

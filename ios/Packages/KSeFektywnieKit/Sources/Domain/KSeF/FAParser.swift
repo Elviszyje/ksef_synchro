@@ -36,11 +36,11 @@ public enum FAParser {
         if let seller = root.find(".//Podmiot1", ns: ns) {
             func s(_ path: String) -> String { seller.text(path, ns: ns) }
             result.sellerNIP = s("DaneIdentyfikacyjne/NIP").nonEmpty ?? s(".//NIP")
-            result.sellerName = s("DaneIdentyfikacyjne/PelnaNazwa").nonEmpty
+            result.sellerName = XMLEntities.decode(s("DaneIdentyfikacyjne/PelnaNazwa").nonEmpty
                 ?? s("DaneIdentyfikacyjne/Nazwa").nonEmpty
                 ?? s(".//PelnaNazwa").nonEmpty
                 ?? s(".//Nazwa").nonEmpty
-                ?? [s(".//Imie"), s(".//Nazwisko")].filter { !$0.isEmpty }.joined(separator: " ")
+                ?? [s(".//Imie"), s(".//Nazwisko")].filter { !$0.isEmpty }.joined(separator: " "))
             let address = [s("Adres/AdresL1"), s("Adres/AdresL2")].filter { !$0.isEmpty }.joined(separator: ", ")
             result.sellerAddress = PyText.prefix(address, 60)
         }

@@ -139,29 +139,84 @@ struct KSeFClientTests {
         await #expect(throws: KSeFError.missingToken) { try await client(token: "").authenticate() }
     }
 
-    @Test("Zapytanie o metadane: podział na 89 dni i stronicowanie")
+    static func queryItems(_ request: URLRequest) -> [String: String] {
+        let items = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)?.queryItems ?? []
+        return Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0.value ?? "") })
+    }
+
+    @Test("Zapytanie o metadane: podział na 89 dni i stronicowanie w query stringu")
     func metadataPaging() async throws {
         let auth = Self.authFlow(authPolls: Counter(1))
         StubProtocol.handler.withLock {
             $0 = { request, body in
                 guard request.url!.path == "/v2/invoices/query/metadata" else { return auth(request, body) }
                 let q = try! JSONSerialization.jsonObject(with: body!) as! [String: Any]
-                let offset = q["pageOffset"] as! Int
+                // Jak KSeF: stronicowanie tylko z query stringu, wartości z treści są ignorowane.
+                let params = Self.queryItems(request)
+                let page = Int(params["pageOffset"] ?? "0")!
                 let from = (q["dateRange"] as! [String: String])["from"]!
-                let hasMore = from.hasPrefix("2026-01-01") && offset == 0
-                return .init(body: json(["invoices": [["ksefNumber": "\(from)-\(offset)"]], "hasMore": hasMore]))
+                let hasMore = from.hasPrefix("2026-01-01") && page == 0
+                return .init(body: json(["invoices": [["ksefNumber": "\(from)-\(page)"]], "hasMore": hasMore,
+                                         "isTruncated": false]))
             }
         }
         let utc = ISO8601DateFormatter()
         let result = try await client().purchaseInvoiceMetadata(
-            from: utc.date(from: "2026-01-01T00:00:00Z")!, to: utc.date(from: "2026-06-01T00:00:00Z")!, pageSize: 1)
+            from: utc.date(from: "2026-01-01T00:00:00Z")!, to: utc.date(from: "2026-06-01T00:00:00Z")!, pageSize: 250)
         #expect(result.map { $0["ksefNumber"].stringValue } == [
             "2026-01-01T00:00:00Z-0", "2026-01-01T00:00:00Z-1", "2026-03-31T00:00:00Z-0",
         ])
         let queries = StubProtocol.requests.withLock { $0 }.filter { $0.0.url!.path.hasSuffix("query/metadata") }
+        #expect(queries.map { Self.queryItems($0.0)["pageOffset"] } == ["0", "1", "0"], "pageOffset to numer strony")
+        #expect(queries.allSatisfy { Self.queryItems($0.0)["pageSize"] == "250" && Self.queryItems($0.0)["sortOrder"] == "Asc" })
         #expect(queries.allSatisfy { $0.0.value(forHTTPHeaderField: "Authorization") == "Bearer ACCESS-T" })
         let auths = StubProtocol.requests.withLock { $0 }.filter { $0.0.url!.path.hasSuffix("token/redeem") }
         #expect(auths.count == 1, "access token powinien być użyty ponownie")
+    }
+
+    @Test("Metadane: isTruncated przesuwa początek zakresu, duplikaty z granicy są pomijane")
+    func metadataTruncated() async throws {
+        let auth = Self.authFlow(authPolls: Counter(1))
+        StubProtocol.handler.withLock {
+            $0 = { request, body in
+                guard request.url!.path == "/v2/invoices/query/metadata" else { return auth(request, body) }
+                let q = try! JSONSerialization.jsonObject(with: body!) as! [String: Any]
+                let from = (q["dateRange"] as! [String: String])["from"]!
+                if from.hasPrefix("2026-01-01") {
+                    return .init(body: json(["hasMore": true, "isTruncated": true, "invoices": [
+                        ["ksefNumber": "A", "permanentStorageDate": "2026-01-05T10:00:00.1234567+00:00"],
+                        ["ksefNumber": "B", "permanentStorageDate": "2026-01-10T12:00:00.0000001+00:00"],
+                    ]]))
+                }
+                #expect(from == "2026-01-10T12:00:00Z")
+                #expect(Self.queryItems(request)["pageOffset"] == "0")
+                return .init(body: json(["hasMore": false, "isTruncated": false, "invoices": [
+                    ["ksefNumber": "B", "permanentStorageDate": "2026-01-10T12:00:00+00:00"],
+                    ["ksefNumber": "C", "permanentStorageDate": "2026-01-11T08:00:00+00:00"],
+                ]]))
+            }
+        }
+        let utc = ISO8601DateFormatter()
+        let result = try await client().purchaseInvoiceMetadata(
+            from: utc.date(from: "2026-01-01T00:00:00Z")!, to: utc.date(from: "2026-02-01T00:00:00Z")!)
+        #expect(result.map { $0["ksefNumber"].stringValue } == ["A", "B", "C"])
+    }
+
+    @Test("Metadane: strona bez nowych faktur kończy zapytanie (bez pętli aż do 429)")
+    func metadataRepeatedPageStops() async throws {
+        let auth = Self.authFlow(authPolls: Counter(1))
+        StubProtocol.handler.withLock {
+            $0 = { request, body in
+                guard request.url!.path == "/v2/invoices/query/metadata" else { return auth(request, body) }
+                return .init(body: json(["hasMore": true, "isTruncated": false, "invoices": [["ksefNumber": "X"]]]))
+            }
+        }
+        let utc = ISO8601DateFormatter()
+        let result = try await client().purchaseInvoiceMetadata(
+            from: utc.date(from: "2026-01-01T00:00:00Z")!, to: utc.date(from: "2026-02-01T00:00:00Z")!)
+        #expect(result.count == 1)
+        let queries = StubProtocol.requests.withLock { $0 }.filter { $0.0.url!.path.hasSuffix("query/metadata") }
+        #expect(queries.count == 2)
     }
 
     @Test("XML faktury i 404")

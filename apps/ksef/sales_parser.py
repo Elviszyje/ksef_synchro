@@ -16,7 +16,7 @@ from typing import Optional
 
 from lxml import etree
 
-from apps.ksef.parser import _detect_ns, _text, FA2Parser
+from apps.ksef.parser import _detect_ns, _text, decode_entities, FA2Parser
 
 _CENT = Decimal('0.01')
 
@@ -137,7 +137,7 @@ def parse_sales_invoice(xml_bytes: bytes) -> Optional[ParsedSale]:
     buyer = root.find('.//fa:Podmiot2', ns)
     if buyer is not None:
         sale.buyer_nip = _text(buyer, 'fa:DaneIdentyfikacyjne/fa:NIP', ns)
-        sale.buyer_name = (_text(buyer, 'fa:DaneIdentyfikacyjne/fa:Nazwa', ns)
+        sale.buyer_name = (decode_entities(_text(buyer, 'fa:DaneIdentyfikacyjne/fa:Nazwa', ns))
                            or sale.buyer_nip or 'Nabywca bez nazwy')
         lines = [_text(buyer, 'fa:Adres/fa:AdresL1', ns), _text(buyer, 'fa:Adres/fa:AdresL2', ns)]
         sale.buyer_address = '\n'.join(line for line in lines if line)

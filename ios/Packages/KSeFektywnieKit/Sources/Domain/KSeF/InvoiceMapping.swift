@@ -10,8 +10,8 @@ public enum InvoiceMapping {
         let subjectBy = JSONValue.firstTruthy(header["subjectBy"], header["seller"])
         let identBy = JSONValue.firstTruthy(subjectBy["identifier"], subjectBy["subjectIdentifier"])
         let sellerNIP = JSONValue.firstTruthy(subjectBy["nip"], identBy["identifier"], identBy["value"]).stringValue
-        let sellerName = JSONValue.firstTruthy(subjectBy["subjectName"], subjectBy["name"],
-                                               subjectBy["fullName"], subjectBy["tradeName"]).stringValue
+        let sellerName = XMLEntities.decode(JSONValue.firstTruthy(subjectBy["subjectName"], subjectBy["name"],
+                                                                  subjectBy["fullName"], subjectBy["tradeName"]).stringValue)
 
         let subjectTo = JSONValue.firstTruthy(header["subjectTo"], header["buyer"])
         let identTo = JSONValue.firstTruthy(subjectTo["identifier"], subjectTo["subjectIdentifier"])

@@ -135,29 +135,58 @@ public actor KSeFClient {
         try await invoiceMetadata(subjectType: "Subject1", from: from, to: to, pageSize: pageSize)
     }
 
+    /// Stronicowanie wg specyfikacji KSeF 2.0: `pageOffset` (numer strony, nie rekordu), `pageSize` (10–250)
+    /// i `sortOrder` idą w query stringu — w treści są ignorowane. Wcześniej trafiały do treści, więc KSeF
+    /// zwracał ciągle pierwszą stronę po 10 faktur, a przy ponad 10 fakturach w zakresie (`hasMore`)
+    /// pętla odpytywała ją, aż limit 16 zapytań/min kończył się błędem 429 — przy każdej synchronizacji.
+    ///
+    /// Po 10 000 rekordów KSeF ustawia `isTruncated`: zapytanie trzeba wtedy ponowić od daty
+    /// `permanentStorageDate` ostatniego rekordu (od pierwszej strony). Rekordy z granicy się powtarzają,
+    /// więc wynik jest deduplikowany po numerze KSeF; strona bez nowych rekordów kończy zakres.
     func invoiceMetadata(subjectType: String, from: Date, to: Date, pageSize: Int) async throws -> [JSONValue] {
+        let pageSize = min(max(pageSize, 10), 250)
         var all: [JSONValue] = []
+        var seen = Set<String>()
         var chunkStart = from
         while chunkStart < to {
             let chunkEnd = min(chunkStart.addingTimeInterval(Self.maxChunk), to)
-            var offset = 0
+            var queryFrom = chunkStart
+            var pageOffset = 0
             while true {
                 let body: [String: Any] = [
                     "subjectType": subjectType,
                     "dateRange": [
                         "dateType": "PermanentStorage",
-                        "from": ISO8601DateFormatter.ksefQuery.string(from: chunkStart),
+                        "from": ISO8601DateFormatter.ksefQuery.string(from: queryFrom),
                         "to": ISO8601DateFormatter.ksefQuery.string(from: chunkEnd),
                     ],
-                    "pageSize": pageSize,
-                    "pageOffset": offset,
                 ]
-                let data = try await send("invoices/query/metadata", method: "POST", body: body, bearer: try await validToken())
+                let query = [
+                    URLQueryItem(name: "sortOrder", value: "Asc"),
+                    URLQueryItem(name: "pageOffset", value: String(pageOffset)),
+                    URLQueryItem(name: "pageSize", value: String(pageSize)),
+                ]
+                let data = try await send("invoices/query/metadata", method: "POST", query: query, body: body,
+                                          bearer: try await validToken())
                 let page = try JSONDecoder().decode(JSONValue.self, from: data)
                 guard case .array(let invoices) = page["invoices"] else { break }
-                all += invoices
-                guard page["hasMore"] == .bool(true), !invoices.isEmpty else { break }
-                offset += pageSize
+                var added = 0
+                for invoice in invoices {
+                    let number = JSONValue.firstTruthy(invoice["ksefNumber"], invoice["ksefReferenceNumber"]).stringValue
+                    if number.isEmpty || seen.insert(number).inserted {
+                        all.append(invoice)
+                        added += 1
+                    }
+                }
+                guard page["hasMore"] == .bool(true), added > 0 else { break }
+                if page["isTruncated"] == .bool(true) {
+                    guard let last = invoices.last.flatMap({ Self.parseDate($0["permanentStorageDate"].stringValue) }),
+                          last > queryFrom else { break }
+                    queryFrom = last
+                    pageOffset = 0
+                } else {
+                    pageOffset += 1
+                }
             }
             chunkStart = chunkEnd
         }
@@ -176,9 +205,11 @@ public actor KSeFClient {
 
     // MARK: - HTTP
 
-    func send(_ path: String, method: String, body: [String: Any]? = nil, bearer: String? = nil,
-              accept: String = "application/json") async throws -> Data {
-        var request = URLRequest(url: baseURL.appending(path: "v2/\(path)"))
+    func send(_ path: String, method: String, query: [URLQueryItem] = [], body: [String: Any]? = nil,
+              bearer: String? = nil, accept: String = "application/json") async throws -> Data {
+        var url = baseURL.appending(path: "v2/\(path)")
+        if !query.isEmpty { url.append(queryItems: query) }
+        var request = URLRequest(url: url)
         request.httpMethod = method
         request.timeoutInterval = 30
         request.setValue(accept, forHTTPHeaderField: "Accept")
