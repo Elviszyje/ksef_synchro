@@ -26,7 +26,8 @@ public enum InvoiceMapping {
         parsed.sellerNIP = sellerNIP
         parsed.sellerName = sellerName
         parsed.buyerNIP = buyerNIP
-        parsed.issueDate = header["invoiceIssueDate"].stringValue
+        // KSeF 2.0: `issueDate`; `invoiceIssueDate` z wcześniejszych wersji API.
+        parsed.issueDate = JSONValue.firstTruthy(header["issueDate"], header["invoiceIssueDate"]).stringValue
         parsed.amountGross = amount("gross", "grossAmount", "grossValue")
         parsed.amountNet = amount("net", "netAmount", "netValue")
         parsed.amountVAT = amount("vat", "vatAmount", "vatValue")

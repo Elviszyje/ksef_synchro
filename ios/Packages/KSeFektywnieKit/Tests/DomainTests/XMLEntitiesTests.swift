@@ -24,3 +24,18 @@ struct XMLEntitiesTests {
         #expect(InvoiceMapping.parsed(fromMetadata: header).sellerName == "Grupa K&K")
     }
 }
+
+@Suite("Metadane KSeF 2.0")
+struct MetadataIssueDateTests {
+    @Test("Data wystawienia z pola issueDate (KSeF 2.0), nie z daty synchronizacji")
+    func issueDate() {
+        let header: JSONValue = .object([
+            "ksefNumber": .string("R"), "invoiceNumber": .string("19/10/2026"), "issueDate": .string("2026-10-19"),
+            "seller": .object(["nip": .string("1111111111"), "name": .string("KAHLA")]),
+        ])
+        let parsed = InvoiceMapping.parsed(fromMetadata: header)
+        #expect(parsed.issueDate == "2026-10-19")
+        let invoice = InvoiceMapping.invoice(from: parsed, companyID: UUID(), today: LocalDate(year: 2026, month: 11, day: 27)!)
+        #expect(invoice.issueDate == LocalDate(year: 2026, month: 10, day: 19)!)
+    }
+}

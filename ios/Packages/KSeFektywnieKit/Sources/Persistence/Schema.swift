@@ -321,4 +321,21 @@ enum Schema {
             }
         }
     }
+
+    /// Faktury z samych metadanych dostawały datę synchronizacji zamiast daty wystawienia (KSeF 2.0
+    /// podaje ją w `issueDate`, czytane było `invoiceIssueDate`). Cofnięcie kursora do 31 dni przed
+    /// najstarszą taką fakturą (najwyżej rok wstecz) sprawia, że kolejna synchronizacja pobierze ich
+    /// metadane ponownie i poprawi daty.
+    static func v8(_ db: Database) throws {
+        let floor = Date().addingTimeInterval(-365 * 24 * 3600)
+        let rows = try Row.fetchAll(db, sql: """
+            SELECT companyId, MIN(syncedAt) AS earliest FROM invoice WHERE rawXml = '' GROUP BY companyId
+            """)
+        for row in rows {
+            guard let earliest: Date = row["earliest"] else { continue }
+            let rewound = max(floor, earliest.addingTimeInterval(-31 * 24 * 3600))
+            try db.execute(sql: "UPDATE company SET lastSyncAt = ? WHERE id = ? AND (lastSyncAt IS NULL OR lastSyncAt > ?)",
+                           arguments: [rewound, row["companyId"] as DatabaseValue, rewound])
+        }
+    }
 }

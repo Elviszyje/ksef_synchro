@@ -28,3 +28,34 @@ struct EntityNamesMigrationTests {
         #expect((rows[1]["updatedAt"] as Date) == old)
     }
 }
+
+@Suite("Migracja v8: ponowne pobranie metadanych dla dat wystawienia")
+struct IssueDateResyncMigrationTests {
+    @Test("Kursor synchronizacji cofa się przed najstarszą fakturę bez XML")
+    func rewindsCursor() throws {
+        let queue = try DatabaseQueue()
+        try AppDatabase.migrator.migrate(queue, upTo: "v7-decode-entity-names")
+        let now = Date()
+        let synced = now.addingTimeInterval(-2 * 24 * 3600)
+        var company = Company(nip: "1111111111", name: "F")
+        company.lastSyncAt = now
+        var other = Company(nip: "2222222222", name: "G")
+        other.lastSyncAt = now
+        let metadataOnly = Invoice(companyID: company.id, ksefReferenceNumber: "R1", invoiceNumber: "1",
+                                   issueDate: LocalDate(now), syncedAt: synced)
+        let withXML = Invoice(companyID: other.id, ksefReferenceNumber: "R2", invoiceNumber: "2",
+                              issueDate: LocalDate(now), rawXML: "<Faktura/>", syncedAt: synced)
+        try queue.write { db in
+            try company.insert(db); try other.insert(db)
+            try metadataOnly.insert(db); try withXML.insert(db)
+        }
+        try AppDatabase.migrator.migrate(queue)
+        let cursors = try queue.read { db in
+            try Dictionary(uniqueKeysWithValues: Row.fetchAll(db, sql: "SELECT nip, lastSyncAt FROM company").map {
+                ($0["nip"] as String, $0["lastSyncAt"] as Date)
+            })
+        }
+        #expect(abs(cursors["1111111111"]!.timeIntervalSince(synced.addingTimeInterval(-31 * 24 * 3600))) < 1)
+        #expect(abs(cursors["2222222222"]!.timeIntervalSince(now)) < 1)
+    }
+}
