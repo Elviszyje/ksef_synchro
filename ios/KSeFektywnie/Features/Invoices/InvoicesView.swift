@@ -113,6 +113,16 @@ struct InvoicesView: View {
                 filter.issuedFrom = bounds?.lowerBound
                 filter.issuedTo = bounds?.upperBound
             }
+            .onChange(of: model.invoiceSearchRequest, initial: true) { _, term in
+                guard let term else { return }
+                // Dostawca z Pulpitu: tylko jego faktury, bez innych filtrów i zakresu dat.
+                var fresh = InvoiceFilter()
+                fresh.search = term
+                filter = fresh
+                period = .all
+                path = []
+                model.invoiceSearchRequest = nil
+            }
             .onChange(of: model.openTarget, initial: true) { _, target in
                 if case .invoice(let id)? = target {
                     path = [id]

@@ -29,6 +29,9 @@ final class AppModel {
     let reminders = RemindersService()
     /// Rekord do otwarcia z linku w aplikacji Przypomnienia.
     var openTarget: ReminderTarget?
+    /// Wyszukiwanie do ustawienia na liście faktur kosztowych (dostawca dotknięty na Pulpicie);
+    /// lista je przejmuje i zeruje.
+    var invoiceSearchRequest: String?
 
     var syncInProgress = false
     /// Wynik ostatniej synchronizacji — w Ustawieniach zostaje przy przycisku „Synchronizuj teraz”.

@@ -6,15 +6,13 @@ import Persistence
 /// Pulpit: koszty wybranego miesiąca, VAT z faktur, kwota do zapłaty i najbliższe terminy.
 /// Wszystko liczone z faktur kosztowych w PLN (inne waluty wymagałyby kursów).
 ///
-/// Przy kilku firmach nagłówek jest przełącznikiem: jedna firma (staje się aktywna we wszystkich
-/// zakładkach) albo „Wszystkie firmy” — wtedy Pulpit sumuje dane ponad firmami, a pozostałe
-/// zakładki dalej pracują na aktywnej.
+/// Przełącznik firmy w pasku (`CompanySwitcherMenu`, ten sam co w innych zakładkach) ma tu dodatkowo
+/// „Wszystkie firmy” — wtedy Pulpit sumuje dane ponad firmami, a pozostałe zakładki dalej pracują na aktywnej.
 struct DashboardView: View {
     @Environment(AppModel.self) private var model
     /// Faktury kosztowe wszystkich firm; `invoices` zawęża je do wybranego zakresu.
     @State private var allInvoices: [Invoice] = []
     @AppStorage("dashboardAllCompanies") private var wantsAllCompanies = false
-    @State private var addingCompany = false
     @State private var month = LocalDate.today().firstOfMonth
     @State private var path: [UUID] = []
     @State private var showSummary = DebugLaunch.openDashboard
@@ -34,7 +32,10 @@ struct DashboardView: View {
         NavigationStack(path: $path) {
             ScrollView {
                 VStack(spacing: 12) {
-                    header
+                    HStack {
+                        Spacer()
+                        monthSwitcher
+                    }
                     if model.isDemo && !DebugLaunch.storeShots {
                         banner(Text("Tryb demo — dane przykładowe"), systemImage: "theatermasks")
                     }
@@ -51,8 +52,12 @@ struct DashboardView: View {
             }
             .background(Color.appBackground.ignoresSafeArea())
             .refreshable { await model.sync(allCompanies: showsAllCompanies) }
-            .sheet(isPresented: $addingCompany) { AddCompanyView() }
-            .toolbar(.hidden, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    CompanySwitcherMenu(allCompanies: $wantsAllCompanies, accessibilityID: "company-switcher")
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
             .animation(.snappy, value: model.syncBanner)
             .navigationDestination(for: UUID.self) { InvoiceDetailView(invoiceID: $0) }
             .navigationDestination(isPresented: $showSummary) { CostDashboardView() }
@@ -61,59 +66,6 @@ struct DashboardView: View {
     }
 
     // MARK: - Sekcje
-
-    private var header: some View {
-        HStack(spacing: 10) {
-            companySwitcher
-            Spacer(minLength: 8)
-            monthSwitcher
-        }
-        .padding(.top, 8)
-    }
-
-    /// Nazwa firmy z menu: wybór firmy, widok łączny i dodanie kolejnej firmy.
-    private var companySwitcher: some View {
-        let title = showsAllCompanies ? String(localized: "Wszystkie firmy") : (model.company?.name ?? "")
-        return Menu {
-            Picker("Firma", selection: Binding(
-                get: { showsAllCompanies ? nil : model.company?.id },
-                set: { id in
-                    wantsAllCompanies = id == nil
-                    if let id { model.activate(id) }
-                })) {
-                ForEach(model.companies) { company in
-                    Text(company.name).tag(UUID?.some(company.id))
-                }
-                if model.companies.count > 1 {
-                    Label("Wszystkie firmy", systemImage: "square.stack.3d.up").tag(UUID?.none)
-                }
-            }
-            if model.canAddCompany {
-                Button { addingCompany = true } label: { Label("Dodaj firmę", systemImage: "plus") }
-            }
-        } label: {
-            HStack(spacing: 10) {
-                if showsAllCompanies {
-                    Image(systemName: "square.stack.3d.up.fill")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(Color.appOnPrimary)
-                        .frame(width: 34, height: 34)
-                        .background(Color.appPrimaryFill, in: .circle)
-                } else {
-                    InitialsAvatar(name: title, size: 34, prominent: true)
-                }
-                Text(title)
-                    .font(.grotesk(16, .medium, relativeTo: .headline))
-                    .foregroundStyle(Color.appInk)
-                    .lineLimit(1)
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(Color.appMuted)
-            }
-            .contentShape(.rect)
-        }
-        .accessibilityIdentifier("company-switcher")
-    }
 
     /// Wybór miesiąca: poprzedni / następny w obrębie ostatnich 12 miesięcy.
     private var monthSwitcher: some View {
@@ -184,6 +136,7 @@ struct DashboardView: View {
                         .contentShape(.rect)
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier("month-bar")
                 .accessibilityLabel(Text(item.date().formatted(.dateTime.month(.wide).year())))
                 .accessibilityValue(Text(values[index].money()))
                 .accessibilityAddTraits(item == month ? .isSelected : [])
@@ -304,16 +257,25 @@ struct DashboardView: View {
             VStack(spacing: 0) {
                 ForEach(Array(sellers.enumerated()), id: \.element.id) { index, seller in
                     if index > 0 { Divider().overlay(Color.appLine) }
-                    HStack(spacing: 12) {
-                        Text(seller.name)
-                            .font(.grotesk(15, .medium, relativeTo: .subheadline))
-                            .lineLimit(1)
-                        Spacer(minLength: 8)
-                        Text(seller.gross.money())
-                            .font(.grotesk(15, .medium, relativeTo: .subheadline))
-                            .monospacedDigit()
+                    Button { open(seller) } label: {
+                        HStack(spacing: 12) {
+                            Text(seller.name)
+                                .font(.grotesk(15, .medium, relativeTo: .subheadline))
+                                .lineLimit(1)
+                            Spacer(minLength: 8)
+                            Text(seller.gross.money())
+                                .font(.grotesk(15, .medium, relativeTo: .subheadline))
+                                .monospacedDigit()
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(Color.appMuted)
+                        }
+                        .foregroundStyle(Color.appInk)
+                        .padding(.vertical, 14)
+                        .contentShape(.rect)
                     }
-                    .padding(.vertical, 14)
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("top-seller-\(index)")
                 }
             }
             .padding(.horizontal, 18)
@@ -368,14 +330,25 @@ struct DashboardView: View {
     private struct SellerTotal: Identifiable {
         let id: String
         let name: String
+        let nip: String
+        /// Firma, której fakturę od dostawcy spotkano pierwszą (widok łączny przełącza się na nią).
+        let companyID: UUID
         var gross: Decimal
+    }
+
+    /// Lista faktur kosztowych zawężona do dostawcy (po NIP-ie, a bez NIP-u po nazwie).
+    private func open(_ seller: SellerTotal) {
+        model.invoiceSearchRequest = seller.nip.isEmpty ? seller.name : seller.nip
+        if seller.companyID != model.company?.id { model.activate(seller.companyID) }
+        openInvoices()
     }
 
     private func topSellers(_ month: LocalDate) -> [SellerTotal] {
         var sellers: [String: SellerTotal] = [:]
         for invoice in invoices where inMonth(invoice, month) {
             var seller = sellers[invoice.sellerNIP]
-                ?? SellerTotal(id: invoice.sellerNIP, name: invoice.sellerName, gross: 0)
+                ?? SellerTotal(id: invoice.sellerNIP, name: invoice.sellerName, nip: invoice.sellerNIP,
+                               companyID: invoice.companyID, gross: 0)
             seller.gross += invoice.amountGross
             sellers[invoice.sellerNIP] = seller
         }
